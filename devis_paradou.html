@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Devis Proforma - Pressing PARADOU</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            color: #1e293b;
+            background-color: #f8fafc;
+            padding: 20px;
+            -webkit-print-color-adjust: exact;
+        }
+
+        /* Container designed for A4 Page */
+        .invoice-box {
+            max-width: 800px;
+            margin: 0 auto;
+            background: #ffffff;
+            padding: 40px;
+            border-radius: 16px;
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05);
+            border: 1px solid #e2e8f0;
+        }
+
+        /* Header Layout */
+        .invoice-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            border-bottom: 2px solid #f1f5f9;
+            padding-bottom: 25px;
+            margin-bottom: 25px;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .brand h1 {
+            font-size: 26px;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+            color: #0f172a;
+        }
+
+        .brand-svg {
+            width: 28px;
+            height: 28px;
+            stroke: #4f46e5;
+            stroke-width: 2.5;
+        }
+
+        .invoice-title {
+            text-align: right;
+        }
+
+        .invoice-title h2 {
+            font-size: 20px;
+            font-weight: 800;
+            color: #4f46e5;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 5px;
+        }
+
+        .invoice-title p {
+            font-size: 12px;
+            color: #64748b;
+            font-weight: 500;
+        }
+
+        /* Info Section */
+        .info-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            margin-bottom: 35px;
+        }
+
+        .info-block h3 {
+            font-size: 11px;
+            font-weight: 700;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+        }
+
+        .info-block p {
+            font-size: 13px;
+            color: #334155;
+            line-height: 1.5;
+        }
+
+        .info-block .name {
+            font-size: 15px;
+            font-weight: 700;
+            color: #0f172a;
+            margin-bottom: 4px;
+        }
+
+        /* Table Design */
+        .items-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 35px;
+        }
+
+        .items-table th {
+            background-color: #f8fafc;
+            color: #475569;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 12px 16px;
+            text-align: left;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        .items-table td {
+            padding: 16px;
+            font-size: 13px;
+            color: #475569;
+            border-bottom: 1px solid #f1f5f9;
+            vertical-align: top;
+        }
+
+        .items-table td.qty, 
+        .items-table td.price, 
+        .items-table td.total {
+            text-align: right;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .item-title {
+            font-weight: 600;
+            color: #0f172a;
+            margin-bottom: 4px;
+        }
+
+        .item-desc {
+            font-size: 11px;
+            color: #94a3b8;
+            line-height: 1.4;
+        }
+
+        /* Total Summary Box */
+        .summary-container {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 45px;
+        }
+
+        .summary-box {
+            width: 300px;
+        }
+
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            font-size: 13px;
+            color: #475569;
+        }
+
+        .summary-row.grand-total {
+            border-top: 2px solid #e2e8f0;
+            padding-top: 12px;
+            margin-top: 8px;
+            font-size: 18px;
+            font-weight: 800;
+            color: #4f46e5;
+        }
+
+        /* Terms & Notes */
+        .invoice-footer {
+            border-top: 2px solid #f1f5f9;
+            padding-top: 25px;
+            font-size: 11px;
+            color: #94a3b8;
+            line-height: 1.6;
+        }
+
+        .invoice-footer h4 {
+            color: #475569;
+            font-weight: 700;
+            margin-bottom: 6px;
+            text-transform: uppercase;
+        }
+
+        /* Print & Interactive Styling */
+        .actions-bar {
+            max-width: 800px;
+            margin: 0 auto 15px auto;
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        .btn {
+            background-color: #4f46e5;
+            color: #ffffff;
+            font-size: 13px;
+            font-weight: 600;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.2);
+            transition: all 0.15s ease;
+        }
+
+        .btn:hover {
+            background-color: #4338ca;
+            transform: translateY(-1px);
+        }
+
+        @media print {
+            body {
+                background-color: #ffffff;
+                padding: 0;
+            }
+            .invoice-box {
+                border: none;
+                box-shadow: none;
+                padding: 0;
+            }
+            .no-print {
+                display: none !important;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Print Button (Hidden in PDF) -->
+    <div class="actions-bar no-print">
+        <button onclick="window.print()" class="btn">Imprimer en PDF</button>
+    </div>
+
+    <!-- Invoice Frame -->
+    <div class="invoice-box">
+        <!-- Top header -->
+        <div class="invoice-header">
+            <div class="brand">
+                <svg class="brand-svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <rect x="4" y="3" width="16" height="18" rx="2" />
+                    <line x1="4" y1="7" x2="20" y2="7" />
+                    <circle cx="7" cy="5" r="0.75" fill="#4f46e5" />
+                    <circle cx="10" cy="5" r="0.75" fill="#4f46e5" />
+                    <circle cx="13" cy="5" r="0.75" fill="#4f46e5" />
+                    <circle cx="12" cy="14" r="4" />
+                    <circle cx="12" cy="14" r="2.5" stroke-dasharray="3 2" />
+                </svg>
+                <h1>PARADOU SOFTWARE</h1>
+            </div>
+            <div class="invoice-title">
+                <h2>Devis de Prestation</h2>
+                <p>N° DEVIS : DEV-2026-001</p>
+                <p>DATE : 08 Juillet 2026</p>
+            </div>
+        </div>
+
+        <!-- Info section -->
+        <div class="info-section">
+            <div class="info-block">
+                <h3>Prestataire</h3>
+                <p class="name">Développeur Freelance IT</p>
+                <p>Alger, Algérie</p>
+                <p>Email : contact@paradou-software.dz</p>
+            </div>
+            <div class="info-block">
+                <h3>Client</h3>
+                <p class="name">Pressing PARADOU</p>
+                <p>Adresse : Alger, Algérie</p>
+                <p>Téléphone : 0561 99 88 01</p>
+            </div>
+        </div>
+
+        <!-- Items Table -->
+        <table class="items-table">
+            <thead>
+                <tr>
+                    <th style="width: 55%;">Description des Prestations</th>
+                    <th style="width: 10%; text-align: center;">Qté</th>
+                    <th style="width: 15%; text-align: right;">Prix Unitaire</th>
+                    <th style="width: 20%; text-align: right;">Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Item 1 -->
+                <tr>
+                    <td>
+                        <div class="item-title">Module POS - Caisse Tactile Interactive</div>
+                        <div class="item-desc">Développement de l'interface de caisse réactive, sélection des articles, gestion du panier tactile, panneau collapsible de facturation, boutons d'options rapides de nettoyage (Couleurs, Défauts, Taches).</div>
+                    </td>
+                    <td class="qty" style="text-align: center;">1</td>
+                    <td class="price">35 000 DA</td>
+                    <td class="total">35 000 DA</td>
+                </tr>
+                <!-- Item 2 -->
+                <tr>
+                    <td>
+                        <div class="item-title">Module Administration & Tableau de Bord</div>
+                        <div class="item-desc">Espace d'analyse financière pour l'administrateur, graphiques chronologiques (Chiffre d'Affaires Net, Dépenses et Bénéfices), gestion des rôles utilisateur (Admin vs Caissiers).</div>
+                    </td>
+                    <td class="qty" style="text-align: center;">1</td>
+                    <td class="price">15 000 DA</td>
+                    <td class="total">15 000 DA</td>
+                </tr>
+                <!-- Item 3 -->
+                <tr>
+                    <td>
+                        <div class="item-title">Module Suivi de Commandes & Notifications</div>
+                        <div class="item-desc">Gestion des états de préparation des tickets de pressing, notifications automatiques prêtes (sms/WhatsApp simulés), livraison et encaissement des soldes.</div>
+                    </td>
+                    <td class="qty" style="text-align: center;">1</td>
+                    <td class="price">10 000 DA</td>
+                    <td class="total">10 000 DA</td>
+                </tr>
+                <!-- Item 4 -->
+                <tr>
+                    <td>
+                        <div class="item-title">Migration Historique de Données</div>
+                        <div class="item-desc">Traitement et importation du fichier historique comprenant 2 482 fiches clients actives et les comptes de solde.</div>
+                    </td>
+                    <td class="qty" style="text-align: center;">1</td>
+                    <td class="price">10 000 DA</td>
+                    <td class="total">10 000 DA</td>
+                </tr>
+                <!-- Item 5 -->
+                <tr>
+                    <td>
+                        <div class="item-title">Configuration Hébergement Hostinger & Nom de Domaine</div>
+                        <div class="item-desc">Abonnement annuel hébergement Cloud Hostinger, enregistrement du domaine professionnel, certificats de sécurité SSL et synchronisation de sauvegarde automatique.</div>
+                    </td>
+                    <td class="qty" style="text-align: center;">1</td>
+                    <td class="price">10 000 DA</td>
+                    <td class="total">10 000 DA</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <!-- Totals Summary -->
+        <div class="summary-container">
+            <div class="summary-box">
+                <div class="summary-row">
+                    <span>Sous-total HT</span>
+                    <span>80 000 DA</span>
+                </div>
+                <div class="summary-row">
+                    <span>TVA (0%)</span>
+                    <span>Exonéré</span>
+                </div>
+                <div class="summary-row grand-total">
+                    <span>Total Net</span>
+                    <span>80 000 DA</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer Terms -->
+        <div class="invoice-footer">
+            <h4>Conditions de Règlement & Validité</h4>
+            <p>1. Validité du devis : 30 jours à compter de la date d'émission.</p>
+            <p>2. Modalités de paiement : 50% d'acompte au lancement, 50% à la livraison finale.</p>
+            <p>3. Délai de livraison : Prêt pour déploiement immédiat.</p>
+        </div>
+    </div>
+
+</body>
+</html>
