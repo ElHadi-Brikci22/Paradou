@@ -12,7 +12,8 @@ class ServicePrice extends Model
     protected $fillable = [
         'service_id',
         'garment_item_id',
-        'price'
+        'price',
+        'wholesale_price'
     ];
 
     public function service()

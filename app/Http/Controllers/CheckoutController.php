@@ -43,6 +43,10 @@ class CheckoutController extends Controller
             'Sang', 'Transpiration', 'Vin'
         ]);
 
+        $patterns = $this->getPatterns([
+            'A carreaux', 'A rayures', 'Bi color', 'Florale', 'Moucheté', 'Pied de poule'
+        ]);
+
         // Get the latest ticket number to display/suggest next ticket
         $lastOrder = \App\Models\Order::orderBy('id', 'desc')->first();
         $nextTicketNumber = $lastOrder ? str_pad(intval($lastOrder->ticket_number) + 1, 6, '0', STR_PAD_LEFT) : '000001';
@@ -61,6 +65,7 @@ class CheckoutController extends Controller
             'targets',
             'items',
             'colors',
+            'patterns',
             'defects',
             'stains',
             'nextTicketNumber',
@@ -84,6 +89,42 @@ class CheckoutController extends Controller
                 }
             } catch (\Exception $e) {
                 // Ignore exception and use fallback
+            }
+        }
+        return $fallback;
+    }
+
+    /**
+     * Helper to read item patterns from old MSK folder Menu/0/2
+     */
+    private function getPatterns($fallback)
+    {
+        $sourcePath = 'c:/Users/hadib/OneDrive/Bureau/MSK-DRY-PLUS-2022/Menu/0/2';
+        if (File::isDirectory($sourcePath)) {
+            try {
+                $files = File::files($sourcePath);
+                $patterns = [];
+                foreach ($files as $file) {
+                    if ($file->getExtension() === 'txt') {
+                        $filename = pathinfo($file->getFilename(), PATHINFO_FILENAME);
+                        if (str_starts_with($filename, '0-')) {
+                            // Clean leading 0- and spaces
+                            $clean = preg_replace('/^0-\s*/', '', $filename);
+                            // Correct spelling of A reure to A rayures
+                            if (strtolower($clean) === 'a reure') {
+                                $clean = 'A rayures';
+                            } elseif (strtolower($clean) === 'mouchte') {
+                                $clean = 'Moucheté';
+                            }
+                            $patterns[] = $clean;
+                        }
+                    }
+                }
+                if (count($patterns) > 0) {
+                    return array_values(array_unique($patterns));
+                }
+            } catch (\Exception $e) {
+                // Ignore and use fallback
             }
         }
         return $fallback;

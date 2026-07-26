@@ -20,6 +20,8 @@ class DashboardController extends Controller
     public function index(Request $request)
     {
         $range = $request->input('range', 'month');
+        $userId = $request->input('user_id', 'all');
+
         $start = now()->startOfMonth();
         $end = now()->endOfDay();
 
@@ -43,21 +45,35 @@ class DashboardController extends Controller
                 break;
         }
 
+        // Load users for filtering and comparisons
+        $users = \App\Models\User::all();
+
         // 1. Core Financial metrics
-        $totalNetCA = Order::whereBetween('order_date', [$start, $end])->sum('total_amount');
-        $totalCollected = Order::whereBetween('order_date', [$start, $end])->sum('paid_amount');
-        $totalBalance = Order::whereBetween('order_date', [$start, $end])->sum('balance_amount');
-        $totalExpenses = Expense::whereBetween('expense_date', [$start, $end])->sum('amount');
+        $orderQuery = Order::whereBetween('order_date', [$start, $end]);
+        $expenseQuery = Expense::whereBetween('expense_date', [$start, $end]);
+
+        if ($userId !== 'all') {
+            $orderQuery->where('user_id', $userId);
+            $expenseQuery->where('user_id', $userId);
+        }
+
+        $totalNetCA = (clone $orderQuery)->sum('total_amount');
+        $totalCollected = (clone $orderQuery)->sum('paid_amount');
+        $totalBalance = (clone $orderQuery)->sum('balance_amount');
+        $totalExpenses = (clone $expenseQuery)->sum('amount');
         
         // Net profit is the actual cash collected minus the expenses incurred
         $netProfit = $totalCollected - $totalExpenses;
 
-        $totalOrdersCount = Order::whereBetween('order_date', [$start, $end])->count();
+        $totalOrdersCount = (clone $orderQuery)->count();
         $totalClientsCount = Client::count();
 
         // 2. Services popularity (Quantity of clothes and revenue generated per service)
-        $servicesBreakdown = OrderItem::whereHas('order', function ($query) use ($start, $end) {
+        $servicesBreakdown = OrderItem::whereHas('order', function ($query) use ($start, $end, $userId) {
                 $query->whereBetween('order_date', [$start, $end]);
+                if ($userId !== 'all') {
+                    $query->where('user_id', $userId);
+                }
             })
             ->select('service_id', DB::raw('SUM(quantity) as qty'), DB::raw('SUM(total_price) as revenue'))
             ->groupBy('service_id')
@@ -75,7 +91,11 @@ class DashboardController extends Controller
         }
 
         // 3. Top 5 active clients by billing amount in range
-        $topClients = Order::whereBetween('order_date', [$start, $end])
+        $topClientsQuery = Order::whereBetween('order_date', [$start, $end]);
+        if ($userId !== 'all') {
+            $topClientsQuery->where('user_id', $userId);
+        }
+        $topClients = $topClientsQuery
             ->select('client_id', DB::raw('SUM(total_amount) as total_spent'), DB::raw('COUNT(id) as tickets_count'))
             ->groupBy('client_id')
             ->orderBy('total_spent', 'desc')
@@ -84,12 +104,16 @@ class DashboardController extends Controller
             ->get();
 
         // 4. Monthly/Daily revenue trend for Chart (shows sales line chart)
-        // Group by day for month range, group by month for year/all range
         $trendData = [];
         $trendLabels = [];
 
+        $trendQuery = Order::whereBetween('order_date', [$start, $end]);
+        if ($userId !== 'all') {
+            $trendQuery->where('user_id', $userId);
+        }
+
         if ($range === 'today' || $range === 'week' || $range === 'month') {
-            $salesTrend = Order::whereBetween('order_date', [$start, $end])
+            $salesTrend = (clone $trendQuery)
                 ->select(DB::raw('DATE(order_date) as date'), DB::raw('SUM(total_amount) as total'))
                 ->groupBy('date')
                 ->orderBy('date', 'asc')
@@ -101,7 +125,7 @@ class DashboardController extends Controller
             }
         } else {
             // Group by year-month for longer periods
-            $salesTrend = Order::whereBetween('order_date', [$start, $end])
+            $salesTrend = (clone $trendQuery)
                 ->select(DB::raw('DATE_FORMAT(order_date, "%Y-%m") as month'), DB::raw('SUM(total_amount) as total'))
                 ->groupBy('month')
                 ->orderBy('month', 'asc')
@@ -113,8 +137,29 @@ class DashboardController extends Controller
             }
         }
 
+        // 5. Calculations per user (when 'all' is selected)
+        $usersStats = [];
+        if ($userId === 'all') {
+            foreach ($users as $u) {
+                $userCA = Order::where('user_id', $u->id)->whereBetween('order_date', [$start, $end])->sum('total_amount');
+                $userCollected = Order::where('user_id', $u->id)->whereBetween('order_date', [$start, $end])->sum('paid_amount');
+                $userExpenses = Expense::where('user_id', $u->id)->whereBetween('expense_date', [$start, $end])->sum('amount');
+                $userTickets = Order::where('user_id', $u->id)->whereBetween('order_date', [$start, $end])->count();
+                $usersStats[] = [
+                    'user' => $u,
+                    'ca' => floatval($userCA),
+                    'collected' => floatval($userCollected),
+                    'expenses' => floatval($userExpenses),
+                    'profit' => floatval($userCollected - $userExpenses),
+                    'tickets' => $userTickets
+                ];
+            }
+        }
+
         return view('admin.dashboard', compact(
             'range',
+            'userId',
+            'users',
             'totalNetCA',
             'totalCollected',
             'totalBalance',
@@ -128,7 +173,8 @@ class DashboardController extends Controller
             'serviceRevenues',
             'serviceColors',
             'trendLabels',
-            'trendData'
+            'trendData',
+            'usersStats'
         ));
     }
 }

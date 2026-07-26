@@ -18,20 +18,42 @@
     <div class="bg-slate-800/40 p-5 border-b border-slate-700/50 shrink-0 flex flex-col sm:flex-row gap-4 items-center justify-between">
         <div>
             <h2 class="text-xl font-bold font-display text-white">Analyses & Statistiques</h2>
-            <p class="text-xs text-slate-400">Rapports financiers et performance globale de la boutique</p>
+            @if($userId === 'all')
+                <p class="text-xs text-slate-400">Rapports financiers et performance globale de la boutique</p>
+            @else
+                @php
+                    $selectedUser = $users->firstWhere('id', $userId);
+                @endphp
+                <p class="text-xs text-slate-400">Rapports financiers et performance individuelle de <strong>{{ $selectedUser ? $selectedUser->name : 'l\'acteur' }}</strong></p>
+            @endif
         </div>
 
-        <!-- Range Filter Form -->
-        <form method="GET" action="{{ route('admin.dashboard') }}" class="flex items-center space-x-2">
-            <span class="text-xs text-slate-400 font-medium">Période :</span>
-            <select name="range" onchange="this.form.submit()" 
-                    class="bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs font-semibold text-slate-200 focus:outline-none focus:border-indigo-500">
-                <option value="today" {{ $range === 'today' ? 'selected' : '' }}>Aujourd'hui</option>
-                <option value="week" {{ $range === 'week' ? 'selected' : '' }}>7 derniers jours</option>
-                <option value="month" {{ $range === 'month' ? 'selected' : '' }}>Ce mois-ci</option>
-                <option value="year" {{ $range === 'year' ? 'selected' : '' }}>Cette année</option>
-                <option value="all" {{ $range === 'all' ? 'selected' : '' }}>Toutes les données</option>
-            </select>
+        <!-- Range & User Filter Form -->
+        <form method="GET" action="{{ route('admin.dashboard') }}" class="flex flex-col sm:flex-row items-center gap-3">
+            <div class="flex items-center space-x-2">
+                <span class="text-xs text-slate-400 font-medium">Acteur :</span>
+                <select name="user_id" onchange="this.form.submit()" 
+                        class="bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs font-semibold text-slate-200 focus:outline-none focus:border-indigo-500">
+                    <option value="all" {{ $userId === 'all' ? 'selected' : '' }}>Tout le magasin (Global)</option>
+                    @foreach($users as $user)
+                        <option value="{{ $user->id }}" {{ intval($userId) === $user->id ? 'selected' : '' }}>
+                            {{ $user->name }} ({{ $user->role === 'admin' ? 'Admin' : 'Caissier' }})
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+
+            <div class="flex items-center space-x-2">
+                <span class="text-xs text-slate-400 font-medium">Période :</span>
+                <select name="range" onchange="this.form.submit()" 
+                        class="bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs font-semibold text-slate-200 focus:outline-none focus:border-indigo-500">
+                    <option value="today" {{ $range === 'today' ? 'selected' : '' }}>Aujourd'hui</option>
+                    <option value="week" {{ $range === 'week' ? 'selected' : '' }}>7 derniers jours</option>
+                    <option value="month" {{ $range === 'month' ? 'selected' : '' }}>Ce mois-ci</option>
+                    <option value="year" {{ $range === 'year' ? 'selected' : '' }}>Cette année</option>
+                    <option value="all" {{ $range === 'all' ? 'selected' : '' }}>Toutes les données</option>
+                </select>
+            </div>
         </form>
     </div>
 
@@ -185,6 +207,61 @@
             </div>
 
         </div>
+
+        <!-- Row 4: Performance par Acteur (Visible only when global is selected) -->
+        @if($userId === 'all')
+            <div class="kpi-card rounded-2xl p-5">
+                <h3 class="text-sm font-bold text-slate-200 font-display mb-4 flex items-center justify-between">
+                    <span>Performance par Acteur (Caissiers & Admins)</span>
+                    <span class="text-[10px] bg-slate-800 text-slate-400 px-2 py-0.5 rounded font-mono font-normal">Nombre d'acteurs: {{ count($usersStats) }}</span>
+                </h3>
+                
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse text-xs">
+                        <thead>
+                            <tr class="border-b border-slate-800 text-[10px] font-bold text-slate-500 uppercase tracking-wider bg-slate-800/10">
+                                <th class="py-3 px-4">Utilisateur</th>
+                                <th class="py-3 px-4">Rôle</th>
+                                <th class="py-3 px-4 text-center">Tickets émis</th>
+                                <th class="py-3 px-4 text-right">Chiffre d'Affaires</th>
+                                <th class="py-3 px-4 text-right">Total Encaissé</th>
+                                <th class="py-3 px-4 text-right">Total Dépenses</th>
+                                <th class="py-3 px-4 text-right">Bénéfice Réel</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-800/50">
+                            @foreach($usersStats as $stat)
+                                <tr class="hover:bg-slate-800/10 transition-colors">
+                                    <td class="py-3 px-4 font-bold text-slate-200">
+                                        {{ $stat['user']->name }}
+                                    </td>
+                                    <td class="py-3 px-4">
+                                        <span class="px-2 py-0.5 rounded text-[9px] font-bold {{ $stat['user']->role === 'admin' ? 'bg-indigo-500/20 text-indigo-400 border border-indigo-500/20' : 'bg-slate-700 text-slate-300' }} uppercase">
+                                            {{ $stat['user']->role === 'admin' ? 'Admin' : 'Caissier' }}
+                                        </span>
+                                    </td>
+                                    <td class="py-3 px-4 text-center font-semibold text-slate-300 font-mono">
+                                        {{ $stat['tickets'] }}
+                                    </td>
+                                    <td class="py-3 px-4 text-right font-bold text-indigo-400 font-mono">
+                                        {{ number_format($stat['ca'], 0, '.', ' ') }} DA
+                                    </td>
+                                    <td class="py-3 px-4 text-right font-bold text-emerald-400 font-mono">
+                                        {{ number_format($stat['collected'], 0, '.', ' ') }} DA
+                                    </td>
+                                    <td class="py-3 px-4 text-right font-semibold text-rose-400 font-mono">
+                                        {{ number_format($stat['expenses'], 0, '.', ' ') }} DA
+                                    </td>
+                                    <td class="py-3 px-4 text-right font-black {{ $stat['profit'] >= 0 ? 'text-teal-400' : 'text-rose-500' }} font-mono">
+                                        {{ number_format($stat['profit'], 0, '.', ' ') }} DA
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        @endif
 
     </div>
 </div>

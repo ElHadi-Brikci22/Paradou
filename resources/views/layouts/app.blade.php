@@ -266,6 +266,21 @@
         .theme-light .grid > div .text-white {
             color: #0f172a !important;
         }
+
+        /* Dropdown custom light theme styling */
+        .theme-light .absolute.bg-slate-800 {
+            background-color: #ffffff !important;
+            border-color: #cbd5e1 !important;
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
+        }
+        .theme-light .absolute.bg-slate-800 a {
+            color: #475569 !important;
+            border-color: #e2e8f0 !important;
+        }
+        .theme-light .absolute.bg-slate-800 a:hover {
+            background-color: #f1f5f9 !important;
+            color: #0f172a !important;
+        }
     </style>
     @yield('styles')
 </head>
@@ -281,7 +296,6 @@
                 <h1 class="text-lg font-black font-display tracking-wider text-white">
                     PARAD<svg class="h-5 w-5 inline-block text-indigo-400 align-middle -mt-1 mx-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><rect x="4" y="3" width="16" height="18" rx="2" /><line x1="4" y1="7" x2="20" y2="7" /><circle cx="7" cy="5" r="0.75" fill="currentColor" /><circle cx="10" cy="5" r="0.75" fill="currentColor" /><circle cx="13" cy="5" r="0.75" fill="currentColor" /><circle cx="12" cy="14" r="4" /><circle cx="12" cy="14" r="2.5" stroke-dasharray="3 2" /></svg>U <span class="text-indigo-400 font-medium text-xs font-sans tracking-normal lowercase">v2026</span>
                 </h1>
-                <p class="text-xs text-slate-400">Système de Caisse Tactile & Gestion Pressing</p>
             </div>
         </div>
 
@@ -300,10 +314,31 @@
                    class="px-4 py-2 rounded-lg text-xs font-bold font-display uppercase tracking-wide transition-colors {{ Request::routeIs('admin.dashboard') ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/10' : 'text-slate-300 hover:text-white hover:bg-slate-700/50' }}">
                     Dashboard Admin
                 </a>
-                <a href="{{ route('admin.users.index') }}" 
-                   class="px-4 py-2 rounded-lg text-xs font-bold font-display uppercase tracking-wide transition-colors {{ Request::routeIs('admin.users.index') ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/10' : 'text-slate-300 hover:text-white hover:bg-slate-700/50' }}">
-                    Gestion Caissiers
-                </a>
+                <div class="relative group inline-block text-left">
+                    <button class="px-4 py-2 rounded-lg text-xs font-bold font-display uppercase tracking-wide transition-colors text-slate-300 group-hover:text-white hover:text-white hover:bg-slate-700/50 group-hover:bg-slate-700/50 flex items-center space-x-1 cursor-pointer">
+                        <span>Gestion</span>
+                        <svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                        </svg>
+                    </button>
+                    <!-- Dropdown menu -->
+                    <div class="absolute left-0 mt-1 w-52 rounded-xl bg-slate-800 border border-slate-700/60 shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-150 z-50 overflow-hidden">
+                        <div class="py-1">
+                            <a href="{{ route('admin.users.index') }}" class="block px-4 py-2.5 text-xs font-bold text-slate-300 hover:text-white hover:bg-slate-700/50 transition-colors uppercase font-display">
+                                Gestion Caissiers
+                            </a>
+                            <a href="{{ route('admin.catalog.index') }}" class="block px-4 py-2.5 text-xs font-bold text-slate-300 hover:text-white hover:bg-slate-700/50 transition-colors uppercase font-display border-t border-slate-700/30">
+                                Catégories & Articles
+                            </a>
+                            <a href="{{ route('admin.prices.index') }}" class="block px-4 py-2.5 text-xs font-bold text-slate-300 hover:text-white hover:bg-slate-700/50 transition-colors uppercase font-display border-t border-slate-700/30">
+                                Gestion des Prix
+                            </a>
+                            <a href="{{ route('admin.rubrics.index') }}" class="block px-4 py-2.5 text-xs font-bold text-slate-300 hover:text-white hover:bg-slate-700/50 transition-colors uppercase font-display border-t border-slate-700/30">
+                                Rubriques (Dicos)
+                            </a>
+                        </div>
+                    </div>
+                </div>
             @endif
         </nav>
 

@@ -47,6 +47,42 @@
         @endforeach
     </div>
 
+    <!-- Client & Pricing Context Bar -->
+    <div class="bg-slate-800/25 px-6 py-2.5 border-b border-slate-700/30 shrink-0 flex items-center justify-between gap-4">
+        <!-- Client Selector Button -->
+        <div class="flex items-center space-x-2">
+            <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Client associé :</span>
+            <button onclick="openClientSelectionModal()" 
+                    class="bg-slate-800 hover:bg-slate-700 border border-slate-700 hover:border-slate-600 px-3.5 py-1.5 rounded-xl text-xs font-bold text-slate-200 flex items-center space-x-2 cursor-pointer transition-colors shadow-sm">
+                <svg class="h-3.5 w-3.5 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+                <span id="selected-client-name-display">Client Passage</span>
+                <span id="selected-client-discount-badge" class="text-[9px] bg-indigo-500/10 text-indigo-400 font-bold px-1.5 py-0.5 rounded">Remise: 0%</span>
+            </button>
+            <button onclick="clearSelectedClient()" id="client-clear-btn-display" class="hidden text-slate-500 hover:text-rose-400 transition-colors p-1" title="Réinitialiser au client de passage">
+                <svg class="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+        </div>
+
+        <!-- Pricing Mode Switcher -->
+        <div class="flex items-center space-x-2">
+            <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Type de Tarif :</span>
+            <div class="flex bg-slate-900/85 p-0.5 rounded-lg border border-slate-700/50">
+                <button onclick="setPricingMode('detail')" id="pricing-mode-detail" 
+                        class="px-3 py-1 rounded-md text-[10px] font-black uppercase transition-all cursor-pointer bg-indigo-600 text-white shadow shadow-indigo-600/10">
+                    Détail
+                </button>
+                <button onclick="setPricingMode('wholesale')" id="pricing-mode-wholesale" 
+                        class="px-3 py-1 rounded-md text-[10px] font-black uppercase text-slate-400 hover:text-white transition-all cursor-pointer">
+                    Gros
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Items Grid (Scrollable central container) -->
     <div class="flex-1 overflow-y-auto p-6">
         <div id="catalog-grid" class="grid catalog-grid gap-4">
@@ -64,61 +100,6 @@
 
 <!-- Right Panel: Checkout / Cart (1/3 width) -->
 <div class="w-96 shrink-0 bg-slate-800/40 backdrop-blur-md flex flex-col overflow-hidden">
-    <!-- Client Selection Box -->
-    <div class="p-4 border-b border-slate-700/50 shrink-0">
-        <div class="flex items-center justify-between mb-2">
-            <div class="flex items-center space-x-2">
-                <button onclick="toggleClientPanel()" class="text-slate-400 hover:text-white transition-colors cursor-pointer" id="client-toggle-btn">
-                    <svg class="h-4 w-4 transform transition-transform" id="client-toggle-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7" />
-                    </svg>
-                </button>
-                <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Client associé</label>
-            </div>
-            <button onclick="openNewClientModal()" class="text-xs font-bold text-indigo-400 hover:text-indigo-300 flex items-center space-x-1 cursor-pointer">
-                <span>+ Nouveau</span>
-            </button>
-        </div>
-        
-        <!-- Collapsible client fields panel -->
-        <div id="client-fields-panel" class="space-y-3 transition-all duration-200">
-            <!-- Client input & search -->
-            <div class="relative">
-                <div class="flex">
-                    <div class="relative flex-1">
-                        <input type="text" id="client-search-input" oninput="searchClients(this.value)" 
-                               placeholder="Rechercher client (nom, code, tél)..." 
-                               class="w-full bg-slate-900 border border-slate-700 rounded-lg pl-3 pr-8 py-2 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition-colors">
-                        <button id="client-clear-btn" onclick="clearSelectedClient()" class="hidden absolute right-2.5 top-2.5 text-slate-500 hover:text-slate-300">
-                            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                            </svg>
-                        </button>
-                    </div>
-                </div>
-                
-                <!-- Floating search results drop -->
-                <div id="client-search-results" class="hidden absolute left-0 right-0 mt-1 bg-slate-800 border border-slate-700 rounded-lg shadow-xl z-30 max-h-60 overflow-y-auto">
-                    <!-- Populated by JS -->
-                </div>
-            </div>
-
-            <!-- Selected client info card -->
-            <div id="selected-client-card" class="p-3 bg-slate-900/50 border border-indigo-500/20 rounded-lg flex items-center justify-between">
-                <div>
-                    <h4 id="selected-client-name" class="text-sm font-bold text-slate-200">Client Passage</h4>
-                    <div class="flex items-center space-x-2 mt-0.5">
-                        <span id="selected-client-code" class="text-[10px] bg-slate-800 text-slate-400 font-mono px-1.5 py-0.5 rounded">GUEST</span>
-                        <span id="selected-client-discount" class="text-[10px] bg-indigo-500/10 text-indigo-400 font-bold px-1.5 py-0.5 rounded">Remise: 0%</span>
-                    </div>
-                </div>
-                <div id="selected-client-credit-badge" class="hidden text-right">
-                    <p class="text-[10px] text-slate-500">Solde Crédit</p>
-                    <p id="selected-client-credit" class="text-sm font-bold text-amber-500">0.00 DA</p>
-                </div>
-            </div>
-        </div>
-    </div>
 
     <!-- Cart items list (Scrollable) -->
     <div class="flex-1 overflow-y-auto p-4 space-y-3" id="cart-items-container">
@@ -133,23 +114,76 @@
     </div>
 
     <!-- Cart totals & submit panel (Shrink-0) -->
-    <div class="bg-slate-900 border-t border-slate-700/50 p-4 shrink-0">
-        <!-- Header / Summary of totals (Always visible) -->
-        <div class="flex items-center justify-between cursor-pointer py-1 border-b border-slate-800 pb-3" onclick="toggleBillingPanel()">
-            <div class="flex items-center space-x-2">
-                <svg class="h-4 w-4 text-slate-400 transform transition-transform -rotate-90" id="billing-toggle-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7" />
-                </svg>
-                <span class="text-xs font-bold text-slate-300 uppercase tracking-wide">Détails Règlement</span>
-            </div>
-            <div class="text-right">
+    <div class="bg-slate-900 border-t border-slate-700/50 p-4 shrink-0 transition-all duration-300">
+        
+        <!-- 1. Collapsed View (Review Cart Mode) -->
+        <div id="billing-collapsed-view" class="flex items-center justify-between gap-4 py-1">
+            <div class="flex-1">
                 <span class="text-[9px] text-slate-500 font-bold uppercase tracking-wider block">Net à Payer</span>
-                <span id="total-net" class="text-lg font-black text-white font-display">0.00 DA</span>
+                <span id="total-net-collapsed" class="text-xl font-black text-indigo-400 font-mono">0 DA</span>
             </div>
+            <button type="button" onclick="openPaymentView()" 
+                    class="bg-indigo-600 hover:bg-indigo-500 text-white font-display font-bold py-2.5 px-5 rounded-xl shadow-lg shadow-indigo-600/25 active:translate-y-0.5 transition-all flex items-center justify-center space-x-2 cursor-pointer text-xs">
+                <span>Payer & Valider ➜</span>
+            </button>
         </div>
 
-        <!-- Collapsible details body -->
-        <div id="billing-details-panel" class="hidden space-y-4 mt-3 transition-all duration-200 max-h-64 overflow-y-auto pr-1">
+        <!-- 2. Expanded View (Payment Mode) - Hidden by default -->
+        <div id="billing-expanded-view" class="hidden space-y-4">
+            <!-- Title Header -->
+            <div class="border-b border-slate-800 pb-2 flex items-center justify-between">
+                <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider">Détails du Règlement</h3>
+                <button type="button" onclick="closePaymentView()" class="text-[10px] font-bold text-slate-500 hover:text-slate-300 uppercase tracking-wider cursor-pointer">
+                    ⬅ Retour
+                </button>
+            </div>
+
+            <!-- Billing Recap -->
+            <div class="space-y-2.5 text-xs">
+                <!-- Sous-total brut -->
+                <div class="flex justify-between text-slate-400">
+                    <span>Sous-total brut</span>
+                    <span id="total-brut" class="font-semibold font-mono">0.00 DA</span>
+                </div>
+
+                <!-- Discount Input & Type -->
+                <div class="flex items-center justify-between gap-2">
+                    <div class="flex items-center space-x-1.5 shrink-0">
+                        <span class="font-semibold text-indigo-400 uppercase tracking-wider text-[10px]">Remise</span>
+                        <select id="discount-type-select" onchange="changeDiscountType()" 
+                                class="bg-slate-850 border border-slate-700 rounded text-[9px] font-bold text-indigo-300 py-0.5 px-1 focus:outline-none">
+                            <option value="percent">%</option>
+                            <option value="fixed">DA</option>
+                        </select>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <span class="text-[10px] text-slate-500">(<span id="discount-display-percent">0</span>%)</span>
+                        <input type="number" id="discount-percent-input" oninput="updateCustomDiscount()" value="0" min="0" step="1"
+                               class="w-24 bg-slate-800 border border-slate-700 text-indigo-400 rounded-md px-2 py-1 text-xs text-right font-bold focus:outline-none focus:border-indigo-500 font-mono">
+                        <span id="total-discount" class="text-indigo-400 font-bold font-mono w-16 text-right">- 0 DA</span>
+                    </div>
+                </div>
+
+                <!-- Deposit amount paid -->
+                <div class="flex items-center justify-between">
+                    <span class="font-semibold text-slate-400 uppercase tracking-wider text-[10px]">Acompte payé</span>
+                    <input type="number" id="paid-amount-input" oninput="updateCartCalculations()" value="0" min="0" step="10"
+                           class="w-32 bg-slate-800 border border-slate-700 rounded-md px-2 py-1 text-xs text-right font-bold text-white focus:outline-none focus:border-indigo-500 font-mono">
+                </div>
+
+                <!-- Net à Payer (Grand Total Box) -->
+                <div class="flex items-center justify-between bg-indigo-500/10 p-3 rounded-xl border border-indigo-500/20 my-2">
+                    <span class="text-xs font-bold text-indigo-400 uppercase tracking-wider">Net à Payer</span>
+                    <span id="total-net-expanded" class="text-lg font-black text-indigo-400 font-mono">0.00 DA</span>
+                </div>
+
+                <!-- Remaining balance (Solde Box) -->
+                <div class="flex items-center justify-between bg-amber-500/10 p-3 rounded-xl border border-amber-500/20 my-2">
+                    <span class="text-xs font-bold text-amber-500 uppercase tracking-wider">Reste à payer (Solde)</span>
+                    <span id="remaining-balance" class="text-lg font-black text-amber-500 font-mono">0.00 DA</span>
+                </div>
+            </div>
+
             <!-- Express Mode Toggle Switch -->
             <div class="flex items-center justify-between p-2.5 rounded-xl bg-red-500/10 border border-red-500/20 hover:bg-red-500/20 transition-all select-none">
                 <div class="flex items-center space-x-2">
@@ -165,49 +199,8 @@
                 </label>
             </div>
 
-            <!-- Billing recap -->
-            <div class="space-y-2 text-sm">
-                <div class="flex justify-between text-slate-400">
-                    <span>Sous-total brut</span>
-                    <span id="total-brut">0.00 DA</span>
-                </div>
-                <div class="flex justify-between text-indigo-400">
-                    <span>Remise appliquée (<span id="discount-display-percent">0</span>%)</span>
-                    <span id="total-discount">- 0.00 DA</span>
-                </div>
-                
-                <div class="h-px bg-slate-800 my-2"></div>
-                
-                <!-- Deposit amount paid -->
-                <div class="flex items-center justify-between">
-                    <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Acompte payé (DA)</span>
-                    <input type="number" id="paid-amount-input" oninput="updateCartCalculations()" value="0" min="0" step="10"
-                           class="w-32 bg-slate-800 border border-slate-700 rounded-md px-2 py-1 text-sm text-right font-bold text-white focus:outline-none focus:border-indigo-500">
-                </div>
-
-                <!-- Custom Discount Input & Type -->
-                <div class="flex items-center justify-between gap-2">
-                    <div class="flex items-center space-x-1.5 shrink-0">
-                        <span class="text-xs font-semibold text-indigo-400 uppercase tracking-wider">Remise</span>
-                        <select id="discount-type-select" onchange="changeDiscountType()" 
-                                class="bg-slate-850 border border-slate-700 rounded text-[10px] font-bold text-indigo-300 py-0.5 px-1 focus:outline-none">
-                            <option value="percent">%</option>
-                            <option value="fixed">DA</option>
-                        </select>
-                    </div>
-                    <input type="number" id="discount-percent-input" oninput="updateCustomDiscount()" value="0" min="0" step="1"
-                           class="w-32 bg-slate-800 border border-indigo-500/30 text-indigo-400 rounded-md px-2 py-1 text-sm text-right font-bold focus:outline-none focus:border-indigo-500">
-                </div>
-
-                <!-- Remaining balance -->
-                <div class="flex justify-between text-amber-500 font-semibold text-sm">
-                    <span>Reste à payer (Solde)</span>
-                    <span id="remaining-balance">0.00 DA</span>
-                </div>
-            </div>
-
             <!-- Inputs for delivery date and remarks -->
-            <div class="grid grid-cols-2 gap-3 pt-2">
+            <div class="grid grid-cols-2 gap-3 pt-1">
                 <div>
                     <label class="block text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1">Livraison Prévue</label>
                     <input type="date" id="delivery-date-input" 
@@ -216,7 +209,7 @@
                 <div>
                     <label class="block text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1">Caisse Ticket N°</label>
                     <input type="text" id="ticket-number-input" value="{{ $nextTicketNumber }}"
-                           class="w-full bg-slate-850 border border-slate-700 rounded-md px-2.5 py-1.5 text-xs text-slate-200 font-mono text-center focus:outline-none focus:border-indigo-500">
+                           class="w-full bg-slate-850 border border-slate-700 rounded-md px-2.5 py-1.5 text-xs text-slate-200 font-mono text-center focus:outline-none focus:border-indigo-500 font-mono">
                 </div>
             </div>
             <div>
@@ -224,19 +217,18 @@
                 <input type="text" id="remarks-input" placeholder="Ex: suspendu, urgent, ..."
                        class="w-full bg-slate-850 border border-slate-700 rounded-md px-2.5 py-1.5 text-xs text-slate-200 placeholder-slate-600 focus:outline-none focus:border-indigo-500">
             </div>
-        </div>
 
-        <!-- Submit actions -->
-        <div class="mt-4">
-            <button onclick="submitOrder()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-display font-bold py-3 px-4 rounded-xl shadow-lg shadow-indigo-600/20 active:translate-y-0.5 transition-all flex items-center justify-center space-x-2 cursor-pointer">
-                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
-                </svg>
-                <span>Valider & Imprimer le Ticket</span>
-            </button>
+            <!-- Submit action inside expanded view -->
+            <div class="pt-2">
+                <button onclick="submitOrder()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-display font-bold py-3 px-4 rounded-xl shadow-lg shadow-indigo-600/20 active:translate-y-0.5 transition-all flex items-center justify-center space-x-2 cursor-pointer">
+                    <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
+                    </svg>
+                    <span>Valider & Imprimer le Ticket</span>
+                </button>
+            </div>
         </div>
     </div>
-</div>
 
 <!-- ================= MODALS OVERLAYS ================= -->
 
@@ -313,6 +305,20 @@
                                 style="background-color: {{ $c['bg'] }}; color: {{ $c['text'] }}; border-color: {{ $c['border'] }}; font-weight: bold;"
                                 class="option-badge px-3 py-1 rounded-full text-xs border transition-all cursor-pointer">
                             {{ $color }}
+                        </button>
+                    @endforeach
+                </div>
+            </div>
+
+            <!-- Motifs Selection -->
+            <div>
+                <span class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Motif(s)</span>
+                <div class="flex flex-wrap gap-1.5" id="modal-patterns-container">
+                    @foreach($patterns as $pattern)
+                        <button onclick="toggleItemOption('patterns', '{{ $pattern }}', this)" 
+                                data-pattern-btn="true"
+                                class="option-badge px-3 py-1 rounded-full text-xs border border-slate-700 bg-slate-900 text-slate-300 hover:border-slate-500 transition-colors">
+                            {{ $pattern }}
                         </button>
                     @endforeach
                 </div>
@@ -412,12 +418,57 @@
         </form>
     </div>
 </div>
+
+<!-- 3. Client Selection Modal -->
+<div id="client-select-modal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-slate-800 border border-slate-700 rounded-2xl w-full max-w-md flex flex-col shadow-2xl overflow-hidden transform scale-95 transition-all">
+        <!-- Header -->
+        <div class="px-6 py-4 bg-slate-800 border-b border-slate-700 flex justify-between items-center">
+            <h3 class="text-base font-bold text-white font-display">Associer un Client</h3>
+            <button onclick="closeClientSelectionModal()" class="text-slate-400 hover:text-white cursor-pointer">
+                <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+        </div>
+
+        <!-- Content -->
+        <div class="p-6 space-y-4">
+            <div class="flex gap-2">
+                <div class="relative flex-1">
+                    <input type="text" id="client-search-input" oninput="searchClients(this.value)" 
+                           placeholder="Rechercher client (nom, code, tél)..." 
+                           class="w-full bg-slate-900 border border-slate-700 rounded-xl pl-10 pr-8 py-2.5 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition-colors">
+                    <div class="absolute left-3.5 top-3.5 text-slate-500">
+                        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        </svg>
+                    </div>
+                </div>
+                <button type="button" onclick="triggerNewClientFromSelect()" 
+                        class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold px-4 py-2.5 rounded-xl text-xs flex items-center justify-center cursor-pointer transition-colors shadow-lg shadow-indigo-600/10">
+                    + Nouveau
+                </button>
+            </div>
+
+            <!-- Results list -->
+            <div id="client-select-results" class="bg-slate-900 border border-slate-700/60 rounded-xl max-h-60 overflow-y-auto divide-y divide-slate-800/60 hidden">
+                <!-- Populated by JS -->
+            </div>
+            
+            <div id="client-select-empty" class="text-center py-6 text-slate-500 text-xs">
+                Saisissez au moins 2 caractères pour rechercher un client.
+            </div>
+        </div>
+    </div>
+</div>
 @endsection
 
 @section('scripts')
 <script>
     // Global catalog state injected from PHP
     const allItems = @json($items);
+    const allServices = @json($services);
     
     // Default client object
     const defaultClient = {
@@ -429,15 +480,59 @@
     };
 
     // App state
-    let selectedServiceId = 1;
-    let selectedTargetId = 1;
+    let selectedServiceId = {{ $services->first() ? $services->first()->id : 1 }};
+    let selectedTargetId = {{ $targets->first() ? $targets->first()->id : 1 }};
     let selectedClient = { ...defaultClient };
     let cart = [];
+    let pricingMode = 'detail';
+
+    window.setPricingMode = function(mode) {
+        if (pricingMode === mode) return;
+        pricingMode = mode;
+
+        // Toggle UI buttons classes
+        const btnDetail = document.getElementById('pricing-mode-detail');
+        const btnWholesale = document.getElementById('pricing-mode-wholesale');
+
+        if (mode === 'detail') {
+            btnDetail.className = "px-3 py-1 rounded-md text-[10px] font-bold uppercase transition-all cursor-pointer bg-indigo-600 text-white shadow shadow-indigo-600/10";
+            btnWholesale.className = "px-3 py-1 rounded-md text-[10px] font-bold uppercase text-slate-400 hover:text-white transition-all cursor-pointer";
+        } else {
+            btnDetail.className = "px-3 py-1 rounded-md text-[10px] font-bold uppercase text-slate-400 hover:text-white transition-all cursor-pointer";
+            btnWholesale.className = "px-3 py-1 rounded-md text-[10px] font-bold uppercase transition-all cursor-pointer bg-indigo-600 text-white shadow shadow-indigo-600/10";
+        }
+
+        // Re-render the catalog items grid with the new prices
+        renderCatalog();
+
+        // Update all item prices in the cart
+        cart.forEach(cartItem => {
+            const itemObj = allItems.find(i => i.id === cartItem.id);
+            if (itemObj) {
+                const prices = itemObj.service_prices || itemObj.servicePrices || [];
+                const priceObj = prices.find(sp => sp.service_id === cartItem.service_id);
+                if (priceObj) {
+                    let price = 0;
+                    if (mode === 'wholesale' && priceObj.wholesale_price !== null && priceObj.wholesale_price !== undefined && priceObj.wholesale_price !== '') {
+                        price = parseFloat(priceObj.wholesale_price);
+                    } else {
+                        price = parseFloat(priceObj.price);
+                    }
+                    cartItem.unit_price = price;
+                }
+            }
+        });
+
+        // Re-render cart and update totals
+        renderCart();
+        updateCartCalculations();
+    };
     
     // Auxiliary State for modal options
     let currentOptionsIndex = null;
     let currentOptions = {
         colors: [],
+        patterns: [],
         defects: [],
         stains: [],
         notes: ''
@@ -454,15 +549,15 @@
         document.getElementById('delivery-date-input').value = `${yyyy}-${mm}-${dd}`;
 
         // Initialize display
-        selectService(1);
-        selectTarget(1);
+        selectService({{ $services->first() ? $services->first()->id : 1 }});
+        selectTarget({{ $targets->first() ? $targets->first()->id : 1 }});
         renderSelectedClient();
         updateCartCalculations();
     });
 
     // ================= CATALOG MANAGEMENT =================
 
-    function selectService(id) {
+    window.selectService = function(id) {
         selectedServiceId = id;
         
         // Update active tab styles
@@ -472,13 +567,14 @@
         const activeBtn = document.getElementById(`service-tab-${id}`);
         if(activeBtn) activeBtn.classList.add('service-tab-active');
 
-        // Services 2 & 4 don't have targets sub-bar, hide it if they are active
+        // Services 'blanchisserie' & 'au_kilo' don't have targets sub-bar, hide it if active
+        const currentService = allServices.find(s => s.id === id);
         const targetsBar = document.getElementById('targets-bar');
-        if (id === 2 || id === 4) {
-            targetsBar.classList.add('hidden');
+        if (currentService && (currentService.code === 'blanchisserie' || currentService.code === 'au_kilo' || id === 2 || id === 4)) {
+            if(targetsBar) targetsBar.classList.add('hidden');
             selectedTargetId = 5; // Target Linge de maison by default
         } else {
-            targetsBar.classList.remove('hidden');
+            if(targetsBar) targetsBar.classList.remove('hidden');
             if (selectedTargetId === 5) {
                 selectedTargetId = 1; // Default to Homme
             }
@@ -489,32 +585,33 @@
 
         // Render catalog grid
         renderCatalog();
-    }
+    };
 
-    function selectTarget(id) {
+    window.selectTarget = function(id) {
         selectedTargetId = id;
         updateTargetPillsStyles();
         renderCatalog();
-    }
+    };
 
-    function updateTargetPillsStyles() {
+    window.updateTargetPillsStyles = function() {
         document.querySelectorAll('.target-pill').forEach(btn => {
             btn.classList.remove('target-pill-active');
         });
         const activePill = document.getElementById(`target-pill-${selectedTargetId}`);
         if(activePill) activePill.classList.add('target-pill-active');
-    }
+    };
 
     function renderCatalog() {
         const grid = document.getElementById('catalog-grid');
         const empty = document.getElementById('catalog-empty');
+        if (!grid || !empty) return;
         grid.innerHTML = '';
 
-        // Filter items
-        // Direct items for service 2 and 4 belong to target 5 (Maison), or match the selected service price
+        // Filter items safely
         const filtered = allItems.filter(item => {
+            const prices = item.service_prices || item.servicePrices || [];
             // Must have a service price for the selected service
-            const hasPrice = item.service_prices.some(sp => sp.service_id === selectedServiceId);
+            const hasPrice = prices.some(sp => sp.service_id === selectedServiceId);
             if (!hasPrice) return false;
 
             if (selectedServiceId === 2 || selectedServiceId === 4) {
@@ -534,8 +631,16 @@
         empty.classList.add('hidden');
 
         filtered.forEach(item => {
-            const priceObj = item.service_prices.find(sp => sp.service_id === selectedServiceId);
-            const price = priceObj ? parseFloat(priceObj.price) : 0;
+            const prices = item.service_prices || item.servicePrices || [];
+            const priceObj = prices.find(sp => sp.service_id === selectedServiceId);
+            let price = 0;
+            if (priceObj) {
+                if (pricingMode === 'wholesale' && priceObj.wholesale_price !== null && priceObj.wholesale_price !== undefined && priceObj.wholesale_price !== '') {
+                    price = parseFloat(priceObj.wholesale_price);
+                } else {
+                    price = parseFloat(priceObj.price);
+                }
+            }
 
             const card = document.createElement('button');
             card.className = "bg-slate-800 border border-slate-700/60 p-3.5 rounded-2xl text-left flex flex-col justify-between h-32 active:scale-95 hover:border-slate-500 hover:bg-slate-800/80 transition-all duration-150 shadow-md cursor-pointer";
@@ -573,15 +678,14 @@
         if (existingIndex !== -1) {
             cart[existingIndex].quantity += 1;
         } else {
+            const currentService = allServices.find(s => s.id === selectedServiceId);
+            const sName = currentService ? currentService.name : 'Service';
+
             cart.push({
                 id: item.id,
                 name: item.name,
                 service_id: selectedServiceId,
-                service_name: selectedServiceId === 1 ? 'Pressing' : 
-                              (selectedServiceId === 2 ? 'Blanchisserie' : 
-                              (selectedServiceId === 3 ? 'Lavage' : 
-                              (selectedServiceId === 4 ? 'Au Kilo' : 
-                              (selectedServiceId === 5 ? 'Repassage' : 'Teinture')))),
+                service_name: sName,
                 quantity: 1,
                 unit_price: price,
                 colors: [],
@@ -593,6 +697,7 @@
 
         renderCart();
         updateCartCalculations();
+        closePaymentView();
     }
 
     function renderCart() {
@@ -723,6 +828,7 @@
         cart.splice(index, 1);
         renderCart();
         updateCartCalculations();
+        closePaymentView();
     }
 
     function toggleExpressMode() {
@@ -777,25 +883,60 @@
         document.getElementById('total-brut').textContent = `${totalBrut.toFixed(0)} DA`;
         document.getElementById('discount-display-percent').textContent = discountPercentDisplay;
         document.getElementById('total-discount').textContent = `- ${discountAmount.toFixed(0)} DA`;
-        document.getElementById('total-net').textContent = `${totalNet.toFixed(0)} DA`;
+        
+        const netCollapsed = document.getElementById('total-net-collapsed');
+        if (netCollapsed) netCollapsed.textContent = `${totalNet.toFixed(0)} DA`;
+        
+        const netExpanded = document.getElementById('total-net-expanded');
+        if (netExpanded) netExpanded.textContent = `${totalNet.toFixed(0)} DA`;
+
         document.getElementById('remaining-balance').textContent = `${remainingBalance.toFixed(0)} DA`;
     }
 
+    window.openPaymentView = function() {
+        updateCartCalculations();
+        document.getElementById('billing-collapsed-view').classList.add('hidden');
+        document.getElementById('billing-expanded-view').classList.remove('hidden');
+    };
+
+    window.closePaymentView = function() {
+        document.getElementById('billing-expanded-view').classList.add('hidden');
+        document.getElementById('billing-collapsed-view').classList.remove('hidden');
+    };
+
     // ================= CLIENT SELECTION & SEARCH =================
 
-    function searchClients(term) {
-        const resultsBox = document.getElementById('client-search-results');
-        const clearBtn = document.getElementById('client-clear-btn');
+    window.openClientSelectionModal = function() {
+        document.getElementById('client-search-input').value = '';
+        document.getElementById('client-select-results').innerHTML = '';
+        document.getElementById('client-select-results').classList.add('hidden');
         
-        if (term.length > 0) {
-            clearBtn.classList.remove('hidden');
-        } else {
-            clearBtn.classList.add('hidden');
-        }
+        const emptyNotice = document.getElementById('client-select-empty');
+        emptyNotice.classList.remove('hidden');
+        emptyNotice.textContent = "Saisissez au moins 2 caractères pour rechercher un client.";
 
+        document.getElementById('client-select-modal').classList.remove('hidden');
+        document.getElementById('client-search-input').focus();
+    };
+
+    window.closeClientSelectionModal = function() {
+        document.getElementById('client-select-modal').classList.add('hidden');
+    };
+
+    window.triggerNewClientFromSelect = function() {
+        closeClientSelectionModal();
+        openNewClientModal();
+    };
+
+    function searchClients(term) {
+        const resultsBox = document.getElementById('client-select-results');
+        const emptyNotice = document.getElementById('client-select-empty');
+        
         if (term.trim().length < 2) {
             resultsBox.innerHTML = '';
             resultsBox.classList.add('hidden');
+            emptyNotice.classList.remove('hidden');
+            emptyNotice.textContent = "Saisissez au moins 2 caractères pour rechercher un client.";
             return;
         }
 
@@ -805,23 +946,27 @@
                 resultsBox.innerHTML = '';
                 if (clients.length === 0) {
                     resultsBox.classList.add('hidden');
+                    emptyNotice.classList.remove('hidden');
+                    emptyNotice.textContent = "Aucun client trouvé pour ce terme.";
                     return;
                 }
 
+                emptyNotice.classList.add('hidden');
                 clients.forEach(client => {
                     const row = document.createElement('button');
-                    row.className = "w-full text-left px-4 py-2 hover:bg-slate-700 flex flex-col text-sm border-b border-slate-700/50 cursor-pointer";
+                    row.type = "button";
+                    row.className = "w-full text-left px-4 py-3 hover:bg-slate-800 flex flex-col text-xs border-b border-slate-700/50 cursor-pointer transition-colors";
                     row.onclick = (e) => {
                         e.preventDefault();
                         selectClient(client);
                     };
 
                     const nameText = document.createElement('span');
-                    nameText.className = "font-bold text-slate-200";
+                    nameText.className = "font-bold text-slate-200 text-sm";
                     nameText.textContent = client.name;
 
                     const meta = document.createElement('span');
-                    meta.className = "text-xs text-slate-400";
+                    meta.className = "text-[11px] text-slate-400 mt-1";
                     meta.textContent = `Code: ${client.code} | Tél: ${client.phone || '-'} | Remise: ${client.discount_percent}%`;
 
                     row.appendChild(nameText);
@@ -836,31 +981,20 @@
         selectedClient = { ...client };
         document.getElementById('discount-type-select').value = 'percent';
         document.getElementById('discount-percent-input').value = client.discount_percent;
+        
         renderSelectedClient();
         updateCartCalculations();
-        
-        // Hide search drop
-        const resultsBox = document.getElementById('client-search-results');
-        resultsBox.innerHTML = '';
-        resultsBox.classList.add('hidden');
-        
-        // Populate search input with name
-        document.getElementById('client-search-input').value = client.name;
-        document.getElementById('client-clear-btn').classList.remove('hidden');
+        closeClientSelectionModal();
     }
 
     function clearSelectedClient() {
         selectedClient = { ...defaultClient };
         document.getElementById('discount-type-select').value = 'percent';
         document.getElementById('discount-percent-input').value = defaultClient.discount_percent;
+        
         renderSelectedClient();
         updateCartCalculations();
-        document.getElementById('client-search-input').value = '';
-        document.getElementById('client-clear-btn').classList.add('hidden');
-        
-        const resultsBox = document.getElementById('client-search-results');
-        resultsBox.innerHTML = '';
-        resultsBox.classList.add('hidden');
+        setPricingMode('detail');
     }
 
     function changeDiscountType() {
@@ -873,18 +1007,15 @@
     }
 
     function renderSelectedClient() {
-        document.getElementById('selected-client-name').textContent = selectedClient.name;
-        document.getElementById('selected-client-code').textContent = selectedClient.code;
-        document.getElementById('selected-client-discount').textContent = `Remise: ${selectedClient.discount_percent}%`;
+        // Update Left Context Bar displays
+        document.getElementById('selected-client-name-display').textContent = selectedClient.name;
+        document.getElementById('selected-client-discount-badge').textContent = `Remise: ${selectedClient.discount_percent}%`;
 
-        const creditBadge = document.getElementById('selected-client-credit-badge');
-        const creditVal = parseFloat(selectedClient.credit);
-        
-        if (creditVal > 0) {
-            document.getElementById('selected-client-credit').textContent = `${creditVal.toFixed(0)} DA`;
-            creditBadge.classList.remove('hidden');
+        const clearBtn = document.getElementById('client-clear-btn-display');
+        if (selectedClient.code !== 'GUEST') {
+            clearBtn.classList.remove('hidden');
         } else {
-            creditBadge.classList.add('hidden');
+            clearBtn.classList.add('hidden');
         }
     }
 
@@ -894,8 +1025,20 @@
         currentOptionsIndex = index;
         const item = cart[index];
         
+        const knownPatterns = @json($patterns);
+        const itemColors = [];
+        const itemPatterns = [];
+        (item.colors || []).forEach(val => {
+            if (knownPatterns.includes(val)) {
+                itemPatterns.push(val);
+            } else {
+                itemColors.push(val);
+            }
+        });
+
         currentOptions = {
-            colors: [...item.colors],
+            colors: itemColors,
+            patterns: itemPatterns,
             defects: [...item.defects],
             stains: [...item.stains],
             notes: item.notes
@@ -908,8 +1051,10 @@
         // Reset badge active classes
         document.querySelectorAll('#options-modal .option-badge').forEach(badge => {
             const isColor = badge.getAttribute('data-color-btn') === 'true';
+            const isPattern = badge.getAttribute('data-pattern-btn') === 'true';
             const badgeText = badge.textContent.trim();
             const isActive = currentOptions.colors.includes(badgeText) || 
+                             currentOptions.patterns.includes(badgeText) || 
                              currentOptions.defects.includes(badgeText) || 
                              currentOptions.stains.includes(badgeText);
 
@@ -966,7 +1111,7 @@
 
     function saveItemOptions() {
         if (currentOptionsIndex !== null) {
-            cart[currentOptionsIndex].colors = [...currentOptions.colors];
+            cart[currentOptionsIndex].colors = [...currentOptions.colors, ...currentOptions.patterns];
             cart[currentOptionsIndex].defects = [...currentOptions.defects];
             cart[currentOptionsIndex].stains = [...currentOptions.stains];
             cart[currentOptionsIndex].notes = document.getElementById('modal-notes-input').value.trim();
@@ -1119,29 +1264,6 @@
         });
     }
 
-    // Collapsible sidebar panels toggle functions
-    function toggleClientPanel() {
-        const panel = document.getElementById('client-fields-panel');
-        const icon = document.getElementById('client-toggle-icon');
-        if (panel.classList.contains('hidden')) {
-            panel.classList.remove('hidden');
-            icon.classList.remove('-rotate-90');
-        } else {
-            panel.classList.add('hidden');
-            icon.classList.add('-rotate-90');
-        }
-    }
 
-    function toggleBillingPanel() {
-        const panel = document.getElementById('billing-details-panel');
-        const icon = document.getElementById('billing-toggle-icon');
-        if (panel.classList.contains('hidden')) {
-            panel.classList.remove('hidden');
-            icon.classList.remove('-rotate-90');
-        } else {
-            panel.classList.add('hidden');
-            icon.classList.add('-rotate-90');
-        }
-    }
 </script>
 @endsection
