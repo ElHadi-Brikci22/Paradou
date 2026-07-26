@@ -89,7 +89,9 @@
 
                             <!-- Add Item Box -->
                             <div class="flex items-center space-x-2 w-full sm:w-auto">
-                                <input type="text" id="add-input-{{ $key }}" placeholder="Nouvelle entrée..." 
+                                <input type="text" id="add-input-{{ $key }}" 
+                                       onkeydown="if(event.key === 'Enter') { event.preventDefault(); addNewItem('{{ $key }}'); }"
+                                       placeholder="Nouvelle entrée..." 
                                        class="bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-indigo-500 w-full sm:w-48">
                                 <button type="button" onclick="addNewItem('{{ $key }}')"
                                         class="px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold font-display rounded-lg transition-colors cursor-pointer">
