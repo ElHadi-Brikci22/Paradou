@@ -89,12 +89,11 @@
 
                             <!-- Add Item Box -->
                             <div class="flex items-center space-x-2 w-full sm:w-auto">
-                                <input type="text" id="add-input-{{ $key }}" 
-                                       onkeydown="if(event.key === 'Enter') { event.preventDefault(); addNewItem('{{ $key }}'); }"
+                                <input type="text" id="add-input-{{ $key }}" data-type="{{ $key }}"
                                        placeholder="Nouvelle entrée..." 
-                                       class="bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-indigo-500 w-full sm:w-48">
-                                <button type="button" onclick="addNewItem('{{ $key }}')"
-                                        class="px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold font-display rounded-lg transition-colors cursor-pointer">
+                                       class="rubric-input bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-indigo-500 w-full sm:w-48">
+                                <button type="button" data-type="{{ $key }}"
+                                        class="btn-add-rubric px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold font-display rounded-lg transition-colors cursor-pointer">
                                     Ajouter
                                 </button>
                             </div>
@@ -106,7 +105,7 @@
                                 <div class="badge-item flex items-center space-x-1.5 px-3 py-1 rounded-full text-xs font-semibold border border-slate-700 bg-slate-800 text-slate-200">
                                     <span>{{ $item }}</span>
                                     <input type="hidden" name="items[]" value="{{ $item }}">
-                                    <button type="button" onclick="removeItem(this)" class="text-slate-400 hover:text-rose-400 font-bold transition-colors cursor-pointer ml-1">×</button>
+                                    <button type="button" class="btn-remove-rubric text-slate-400 hover:text-rose-400 font-bold transition-colors cursor-pointer ml-1">×</button>
                                 </div>
                             @endforeach
                         </div>
@@ -174,7 +173,7 @@
         badge.innerHTML = `
             <span>${val}</span>
             <input type="hidden" name="items[]" value="${val}">
-            <button type="button" onclick="removeItem(this)" class="text-slate-400 hover:text-rose-400 font-bold transition-colors cursor-pointer ml-1">×</button>
+            <button type="button" class="btn-remove-rubric text-slate-400 hover:text-rose-400 font-bold transition-colors cursor-pointer ml-1">×</button>
         `;
 
         container.appendChild(badge);
@@ -191,5 +190,35 @@
         // Auto submit to save changes instantly
         form.submit();
     };
+
+    // Bind event listeners dynamically when DOM is ready
+    document.addEventListener('DOMContentLoaded', function() {
+        // Bind click on Ajouter buttons
+        document.querySelectorAll('.btn-add-rubric').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const type = this.getAttribute('data-type');
+                addNewItem(type);
+            });
+        });
+
+        // Bind Enter key on text inputs
+        document.querySelectorAll('.rubric-input').forEach(input => {
+            input.addEventListener('keydown', function(event) {
+                if (event.key === 'Enter') {
+                    event.preventDefault();
+                    const type = this.getAttribute('data-type');
+                    addNewItem(type);
+                }
+            });
+        });
+
+        // Bind click on delete (x) buttons using event delegation (for both static and dynamic badges)
+        document.addEventListener('click', function(event) {
+            const removeBtn = event.target.closest('.btn-remove-rubric');
+            if (removeBtn) {
+                removeItem(removeBtn);
+            }
+        });
+    });
 </script>
 @endsection
