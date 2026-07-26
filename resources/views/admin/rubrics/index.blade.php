@@ -191,34 +191,31 @@
         form.submit();
     };
 
-    // Bind event listeners dynamically when DOM is ready
-    document.addEventListener('DOMContentLoaded', function() {
-        // Bind click on Ajouter buttons
-        document.querySelectorAll('.btn-add-rubric').forEach(btn => {
-            btn.addEventListener('click', function() {
-                const type = this.getAttribute('data-type');
-                addNewItem(type);
-            });
-        });
+    // Bind click on Ajouter buttons using event delegation
+    document.addEventListener('click', function(event) {
+        const addBtn = event.target.closest('.btn-add-rubric');
+        if (addBtn) {
+            const type = addBtn.getAttribute('data-type');
+            addNewItem(type);
+        }
+    });
 
-        // Bind Enter key on text inputs
-        document.querySelectorAll('.rubric-input').forEach(input => {
-            input.addEventListener('keydown', function(event) {
-                if (event.key === 'Enter') {
-                    event.preventDefault();
-                    const type = this.getAttribute('data-type');
-                    addNewItem(type);
-                }
-            });
-        });
+    // Bind Enter key on text inputs using event delegation
+    document.addEventListener('keydown', function(event) {
+        const input = event.target.closest('.rubric-input');
+        if (input && event.key === 'Enter') {
+            event.preventDefault();
+            const type = input.getAttribute('data-type');
+            addNewItem(type);
+        }
+    });
 
-        // Bind click on delete (x) buttons using event delegation (for both static and dynamic badges)
-        document.addEventListener('click', function(event) {
-            const removeBtn = event.target.closest('.btn-remove-rubric');
-            if (removeBtn) {
-                removeItem(removeBtn);
-            }
-        });
+    // Bind click on delete (x) buttons using event delegation (for both static and dynamic badges)
+    document.addEventListener('click', function(event) {
+        const removeBtn = event.target.closest('.btn-remove-rubric');
+        if (removeBtn) {
+            removeItem(removeBtn);
+        }
     });
 </script>
 @endsection
