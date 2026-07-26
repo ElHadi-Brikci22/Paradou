@@ -327,6 +327,9 @@
                             <a href="{{ route('admin.users.index') }}" class="block px-4 py-2.5 text-xs font-bold text-slate-300 hover:text-white hover:bg-slate-700/50 transition-colors uppercase font-display">
                                 Gestion Caissiers
                             </a>
+                            <a href="{{ route('admin.clients.index') }}" class="block px-4 py-2.5 text-xs font-bold text-slate-300 hover:text-white hover:bg-slate-700/50 transition-colors uppercase font-display border-t border-slate-700/30">
+                                Gestion Clients
+                            </a>
                             <a href="{{ route('admin.catalog.index') }}" class="block px-4 py-2.5 text-xs font-bold text-slate-300 hover:text-white hover:bg-slate-700/50 transition-colors uppercase font-display border-t border-slate-700/30">
                                 Catégories & Articles
                             </a>

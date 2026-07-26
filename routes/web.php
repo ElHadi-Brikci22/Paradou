@@ -10,6 +10,7 @@ use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\TicketPrintController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\Admin\ClientController;
 use App\Http\Controllers\Admin\CatalogController;
 use App\Http\Controllers\Admin\RubricsController;
 use App\Http\Controllers\Admin\PriceController;
@@ -31,6 +32,7 @@ Route::middleware('auth')->group(function () {
     Route::middleware('role:admin')->group(function () {
         Route::get('/admin/dashboard', [DashboardController::class, 'index'])->name('admin.dashboard');
         Route::resource('/admin/users', UserController::class)->names('admin.users')->except(['create', 'show', 'edit']);
+        Route::resource('/admin/clients', ClientController::class)->names('admin.clients')->except(['create', 'show', 'edit']);
         
         // Price Management (wholesale & retail)
         Route::get('/admin/prices', [PriceController::class, 'index'])->name('admin.prices.index');
