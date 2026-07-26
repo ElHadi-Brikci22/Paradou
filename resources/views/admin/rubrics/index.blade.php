@@ -179,10 +179,17 @@
 
         container.appendChild(badge);
         input.value = '';
+
+        // Auto submit to save changes instantly
+        input.closest('form').submit();
     };
 
     window.removeItem = function(btn) {
+        const form = btn.closest('form');
         btn.closest('.badge-item').remove();
+        
+        // Auto submit to save changes instantly
+        form.submit();
     };
 </script>
 @endsection
