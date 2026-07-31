@@ -19,6 +19,14 @@
         color: rgb(59, 130, 246);
         border: 1px solid rgba(59, 130, 246, 0.2);
     }
+    input[type="date"]::-webkit-calendar-picker-indicator {
+        filter: invert(0.8);
+        cursor: pointer;
+        opacity: 0.7;
+    }
+    input[type="date"]::-webkit-calendar-picker-indicator:hover {
+        opacity: 1;
+    }
 </style>
 @endsection
 
@@ -27,52 +35,115 @@
     <!-- Filters & Search sub-bar -->
     <div class="bg-slate-800/40 p-4 border-b border-slate-700/50 shrink-0 flex flex-col md:flex-row gap-4 items-center justify-between">
         <!-- Status Tabs -->
-        <div class="flex gap-2 w-full md:w-auto overflow-x-auto">
-            <a href="{{ route('orders.index', ['status' => 'all', 'search' => $search]) }}" 
-               class="px-4 py-2 rounded-lg text-xs font-semibold font-display tracking-wide transition-colors {{ $status === 'all' ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/10' : 'bg-slate-800 text-slate-300 hover:bg-slate-700' }}">
+        <div class="flex gap-2 w-full md:w-auto overflow-x-auto pb-2 md:pb-0">
+            <a href="{{ route('orders.index', ['status' => 'all', 'search' => $search, 'start_date' => $startDate, 'end_date' => $endDate]) }}" 
+               class="px-4 py-2 rounded-lg text-xs font-semibold font-display tracking-wide transition-colors shrink-0 {{ $status === 'all' ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/10' : 'bg-slate-800 text-slate-300 hover:bg-slate-700' }}">
                 Toutes les commandes
             </a>
-            <a href="{{ route('orders.index', ['status' => 'express', 'search' => $search]) }}" 
-               class="px-4 py-2 rounded-lg text-xs font-semibold font-display tracking-wide transition-colors {{ $status === 'express' ? 'bg-rose-600 text-white shadow-md shadow-rose-600/10' : 'bg-slate-800 text-slate-300 hover:bg-slate-700' }}">
+            <a href="{{ route('orders.index', ['status' => 'express', 'search' => $search, 'start_date' => $startDate, 'end_date' => $endDate]) }}" 
+               class="px-4 py-2 rounded-lg text-xs font-semibold font-display tracking-wide transition-colors shrink-0 {{ $status === 'express' ? 'bg-rose-600 text-white shadow-md shadow-rose-600/10' : 'bg-slate-800 text-slate-300 hover:bg-slate-700' }}">
                 ⚡ Express
             </a>
-            <a href="{{ route('orders.index', ['status' => 'pending', 'search' => $search]) }}" 
-               class="px-4 py-2 rounded-lg text-xs font-semibold font-display tracking-wide transition-colors {{ $status === 'pending' ? 'bg-amber-500 text-slate-950 shadow-md shadow-amber-500/10' : 'bg-slate-800 text-slate-300 hover:bg-slate-700' }}">
+            <a href="{{ route('orders.index', ['status' => 'pending', 'search' => $search, 'start_date' => $startDate, 'end_date' => $endDate]) }}" 
+               class="px-4 py-2 rounded-lg text-xs font-semibold font-display tracking-wide transition-colors shrink-0 {{ $status === 'pending' ? 'bg-amber-500 text-slate-950 shadow-md shadow-amber-500/10' : 'bg-slate-800 text-slate-300 hover:bg-slate-700' }}">
                 En préparation
             </a>
-            <a href="{{ route('orders.index', ['status' => 'ready', 'search' => $search]) }}" 
-               class="px-4 py-2 rounded-lg text-xs font-semibold font-display tracking-wide transition-colors {{ $status === 'ready' ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/10' : 'bg-slate-800 text-slate-300 hover:bg-slate-700' }}">
+            <a href="{{ route('orders.index', ['status' => 'ready', 'search' => $search, 'start_date' => $startDate, 'end_date' => $endDate]) }}" 
+               class="px-4 py-2 rounded-lg text-xs font-semibold font-display tracking-wide transition-colors shrink-0 {{ $status === 'ready' ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/10' : 'bg-slate-800 text-slate-300 hover:bg-slate-700' }}">
                 Prêtes pour retrait
             </a>
-            <a href="{{ route('orders.index', ['status' => 'delivered', 'search' => $search]) }}" 
-               class="px-4 py-2 rounded-lg text-xs font-semibold font-display tracking-wide transition-colors {{ $status === 'delivered' ? 'bg-blue-600 text-white shadow-md shadow-blue-600/10' : 'bg-slate-800 text-slate-300 hover:bg-slate-700' }}">
+            <a href="{{ route('orders.index', ['status' => 'delivered', 'search' => $search, 'start_date' => $startDate, 'end_date' => $endDate]) }}" 
+               class="px-4 py-2 rounded-lg text-xs font-semibold font-display tracking-wide transition-colors shrink-0 {{ $status === 'delivered' ? 'bg-blue-600 text-white shadow-md shadow-blue-600/10' : 'bg-slate-800 text-slate-300 hover:bg-slate-700' }}">
                 Livrées / Clôturées
             </a>
         </div>
 
-        <!-- Navigation shortcut back to checkout -->
-        <div class="flex gap-3 w-full md:w-auto justify-end">
-            <a href="{{ route('checkout.index') }}" class="px-4 py-2 rounded-lg text-xs font-bold text-slate-300 bg-slate-800 border border-slate-700 hover:text-white hover:bg-slate-700 transition-colors flex items-center space-x-1">
+        <!-- Navigation shortcut back to checkout & search/date form -->
+        <div class="flex flex-col sm:flex-row gap-3 w-full md:w-auto justify-end items-stretch sm:items-center">
+            <a href="{{ route('checkout.index') }}" class="px-4 py-2 rounded-lg text-xs font-bold text-slate-300 bg-slate-800 border border-slate-700 hover:text-white hover:bg-slate-700 transition-colors flex items-center justify-center space-x-1 shrink-0">
                 <span>&larr; Caisse Tactile</span>
             </a>
 
-            <!-- Search input form -->
-            <form method="GET" action="{{ route('orders.index') }}" class="relative w-64">
+            <!-- Search & Date Filter Form -->
+            <form method="GET" action="{{ route('orders.index') }}" class="flex flex-col sm:flex-row gap-2 shrink-0 items-stretch sm:items-center">
                 <input type="hidden" name="status" value="{{ $status }}">
-                <input type="text" name="search" value="{{ $search }}" placeholder="Rechercher ticket, client..." 
-                       class="w-full bg-slate-900 border border-slate-700 rounded-lg pl-3 pr-8 py-2 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-indigo-500">
-                @if($search)
-                    <a href="{{ route('orders.index', ['status' => $status]) }}" class="absolute right-8 top-2.5 text-slate-500 hover:text-slate-300">
+                
+                <!-- Date range button & dropdown -->
+                <div class="relative shrink-0">
+                    <button type="button" id="date-filter-toggle" class="w-full sm:w-auto bg-slate-900 border border-slate-700 hover:bg-slate-800/80 rounded-lg px-3 py-2 text-xs text-slate-200 font-semibold transition-all flex items-center justify-between sm:justify-start space-x-2 cursor-pointer">
+                        <div class="flex items-center space-x-1.5">
+                            <svg class="h-3.5 w-3.5 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
+                            <span id="date-filter-label" class="text-slate-300 font-medium">
+                                @if($startDate && $endDate)
+                                    {{ Carbon\Carbon::parse($startDate)->format('d/m/Y') }} - {{ Carbon\Carbon::parse($endDate)->format('d/m/Y') }}
+                                @elseif($startDate)
+                                    Depuis le {{ Carbon\Carbon::parse($startDate)->format('d/m/Y') }}
+                                @elseif($endDate)
+                                    Jusqu'au {{ Carbon\Carbon::parse($endDate)->format('d/m/Y') }}
+                                @else
+                                    Filtrer par date
+                                @endif
+                            </span>
+                        </div>
+                        <div class="flex items-center space-x-1 ml-2">
+                            @if($startDate || $endDate)
+                                <span class="h-1.5 w-1.5 rounded-full bg-indigo-500"></span>
+                            @endif
+                            <svg class="h-3 w-3 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                            </svg>
+                        </div>
+                    </button>
+
+                    <!-- Dropdown calendar popover -->
+                    <div id="date-filter-dropdown" class="hidden absolute right-0 mt-2 bg-slate-800 border border-slate-700 rounded-xl p-4 shadow-2xl z-30 w-72 space-y-3">
+                        <h4 class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Filtrer par date de dépôt</h4>
+                        <div class="space-y-3">
+                            <div class="flex flex-col space-y-1">
+                                <label class="text-[10px] text-slate-400 font-bold">Du (Date début) :</label>
+                                <input type="date" name="start_date" id="start-date-picker" value="{{ $startDate }}" 
+                                       class="bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-indigo-500 w-full cursor-pointer">
+                            </div>
+                            <div class="flex flex-col space-y-1">
+                                <label class="text-[10px] text-slate-400 font-bold">Au (Date fin) :</label>
+                                <input type="date" name="end_date" id="end-date-picker" value="{{ $endDate }}" 
+                                       class="bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-indigo-500 w-full cursor-pointer">
+                            </div>
+                        </div>
+                        <div class="flex justify-between items-center pt-2.5 border-t border-slate-700/60">
+                            @if($startDate || $endDate)
+                                <a href="{{ route('orders.index', ['status' => $status, 'search' => $search]) }}" class="text-[10px] text-rose-400 hover:text-rose-300 font-semibold cursor-pointer">
+                                    Effacer
+                                </a>
+                            @else
+                                <span></span>
+                            @endif
+                            <button type="submit" class="bg-indigo-600 hover:bg-indigo-500 text-white text-[10px] font-bold px-3.5 py-1.5 rounded-lg shadow-md transition-colors cursor-pointer">
+                                Appliquer
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Text Search -->
+                <div class="relative w-full sm:w-56">
+                    <input type="text" name="search" value="{{ $search }}" placeholder="Rechercher ticket, client..." 
+                           class="w-full bg-slate-900 border border-slate-700 rounded-lg pl-3 pr-14 py-2 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-indigo-500">
+                    @if($search)
+                        <a href="{{ route('orders.index', ['status' => $status, 'start_date' => $startDate, 'end_date' => $endDate]) }}" class="absolute right-8 top-2.5 text-slate-500 hover:text-slate-300" title="Effacer texte">
+                            <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </a>
+                    @endif
+                    <button type="submit" class="absolute right-2.5 top-2.5 text-slate-500 hover:text-slate-300">
                         <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                         </svg>
-                    </a>
-                @endif
-                <button type="submit" class="absolute right-2.5 top-2.5 text-slate-500 hover:text-slate-300">
-                    <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                    </svg>
-                </button>
+                    </button>
+                </div>
             </form>
         </div>
     </div>
@@ -136,14 +207,22 @@
                                     </span>
                                 </td>
                                 <td class="py-3.5 px-4 text-right flex items-center justify-end space-x-2">
+                                    @if(auth()->user()->role === 'admin' && $order->status === 'pending')
+                                        <a href="{{ route('checkout.index', ['order_id' => $order->id]) }}" 
+                                           class="bg-slate-800 hover:bg-slate-700 text-amber-500 hover:text-amber-400 p-1.5 rounded-lg border border-slate-700 transition-all cursor-pointer" title="Modifier la commande">
+                                            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                            </svg>
+                                        </a>
+                                    @endif
                                     <button onclick="printOrder({{ $order->id }}, 'ticket')" 
-                                            class="bg-slate-800 hover:bg-slate-700 text-indigo-400 hover:text-indigo-300 p-1.5 rounded-lg border border-slate-700 transition-all cursor-pointer" title="Imprimer Reçu Client">
+                                             class="bg-slate-800 hover:bg-slate-700 text-indigo-400 hover:text-indigo-300 p-1.5 rounded-lg border border-slate-700 transition-all cursor-pointer" title="Imprimer Reçu Client">
                                         <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
                                         </svg>
                                     </button>
                                     <button onclick="printOrder({{ $order->id }}, 'tags')" 
-                                            class="bg-slate-800 hover:bg-slate-700 text-amber-500 hover:text-amber-400 p-1.5 rounded-lg border border-slate-700 transition-all cursor-pointer" title="Imprimer Étiquettes Cintres">
+                                             class="bg-slate-800 hover:bg-slate-700 text-amber-500 hover:text-amber-400 p-1.5 rounded-lg border border-slate-700 transition-all cursor-pointer" title="Imprimer Étiquettes Cintres">
                                         <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M6 20h12a2 2 0 002-2V9a2 2 0 00-2-2H6a2 2 0 00-2 2v9a2 2 0 002 2z" />
                                         </svg>
@@ -152,7 +231,7 @@
                                             class="bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white font-bold py-1.5 px-3 rounded-lg border border-slate-700 transition-all cursor-pointer">
                                         Détails & Retrait
                                     </button>
-                                </td>
+                                </td>                 </td>
                             </tr>
                         @endforeach
                     </tbody>
@@ -177,6 +256,14 @@
                 <p class="text-xs text-slate-400">Client : <span id="modal-client-name" class="font-bold">Merad</span></p>
             </div>
             <div class="flex items-center space-x-3">
+                @if(auth()->user()->role === 'admin')
+                    <a id="modal-edit-order-link" href="#" 
+                       class="hidden text-amber-500 hover:text-amber-400 p-1.5 bg-slate-700/50 hover:bg-slate-700 rounded-lg border border-slate-600 cursor-pointer" title="Modifier la commande">
+                        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                        </svg>
+                    </a>
+                @endif
                 <button onclick="printOrder(currentOrder.id, 'ticket')" 
                         class="text-indigo-400 hover:text-indigo-300 p-1.5 bg-slate-700/50 hover:bg-slate-700 rounded-lg border border-slate-600 cursor-pointer" title="Imprimer Reçu Client">
                     <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -267,6 +354,18 @@
 
     function openOrderDetailModal(order) {
         currentOrder = order;
+
+        @if(auth()->user()->role === 'admin')
+        const editLink = document.getElementById('modal-edit-order-link');
+        if (editLink) {
+            if (order.status === 'pending') {
+                editLink.href = `{{ route('checkout.index') }}?order_id=${order.id}`;
+                editLink.classList.remove('hidden');
+            } else {
+                editLink.classList.add('hidden');
+            }
+        }
+        @endif
 
         // Set text values
         document.getElementById('modal-ticket-no').textContent = order.ticket_number;
@@ -560,6 +659,24 @@
             toast.classList.add('translate-y-2', 'opacity-0');
             setTimeout(() => toast.remove(), 300);
         }, 8000);
+    }
+
+    // Toggle date filter dropdown
+    const toggleBtn = document.getElementById('date-filter-toggle');
+    const dropdown = document.getElementById('date-filter-dropdown');
+
+    if (toggleBtn && dropdown) {
+        toggleBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            dropdown.classList.toggle('hidden');
+        });
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!dropdown.contains(e.target) && !toggleBtn.contains(e.target)) {
+                dropdown.classList.add('hidden');
+            }
+        });
     }
 </script>
 @endsection

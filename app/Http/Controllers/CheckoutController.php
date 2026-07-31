@@ -14,10 +14,25 @@ class CheckoutController extends Controller
     /**
      * Display the tactile checkout main screen.
      */
-    public function index()
+    public function index(Request $request)
     {
         $services = Service::all();
         $targets = GarmentTarget::all();
+        
+        $editingOrder = null;
+        if ($request->has('order_id')) {
+            $editingOrder = \App\Models\Order::with(['client', 'orderItems.service', 'orderItems.garmentItem'])->find($request->input('order_id'));
+            
+            // Only allow admin to edit orders, and only pending orders
+            if ($editingOrder) {
+                if (auth()->user()->role !== 'admin') {
+                    abort(403, 'Seul un administrateur peut modifier une commande.');
+                }
+                if ($editingOrder->status !== 'pending') {
+                    abort(422, 'Seules les commandes en cours peuvent être modifiées.');
+                }
+            }
+        }
         
         // Load items with their pricing
         $items = GarmentItem::with('servicePrices')->get();
@@ -69,7 +84,8 @@ class CheckoutController extends Controller
             'defects',
             'stains',
             'nextTicketNumber',
-            'guestClient'
+            'guestClient',
+            'editingOrder'
         ));
     }
 

@@ -24,6 +24,8 @@ class OrderManagementController extends Controller
     {
         $status = $request->input('status', 'all');
         $search = $request->input('search', '');
+        $startDate = $request->input('start_date', '');
+        $endDate = $request->input('end_date', '');
 
         $query = Order::with(['client', 'user', 'orderItems.service', 'orderItems.garmentItem'])
             ->orderBy('order_date', 'desc');
@@ -33,6 +35,14 @@ class OrderManagementController extends Controller
             $query->where('is_express', true);
         } elseif ($status !== 'all') {
             $query->where('status', $status);
+        }
+
+        // Apply date filters
+        if (!empty($startDate)) {
+            $query->whereDate('order_date', '>=', $startDate);
+        }
+        if (!empty($endDate)) {
+            $query->whereDate('order_date', '<=', $endDate);
         }
 
         // Apply search
@@ -49,7 +59,7 @@ class OrderManagementController extends Controller
 
         $orders = $query->paginate(20)->withQueryString();
 
-        return view('orders.index', compact('orders', 'status', 'search'));
+        return view('orders.index', compact('orders', 'status', 'search', 'startDate', 'endDate'));
     }
 
     /**

@@ -142,4 +142,133 @@ class OrderController extends Controller
             ], 500);
         }
     }
+
+    /**
+     * Update an existing order and its items (admin only, pending status only).
+     */
+    public function update(Request $request, $id)
+    {
+        // 1. Authorize - must be admin
+        if (Auth::user()->role !== 'admin') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Non autorisé. Seul un administrateur peut modifier une commande.'
+            ], 403);
+        }
+
+        $validated = $request->validate([
+            'client_id' => 'required|exists:clients,id',
+            'ticket_number' => 'nullable|string|max:50',
+            'discount_percent' => 'nullable|numeric|min:0|max:100',
+            'discount_type' => 'nullable|string|in:percent,fixed',
+            'discount_amount' => 'nullable|numeric|min:0',
+            'paid_amount' => 'required|numeric|min:0',
+            'target_delivery_date' => 'required|date',
+            'remarks' => 'nullable|string',
+            'is_express' => 'nullable|boolean',
+            'items' => 'required|array|min:1',
+            'items.*.service_id' => 'required|exists:services,id',
+            'items.*.garment_item_id' => 'required|exists:garment_items,id',
+            'items.*.quantity' => 'required|numeric|min:0.01',
+            'items.*.unit_price' => 'required|numeric|min:0',
+            'items.*.colors' => 'nullable|array',
+            'items.*.defects' => 'nullable|array',
+            'items.*.stains' => 'nullable|array',
+            'items.*.notes' => 'nullable|string'
+        ]);
+
+        try {
+            $order = Order::findOrFail($id);
+
+            // 2. Verify status is pending
+            if ($order->status !== 'pending') {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Seules les commandes en cours peuvent être modifiées.'
+                ], 422);
+            }
+
+            DB::transaction(function () use (&$validated, $order) {
+                $discountType = $validated['discount_type'] ?? 'percent';
+                $discountPercent = floatval($validated['discount_percent'] ?? 0);
+                $discountAmountInput = floatval($validated['discount_amount'] ?? 0);
+                $paidAmount = floatval($validated['paid_amount']);
+                $isExpress = filter_var($validated['is_express'] ?? false, FILTER_VALIDATE_BOOLEAN);
+
+                // Calculate total item amounts
+                $subtotal = 0;
+                foreach ($validated['items'] as $idx => $item) {
+                    if ($isExpress) {
+                        $validated['items'][$idx]['unit_price'] = floatval($item['unit_price']) * 2;
+                    }
+                    $subtotal += floatval($validated['items'][$idx]['quantity']) * floatval($validated['items'][$idx]['unit_price']);
+                }
+
+                // Apply order-level discount
+                if ($discountType === 'fixed') {
+                    $discountAmount = $discountAmountInput;
+                    $discountPercent = $subtotal > 0 ? round(($discountAmount / $subtotal) * 100) : 0;
+                } else {
+                    $discountAmount = $subtotal * ($discountPercent / 100);
+                }
+
+                $totalAmount = max(0, $subtotal - $discountAmount);
+                $balanceAmount = max(0, $totalAmount - $paidAmount);
+                $isPaid = $balanceAmount <= 0;
+
+                // Update order
+                $order->update([
+                    'client_id' => $validated['client_id'],
+                    'ticket_number' => $validated['ticket_number'] ?? $order->ticket_number,
+                    'discount_percent' => $discountPercent,
+                    'discount_type' => $discountType,
+                    'discount_amount' => $discountAmount,
+                    'total_amount' => $totalAmount,
+                    'paid_amount' => $paidAmount,
+                    'balance_amount' => $balanceAmount,
+                    'is_paid' => $isPaid,
+                    'target_delivery_date' => Carbon::parse($validated['target_delivery_date']),
+                    'remarks' => $validated['remarks'] ?? null,
+                    'is_express' => $isExpress,
+                ]);
+
+                // Delete old order items
+                $order->orderItems()->delete();
+
+                // Create new order items
+                foreach ($validated['items'] as $item) {
+                    $qty = floatval($item['quantity']);
+                    $uPrice = floatval($item['unit_price']);
+                    $itemTotal = $qty * $uPrice;
+
+                    OrderItem::create([
+                        'order_id' => $order->id,
+                        'service_id' => $item['service_id'],
+                        'garment_item_id' => $item['garment_item_id'],
+                        'quantity' => $qty,
+                        'unit_price' => $uPrice,
+                        'total_price' => $itemTotal,
+                        'colors' => $item['colors'] ?? [],
+                        'defects' => $item['defects'] ?? [],
+                        'stains' => $item['stains'] ?? [],
+                        'is_ready' => false,
+                        'notes' => $item['notes'] ?? null,
+                    ]);
+                }
+            });
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Ticket modifié avec succès.',
+                'ticket_number' => $order->ticket_number,
+                'order_id' => $order->id
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur lors de la modification du ticket : ' . $e->getMessage()
+            ], 500);
+        }
+    }
 }

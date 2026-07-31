@@ -18,23 +18,41 @@
     <div class="bg-slate-800/40 p-5 border-b border-slate-700/50 shrink-0 flex flex-col sm:flex-row gap-4 items-center justify-between">
         <div>
             <h2 class="text-xl font-bold font-display text-white">Analyses & Statistiques</h2>
-            @if($userId === 'all')
-                <p class="text-xs text-slate-400">Rapports financiers et performance globale de la boutique</p>
-            @else
-                @php
-                    $selectedUser = $users->firstWhere('id', $userId);
-                @endphp
-                <p class="text-xs text-slate-400">Rapports financiers et performance individuelle de <strong>{{ $selectedUser ? $selectedUser->name : 'l\'acteur' }}</strong></p>
-            @endif
+            <p class="text-xs text-slate-400">
+                @if($segment === 'all')
+                    Rapports financiers et performance globale de la boutique
+                @elseif($segment === 'blanchisserie')
+                    Rapports financiers pour la <strong>Blanchisserie</strong> uniquement
+                @elseif($segment === 'teinture')
+                    Rapports financiers pour la <strong>Teinture</strong> uniquement
+                @else
+                    Rapports financiers pour les <strong>Autres Services</strong> uniquement
+                @endif
+                @if($userId !== 'all')
+                    @php $selectedUser = $users->firstWhere('id', $userId); @endphp
+                    (Acteur: <strong>{{ $selectedUser ? $selectedUser->name : 'l\'acteur' }}</strong>)
+                @endif
+            </p>
         </div>
 
-        <!-- Range & User Filter Form -->
+        <!-- Range & User & Segment Filter Form -->
         <form method="GET" action="{{ route('admin.dashboard') }}" class="flex flex-col sm:flex-row items-center gap-3">
+            <div class="flex items-center space-x-2">
+                <span class="text-xs text-slate-400 font-medium">Service :</span>
+                <select name="segment" onchange="this.form.submit()" 
+                        class="bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs font-semibold text-slate-200 focus:outline-none focus:border-indigo-500">
+                    <option value="all" {{ $segment === 'all' ? 'selected' : '' }}>Tout le magasin (Global)</option>
+                    <option value="blanchisserie" {{ $segment === 'blanchisserie' ? 'selected' : '' }}>Blanchisserie uniquement</option>
+                    <option value="teinture" {{ $segment === 'teinture' ? 'selected' : '' }}>Teinture uniquement</option>
+                    <option value="others" {{ $segment === 'others' ? 'selected' : '' }}>Autres services</option>
+                </select>
+            </div>
+
             <div class="flex items-center space-x-2">
                 <span class="text-xs text-slate-400 font-medium">Acteur :</span>
                 <select name="user_id" onchange="this.form.submit()" 
                         class="bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs font-semibold text-slate-200 focus:outline-none focus:border-indigo-500">
-                    <option value="all" {{ $userId === 'all' ? 'selected' : '' }}>Tout le magasin (Global)</option>
+                    <option value="all" {{ $userId === 'all' ? 'selected' : '' }}>Tous les acteurs</option>
                     @foreach($users as $user)
                         <option value="{{ $user->id }}" {{ intval($userId) === $user->id ? 'selected' : '' }}>
                             {{ $user->name }} ({{ $user->role === 'admin' ? 'Admin' : 'Caissier' }})
@@ -93,20 +111,30 @@
             <!-- KPI 4: Total Expenses -->
             <div class="kpi-card rounded-2xl p-4 border-l-4 border-l-rose-500">
                 <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Total Dépenses</p>
-                <p class="text-xl font-black font-display text-rose-400 mt-2">{{ number_format($totalExpenses, 0, '.', ' ') }} DA</p>
+                <p class="text-xl font-black font-display text-rose-400 mt-2">
+                    @if(is_null($totalExpenses))
+                        N/A
+                    @else
+                        {{ number_format($totalExpenses, 0, '.', ' ') }} DA
+                    @endif
+                </p>
                 <div class="flex items-center justify-between text-[10px] text-slate-500 mt-2">
-                    <span>Charges enregistrées</span>
+                    <span>{{ is_null($totalExpenses) ? 'Charges non réparties' : 'Charges enregistrées' }}</span>
                 </div>
             </div>
 
             <!-- KPI 5: Net Profit -->
             <div class="kpi-card rounded-2xl p-4 border-l-4 border-l-teal-500 bg-gradient-to-br from-slate-800/60 to-teal-950/20">
                 <p class="text-[10px] font-bold text-slate-300 uppercase tracking-wider">Bénéfice Réel</p>
-                <p class="text-xl font-black font-display {{ $netProfit >= 0 ? 'text-teal-400' : 'text-rose-500' }} mt-2">
-                    {{ number_format($netProfit, 0, '.', ' ') }} DA
+                <p class="text-xl font-black font-display {{ is_null($netProfit) ? 'text-slate-400' : ($netProfit >= 0 ? 'text-teal-400' : 'text-rose-500') }} mt-2">
+                    @if(is_null($netProfit))
+                        N/A
+                    @else
+                        {{ number_format($netProfit, 0, '.', ' ') }} DA
+                    @endif
                 </p>
                 <div class="flex items-center justify-between text-[10px] text-slate-400 mt-2">
-                    <span>Encaissé - Dépenses</span>
+                    <span>{{ is_null($netProfit) ? 'Charges non réparties' : 'Encaissé - Dépenses' }}</span>
                 </div>
             </div>
 
@@ -250,10 +278,18 @@
                                         {{ number_format($stat['collected'], 0, '.', ' ') }} DA
                                     </td>
                                     <td class="py-3 px-4 text-right font-semibold text-rose-400 font-mono">
-                                        {{ number_format($stat['expenses'], 0, '.', ' ') }} DA
+                                        @if(is_null($stat['expenses']))
+                                            N/A
+                                        @else
+                                            {{ number_format($stat['expenses'], 0, '.', ' ') }} DA
+                                        @endif
                                     </td>
-                                    <td class="py-3 px-4 text-right font-black {{ $stat['profit'] >= 0 ? 'text-teal-400' : 'text-rose-500' }} font-mono">
-                                        {{ number_format($stat['profit'], 0, '.', ' ') }} DA
+                                    <td class="py-3 px-4 text-right font-black {{ is_null($stat['profit']) ? 'text-slate-400' : ($stat['profit'] >= 0 ? 'text-teal-400' : 'text-rose-500') }} font-mono">
+                                        @if(is_null($stat['profit']))
+                                            N/A
+                                        @else
+                                            {{ number_format($stat['profit'], 0, '.', ' ') }} DA
+                                        @endif
                                     </td>
                                 </tr>
                             @endforeach

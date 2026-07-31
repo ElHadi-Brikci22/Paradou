@@ -469,6 +469,7 @@
     // Global catalog state injected from PHP
     const allItems = @json($items);
     const allServices = @json($services);
+    const editingOrder = @json($editingOrder ?? null);
     
     // Default client object
     const defaultClient = {
@@ -551,7 +552,55 @@
         // Initialize display
         selectService({{ $services->first() ? $services->first()->id : 1 }});
         selectTarget({{ $targets->first() ? $targets->first()->id : 1 }});
+        
+        // Load editing order if present
+        if (editingOrder) {
+            // Populate client
+            selectedClient = { ...editingOrder.client };
+            
+            // Populate discount
+            document.getElementById('discount-type-select').value = editingOrder.discount_type || 'percent';
+            document.getElementById('discount-percent-input').value = editingOrder.discount_type === 'percent' ? parseFloat(editingOrder.discount_percent) : parseFloat(editingOrder.discount_amount);
+            
+            // Populate paid amount
+            document.getElementById('paid-amount-input').value = parseFloat(editingOrder.paid_amount);
+            
+            // Populate express mode
+            document.getElementById('express-toggle-input').checked = !!editingOrder.is_express;
+            
+            // Populate delivery date
+            if (editingOrder.target_delivery_date) {
+                const dateParts = editingOrder.target_delivery_date.substring(0, 10);
+                document.getElementById('delivery-date-input').value = dateParts;
+            }
+            
+            // Populate ticket number & remarks
+            document.getElementById('ticket-number-input').value = editingOrder.ticket_number;
+            document.getElementById('remarks-input').value = editingOrder.remarks || '';
+            
+            // Populate cart
+            cart = editingOrder.order_items.map(item => {
+                return {
+                    id: item.garment_item_id,
+                    name: item.garment_item.name,
+                    service_id: item.service_id,
+                    service_name: item.service.name,
+                    quantity: parseFloat(item.quantity),
+                    unit_price: parseFloat(item.unit_price) / (editingOrder.is_express ? 2 : 1), // standard unit price
+                    colors: item.colors || [],
+                    defects: item.defects || [],
+                    stains: item.stains || [],
+                    notes: item.notes || ''
+                };
+            });
+            
+            // Change title in cart header to show we are editing
+            const cartHeader = document.querySelector('#cart-items-container').parentElement.querySelector('h3') || document.createElement('h3');
+            cartHeader.innerHTML = `<span class="text-amber-500 font-bold">Modification Ticket N° ${editingOrder.ticket_number}</span>`;
+        }
+
         renderSelectedClient();
+        renderCart();
         updateCartCalculations();
     });
 
@@ -1223,8 +1272,10 @@
             items: payloadItems
         };
 
+        const url = editingOrder ? `/orders/${editingOrder.id}/update` : '/orders';
+
         // Submit via AJAX
-        fetch('/orders', {
+        fetch(url, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -1239,28 +1290,37 @@
                 // Lancer l'impression complète de manière transparente via l'iframe cachée
                 printOrder(data.order_id, 'all');
 
-                showAppAlert(`Ticket N° ${data.ticket_number} enregistré avec succès !`, "success", "Commande Enregistrée");
+                const alertMsg = editingOrder ? `Ticket N° ${data.ticket_number} modifié avec succès !` : `Ticket N° ${data.ticket_number} enregistré avec succès !`;
+                const alertTitle = editingOrder ? "Commande Modifiée" : "Commande Enregistrée";
+
+                showAppAlert(alertMsg, "success", alertTitle, () => {
+                    if (editingOrder) {
+                        window.location.href = "{{ route('orders.index') }}";
+                    }
+                });
                 
-                // Clear cart
-                cart = [];
-                // Reset express checkbox
-                document.getElementById('express-toggle-input').checked = false;
-                renderCart();
-                clearSelectedClient();
-                
-                // Refresh next ticket number
-                const nextNo = String(parseInt(data.ticket_number) + 1).padStart(6, '0');
-                document.getElementById('ticket-number-input').value = nextNo;
-                document.getElementById('remarks-input').value = '';
-                document.getElementById('paid-amount-input').value = 0;
-                
-                updateCartCalculations();
+                if (!editingOrder) {
+                    // Clear cart
+                    cart = [];
+                    // Reset express checkbox
+                    document.getElementById('express-toggle-input').checked = false;
+                    renderCart();
+                    clearSelectedClient();
+                    
+                    // Refresh next ticket number
+                    const nextNo = String(parseInt(data.ticket_number) + 1).padStart(6, '0');
+                    document.getElementById('ticket-number-input').value = nextNo;
+                    document.getElementById('remarks-input').value = '';
+                    document.getElementById('paid-amount-input').value = 0;
+                    
+                    updateCartCalculations();
+                }
             } else {
                 showAppAlert(`Erreur : ${data.message}`, "error", "Erreur");
             }
         })
         .catch(err => {
-            showAppAlert("Erreur lors de l'enregistrement de la commande.", "error", "Erreur");
+            showAppAlert(editingOrder ? "Erreur lors de la modification de la commande." : "Erreur lors de l'enregistrement de la commande.", "error", "Erreur");
         });
     }
 

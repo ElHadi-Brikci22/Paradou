@@ -31,6 +31,7 @@ Route::middleware('auth')->group(function () {
     // Admin Only Routes
     Route::middleware('role:admin')->group(function () {
         Route::get('/admin/dashboard', [DashboardController::class, 'index'])->name('admin.dashboard');
+        Route::post('/orders/{id}/update', [OrderController::class, 'update'])->name('orders.update');
         Route::resource('/admin/users', UserController::class)->names('admin.users')->except(['create', 'show', 'edit']);
         Route::resource('/admin/clients', ClientController::class)->names('admin.clients')->except(['create', 'show', 'edit']);
         
