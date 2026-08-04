@@ -8,8 +8,27 @@ use Illuminate\Support\Facades\File;
 
 class RubricsController extends Controller
 {
-    private $oldAppDbPath = 'c:/Users/hadib/OneDrive/Bureau/MSK-DRY-PLUS-2022/db';
-    private $oldAppMenu02Path = 'c:/Users/hadib/OneDrive/Bureau/MSK-DRY-PLUS-2022/Menu/0/2';
+    private function getDbPath()
+    {
+        $primary = 'c:/Users/hadib/OneDrive/Bureau/MSK-DRY-PLUS-2022/db';
+        if (File::isDirectory($primary)) {
+            return $primary;
+        }
+        $fallback = storage_path('app/db');
+        File::ensureDirectoryExists($fallback);
+        return $fallback;
+    }
+
+    private function getMenuPath()
+    {
+        $primary = 'c:/Users/hadib/OneDrive/Bureau/MSK-DRY-PLUS-2022/Menu/0/2';
+        if (File::isDirectory($primary)) {
+            return $primary;
+        }
+        $fallback = storage_path('app/Menu/0/2');
+        File::ensureDirectoryExists($fallback);
+        return $fallback;
+    }
 
     /**
      * Display admin dictionary/rubrics interface.
@@ -80,7 +99,7 @@ class RubricsController extends Controller
      */
     private function loadDictionary($filename, $fallback)
     {
-        $filePath = $this->oldAppDbPath . '/' . $filename;
+        $filePath = $this->getDbPath() . '/' . $filename;
         if (File::exists($filePath)) {
             try {
                 $content = mb_convert_encoding(File::get($filePath), 'UTF-8', 'Windows-1252');
@@ -101,8 +120,9 @@ class RubricsController extends Controller
      */
     private function saveDictionary($filename, $items)
     {
-        File::ensureDirectoryExists($this->oldAppDbPath);
-        $filePath = $this->oldAppDbPath . '/' . $filename;
+        $dbPath = $this->getDbPath();
+        File::ensureDirectoryExists($dbPath);
+        $filePath = $dbPath . '/' . $filename;
 
         // Convert items to Windows-1252 and join by CR-LF
         $content = mb_convert_encoding(implode("\r\n", $items) . "\r\n", 'Windows-1252', 'UTF-8');
@@ -114,9 +134,10 @@ class RubricsController extends Controller
      */
     private function loadPatterns($fallback)
     {
-        if (File::isDirectory($this->oldAppMenu02Path)) {
+        $menuPath = $this->getMenuPath();
+        if (File::isDirectory($menuPath)) {
             try {
-                $files = File::files($this->oldAppMenu02Path);
+                $files = File::files($menuPath);
                 $patterns = [];
                 foreach ($files as $file) {
                     if ($file->getExtension() === 'txt') {
@@ -149,7 +170,8 @@ class RubricsController extends Controller
      */
     private function savePatternsList($newPatterns)
     {
-        File::ensureDirectoryExists($this->oldAppMenu02Path);
+        $menuPath = $this->getMenuPath();
+        File::ensureDirectoryExists($menuPath);
 
         // Standardize new patterns list for filesystem comparison
         $standardizedNew = [];
@@ -166,8 +188,8 @@ class RubricsController extends Controller
 
         // Get currently existing patterns in the directory
         $existingFiles = [];
-        if (File::isDirectory($this->oldAppMenu02Path)) {
-            $files = File::files($this->oldAppMenu02Path);
+        if (File::isDirectory($menuPath)) {
+            $files = File::files($menuPath);
             foreach ($files as $file) {
                 $filename = pathinfo($file->getFilename(), PATHINFO_FILENAME);
                 if (str_starts_with($filename, '0-')) {
@@ -182,7 +204,7 @@ class RubricsController extends Controller
 
         // 1. Create files for added patterns
         foreach ($standardizedNew as $fsName => $origName) {
-            $txtPath = $this->oldAppMenu02Path . '/0-' . $fsName . '.txt';
+            $txtPath = $menuPath . '/0-' . $fsName . '.txt';
             if (!File::exists($txtPath)) {
                 // Write '0' to file in Windows-1252
                 File::put($txtPath, "0\r\n");
@@ -192,8 +214,8 @@ class RubricsController extends Controller
         // 2. Delete files for removed patterns
         foreach ($existingFiles as $fsName => $exists) {
             if (!isset($standardizedNew[$fsName])) {
-                $txtPath = $this->oldAppMenu02Path . '/0-' . $fsName . '.txt';
-                $jpgPath = $this->oldAppMenu02Path . '/0-' . $fsName . '.jpg';
+                $txtPath = $menuPath . '/0-' . $fsName . '.txt';
+                $jpgPath = $menuPath . '/0-' . $fsName . '.jpg';
                 if (File::exists($txtPath)) {
                     File::delete($txtPath);
                 }

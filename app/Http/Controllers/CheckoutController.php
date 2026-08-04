@@ -94,8 +94,17 @@ class CheckoutController extends Controller
      */
     private function getDictionary($filename, $fallback)
     {
-        $sourcePath = 'c:/Users/hadib/OneDrive/Bureau/MSK-DRY-PLUS-2022/db/' . $filename;
-        if (File::exists($sourcePath)) {
+        $primaryPath = 'c:/Users/hadib/OneDrive/Bureau/MSK-DRY-PLUS-2022/db/' . $filename;
+        $fallbackPath = storage_path('app/db/' . $filename);
+        
+        $sourcePath = null;
+        if (File::exists($primaryPath)) {
+            $sourcePath = $primaryPath;
+        } elseif (File::exists($fallbackPath)) {
+            $sourcePath = $fallbackPath;
+        }
+
+        if ($sourcePath) {
             try {
                 $content = mb_convert_encoding(File::get($sourcePath), 'UTF-8', 'Windows-1252');
                 $lines = explode("\n", str_replace("\r\n", "\n", $content));
@@ -115,8 +124,17 @@ class CheckoutController extends Controller
      */
     private function getPatterns($fallback)
     {
-        $sourcePath = 'c:/Users/hadib/OneDrive/Bureau/MSK-DRY-PLUS-2022/Menu/0/2';
-        if (File::isDirectory($sourcePath)) {
+        $primaryPath = 'c:/Users/hadib/OneDrive/Bureau/MSK-DRY-PLUS-2022/Menu/0/2';
+        $fallbackPath = storage_path('app/Menu/0/2');
+        
+        $sourcePath = null;
+        if (File::isDirectory($primaryPath)) {
+            $sourcePath = $primaryPath;
+        } elseif (File::isDirectory($fallbackPath)) {
+            $sourcePath = $fallbackPath;
+        }
+
+        if ($sourcePath && File::isDirectory($sourcePath)) {
             try {
                 $files = File::files($sourcePath);
                 $patterns = [];
