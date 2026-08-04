@@ -314,15 +314,15 @@
                    class="px-4 py-2 rounded-lg text-xs font-bold font-display uppercase tracking-wide transition-colors {{ Request::routeIs('admin.dashboard') ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/10' : 'text-slate-300 hover:text-white hover:bg-slate-700/50' }}">
                     Dashboard Admin
                 </a>
-                <div class="relative group inline-block text-left">
-                    <button class="px-4 py-2 rounded-lg text-xs font-bold font-display uppercase tracking-wide transition-colors text-slate-300 group-hover:text-white hover:text-white hover:bg-slate-700/50 group-hover:bg-slate-700/50 flex items-center space-x-1 cursor-pointer">
+                <div class="relative inline-block text-left">
+                    <button id="gestion-dropdown-btn" class="px-4 py-2 rounded-lg text-xs font-bold font-display uppercase tracking-wide transition-colors text-slate-300 hover:text-white hover:bg-slate-700/50 flex items-center space-x-1 cursor-pointer">
                         <span>Gestion</span>
-                        <svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <svg id="gestion-dropdown-arrow" class="h-3 w-3 transition-transform duration-150" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                         </svg>
                     </button>
                     <!-- Dropdown menu -->
-                    <div class="absolute left-0 mt-1 w-52 rounded-xl bg-slate-800 border border-slate-700/60 shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-150 z-50 overflow-hidden">
+                    <div id="gestion-dropdown-menu" class="absolute left-0 mt-1 w-52 rounded-xl bg-slate-800 border border-slate-700/60 shadow-xl opacity-0 invisible transition-all duration-150 z-50 overflow-hidden">
                         <div class="py-1">
                             <a href="{{ route('admin.users.index') }}" class="block px-4 py-2.5 text-xs font-bold text-slate-300 hover:text-white hover:bg-slate-700/50 transition-colors uppercase font-display">
                                 Gestion Caissiers
@@ -458,6 +458,35 @@
         // Sync theme elements when DOM is ready
         window.addEventListener('DOMContentLoaded', () => {
             applyTheme(localStorage.getItem('theme') || 'dark');
+
+            // Gestion Dropdown functionality
+            const btn = document.getElementById('gestion-dropdown-btn');
+            const menu = document.getElementById('gestion-dropdown-menu');
+            const arrow = document.getElementById('gestion-dropdown-arrow');
+
+            if (btn && menu) {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const isOpen = !menu.classList.contains('invisible');
+                    if (isOpen) {
+                        menu.classList.add('opacity-0', 'invisible');
+                        menu.classList.remove('opacity-100', 'visible');
+                        if (arrow) arrow.classList.remove('rotate-180');
+                    } else {
+                        menu.classList.remove('opacity-0', 'invisible');
+                        menu.classList.add('opacity-100', 'visible');
+                        if (arrow) arrow.classList.add('rotate-180');
+                    }
+                });
+
+                document.addEventListener('click', (e) => {
+                    if (!btn.contains(e.target) && !menu.contains(e.target)) {
+                        menu.classList.add('opacity-0', 'invisible');
+                        menu.classList.remove('opacity-100', 'visible');
+                        if (arrow) arrow.classList.remove('rotate-180');
+                    }
+                });
+            }
         });
 
         // Global function for printing without opening new windows (via hidden iframe)
