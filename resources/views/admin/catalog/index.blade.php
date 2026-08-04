@@ -450,7 +450,7 @@
     // ================= ARTICLES MODAL =================
     window.openAddCatalogModal = function() {
         document.getElementById('modal-title').textContent = "Nouvel Article";
-        document.getElementById('catalog-form').action = "{{ route('admin.catalog.item.store') }}";
+        document.getElementById('catalog-form').action = "{{ route('admin.catalog.item.store', [], false) }}";
         document.getElementById('form-method-container').innerHTML = ""; 
         
         document.getElementById('catalog-item-name').value = "";
@@ -485,7 +485,7 @@
     // ================= CATEGORIES (TARGETS) MODAL =================
     window.openAddTargetModal = function() {
         document.getElementById('target-modal-title').textContent = "Nouvelle Catégorie";
-        document.getElementById('target-form').action = "{{ route('admin.catalog.target.store') }}";
+        document.getElementById('target-form').action = "{{ route('admin.catalog.target.store', [], false) }}";
         document.getElementById('target-form-method-container').innerHTML = "";
         document.getElementById('target-name').value = "";
         document.getElementById('target-modal').classList.remove('hidden');
@@ -506,7 +506,7 @@
     // ================= SERVICES MODAL =================
     window.openAddServiceModal = function() {
         document.getElementById('service-modal-title').textContent = "Nouveau Service";
-        document.getElementById('service-form').action = "{{ route('admin.catalog.service.store') }}";
+        document.getElementById('service-form').action = "{{ route('admin.catalog.service.store', [], false) }}";
         document.getElementById('service-form-method-container').innerHTML = "";
         document.getElementById('service-name').value = "";
         document.getElementById('service-code').value = "";

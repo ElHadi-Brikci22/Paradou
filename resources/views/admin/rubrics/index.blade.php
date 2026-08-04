@@ -76,7 +76,7 @@
                   'stains' => ['title' => 'Taches courantes à traiter', 'data' => $stains]] as $key => $meta)
             
             <div id="tab-content-{{ $key }}" class="rubric-tab-content {{ $activeTab === $key ? '' : 'hidden' }}">
-                <form action="{{ route('admin.rubrics.save') }}" method="POST" class="space-y-4">
+                <form action="{{ route('admin.rubrics.save', [], false) }}" method="POST" class="space-y-4">
                     @csrf
                     <input type="hidden" name="type" value="{{ $key }}">
 

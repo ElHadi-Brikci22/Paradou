@@ -455,8 +455,7 @@
             applyTheme(newTheme);
         }
 
-        // Sync theme elements when DOM is ready
-        window.addEventListener('DOMContentLoaded', () => {
+        function initAppLayout() {
             applyTheme(localStorage.getItem('theme') || 'dark');
 
             // Gestion Dropdown functionality
@@ -487,7 +486,13 @@
                     }
                 });
             }
-        });
+        }
+
+        if (document.readyState === 'loading') {
+            window.addEventListener('DOMContentLoaded', initAppLayout);
+        } else {
+            initAppLayout();
+        }
 
         // Global function for printing without opening new windows (via hidden iframe)
         function printOrder(orderId, type = 'all') {
