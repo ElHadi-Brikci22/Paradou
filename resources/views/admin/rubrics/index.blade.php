@@ -91,9 +91,9 @@
                             <div class="flex items-center space-x-2 w-full sm:w-auto">
                                 <input type="text" id="add-input-{{ $key }}" data-type="{{ $key }}"
                                        placeholder="Nouvelle entrée..." 
-                                       class="rubric-input bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-indigo-500 w-full sm:w-48">
+                                       class="rubric-input bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-indigo-500 flex-1 sm:flex-initial sm:w-48">
                                 <button type="button" data-type="{{ $key }}"
-                                        class="btn-add-rubric px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold font-display rounded-lg transition-colors cursor-pointer">
+                                        class="btn-add-rubric shrink-0 px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold font-display rounded-lg transition-colors cursor-pointer">
                                     Ajouter
                                 </button>
                             </div>
