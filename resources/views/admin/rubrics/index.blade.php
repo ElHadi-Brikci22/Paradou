@@ -89,12 +89,12 @@
 
                             <!-- Add Item Box -->
                             <div class="flex items-center space-x-2 w-full sm:w-auto">
-                                <input type="text" id="add-input-{{ $key }}" data-type="{{ $key }}"
-                                       placeholder="Nouvelle entrée..." 
-                                       class="rubric-input bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-indigo-500 flex-1 sm:flex-initial sm:w-48">
-                                <button type="button" data-type="{{ $key }}"
-                                        class="btn-add-rubric shrink-0 px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold font-display rounded-lg transition-colors cursor-pointer">
-                                    Ajouter
+                                <button type="button" onclick="addNewItem('{{ $key }}')"
+                                        class="shrink-0 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold font-display rounded-lg transition-colors cursor-pointer flex items-center space-x-1">
+                                    <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+                                    </svg>
+                                    <span>Ajouter</span>
                                 </button>
                             </div>
                         </div>
@@ -105,7 +105,7 @@
                                 <div class="badge-item flex items-center space-x-1.5 px-3 py-1 rounded-full text-xs font-semibold border border-slate-700 bg-slate-800 text-slate-200">
                                     <span>{{ $item }}</span>
                                     <input type="hidden" name="items[]" value="{{ $item }}">
-                                    <button type="button" class="btn-remove-rubric text-slate-400 hover:text-rose-400 font-bold transition-colors cursor-pointer ml-1">×</button>
+                                    <button type="button" onclick="removeItem(this)" class="text-slate-400 hover:text-rose-400 font-bold transition-colors cursor-pointer ml-1">×</button>
                                 </div>
                             @endforeach
                         </div>
@@ -148,10 +148,15 @@
     };
 
     window.addNewItem = function(type) {
-        const input = document.getElementById(`add-input-${type}`);
-        const val = input.value.trim();
+        let label = "choix";
+        if (type === 'patterns') label = "motif";
+        else if (type === 'colors') label = "couleur";
+        else if (type === 'defects') label = "défaut";
+        else if (type === 'stains') label = "tache";
 
-        if (val === '') return;
+        const val = prompt("Saisissez le nom du " + label + " :")?.trim();
+
+        if (!val) return; // Annulé ou vide
 
         // Check duplicates
         let exists = false;
@@ -168,19 +173,26 @@
 
         // Create new badge DOM
         const container = document.getElementById(`badges-container-${type}`);
+        if (!container) {
+            alert("Erreur : l'élément badges-container n'a pas été trouvé.");
+            return;
+        }
         const badge = document.createElement('div');
         badge.className = "badge-item flex items-center space-x-1.5 px-3 py-1 rounded-full text-xs font-semibold border border-slate-700 bg-slate-800 text-slate-200";
         badge.innerHTML = `
             <span>${val}</span>
             <input type="hidden" name="items[]" value="${val}">
-            <button type="button" class="btn-remove-rubric text-slate-400 hover:text-rose-400 font-bold transition-colors cursor-pointer ml-1">×</button>
+            <button type="button" onclick="removeItem(this)" class="text-slate-400 hover:text-rose-400 font-bold transition-colors cursor-pointer ml-1">×</button>
         `;
 
         container.appendChild(badge);
-        input.value = '';
 
-        // Auto submit to save changes instantly
-        input.closest('form').submit();
+        const form = document.querySelector(`#tab-content-${type} form`);
+        if (!form) {
+            alert("Erreur : le formulaire parent n'a pas été trouvé.");
+            return;
+        }
+        form.submit();
     };
 
     window.removeItem = function(btn) {
@@ -190,32 +202,5 @@
         // Auto submit to save changes instantly
         form.submit();
     };
-
-    // Bind click on Ajouter buttons using event delegation
-    document.addEventListener('click', function(event) {
-        const addBtn = event.target.closest('.btn-add-rubric');
-        if (addBtn) {
-            const type = addBtn.getAttribute('data-type');
-            addNewItem(type);
-        }
-    });
-
-    // Bind Enter key on text inputs using event delegation
-    document.addEventListener('keydown', function(event) {
-        const input = event.target.closest('.rubric-input');
-        if (input && event.key === 'Enter') {
-            event.preventDefault();
-            const type = input.getAttribute('data-type');
-            addNewItem(type);
-        }
-    });
-
-    // Bind click on delete (x) buttons using event delegation (for both static and dynamic badges)
-    document.addEventListener('click', function(event) {
-        const removeBtn = event.target.closest('.btn-remove-rubric');
-        if (removeBtn) {
-            removeItem(removeBtn);
-        }
-    });
 </script>
 @endsection

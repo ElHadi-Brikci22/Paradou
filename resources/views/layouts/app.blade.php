@@ -1,9 +1,10 @@
 <!DOCTYPE html>
-<html lang="fr" class="h-full bg-slate-900 text-slate-100">
+<html lang="fr" class="h-full bg-slate-900 text-slate-100" translate="no">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    <meta name="google" content="notranslate">
 
     <title>@yield('title', 'Caisse Tactile') - PARADOU</title>
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect x=%2210%22 y=%225%22 width=%2280%22 height=%2290%22 rx=%2210%22 fill=%22%234f46e5%22/><line x1=%2210%22 y1=%2225%22 x2=%2290%22 y2=%2225%22 stroke=%22white%22 stroke-width=%225%22/><circle cx=%2225%22 cy=%2215%22 r=%224%22 fill=%22white%22/><circle cx=%2240%22 cy=%2215%22 r=%224%22 fill=%22white%22/><circle cx=%2255%22 cy=%2215%22 r=%224%22 fill=%22white%22/><circle cx=%2250%22 cy=%2260%22 r=%2220%22 fill=%22none%22 stroke=%22white%22 stroke-width=%228%22/><circle cx=%2250%22 cy=%2260%22 r=%2212%22 fill=%22none%22 stroke=%22white%22 stroke-width=%224%22 stroke-dasharray=%2210 5%22/></svg>">
