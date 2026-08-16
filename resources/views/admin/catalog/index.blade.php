@@ -126,9 +126,18 @@
                                     }
                                 @endphp
                                 <tr class="hover:bg-slate-800/10 transition-colors catalog-row" data-target-id="{{ $item->garment_target_id }}">
-                                    <td class="py-3 px-6 font-bold text-slate-100 uppercase">
-                                        {{ $item->name }}
-                                    </td>
+                                     <td class="py-3 px-6 font-bold text-slate-100 uppercase">
+                                         <div class="flex items-center space-x-3">
+                                             @if($item->image_path)
+                                                 <img src="{{ asset($item->image_path) }}" class="h-8 w-8 rounded-lg object-cover border border-slate-700/50" alt="{{ $item->name }}">
+                                             @else
+                                                 <div class="h-8 w-8 rounded-lg bg-slate-800 border border-slate-700/50 flex items-center justify-center text-slate-500 text-[10px] font-bold">
+                                                     N/A
+                                                 </div>
+                                             @endif
+                                             <span>{{ $item->name }}</span>
+                                         </div>
+                                     </td>
                                     <td class="py-3 px-4">
                                         <span class="px-2 py-0.5 rounded text-[9px] font-bold bg-slate-800 text-slate-300 border border-slate-700/60 uppercase">
                                             {{ $item->garmentTarget ? $item->garmentTarget->name : '-' }}
@@ -283,7 +292,7 @@
             </button>
         </div>
 
-        <form id="catalog-form" method="POST" class="p-6 space-y-4 overflow-y-auto max-h-[75vh]">
+        <form id="catalog-form" method="POST" enctype="multipart/form-data" class="p-6 space-y-4 overflow-y-auto max-h-[75vh]">
             @csrf
             <div id="form-method-container"></div>
 
@@ -302,6 +311,13 @@
                         <option value="{{ $target->id }}">{{ $target->name }}</option>
                     @endforeach
                 </select>
+            </div>
+
+            <div>
+                <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Image de l'article</label>
+                <input type="file" id="catalog-item-image" name="image" accept="image/*"
+                       class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-indigo-500">
+                <p class="text-[10px] text-slate-500 mt-1">Sélectionnez une image pour l'article (Optionnel).</p>
             </div>
 
             <div class="pt-2">
@@ -455,6 +471,7 @@
         
         document.getElementById('catalog-item-name').value = "";
         document.getElementById('catalog-item-target').value = "";
+        document.getElementById('catalog-item-image').value = "";
         
         @foreach($services as $service)
             document.getElementById('catalog-price-{{ $service->id }}').value = "";
@@ -470,6 +487,7 @@
 
         document.getElementById('catalog-item-name').value = item.name;
         document.getElementById('catalog-item-target').value = item.garment_target_id || "";
+        document.getElementById('catalog-item-image').value = "";
 
         @foreach($services as $service)
             document.getElementById('catalog-price-{{ $service->id }}').value = prices['{{ $service->id }}'] || "";

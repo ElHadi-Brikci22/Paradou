@@ -692,17 +692,23 @@
             }
 
             const card = document.createElement('button');
-            card.className = "bg-slate-800 border border-slate-700/60 p-3.5 rounded-2xl text-left flex flex-col justify-between h-32 active:scale-95 hover:border-slate-500 hover:bg-slate-800/80 transition-all duration-150 shadow-md cursor-pointer";
             card.onclick = () => addToCart(item, price);
+
+            if (item.image_path) {
+                card.className = "relative border border-slate-700/60 p-3.5 rounded-2xl text-left flex flex-col justify-between h-32 active:scale-95 hover:border-slate-500 transition-all duration-150 shadow-md cursor-pointer overflow-hidden bg-cover bg-center";
+                card.style.backgroundImage = `linear-gradient(to bottom, rgba(15, 23, 42, 0.65), rgba(15, 23, 42, 0.85)), url('/${item.image_path}')`;
+            } else {
+                card.className = "bg-slate-800 border border-slate-700/60 p-3.5 rounded-2xl text-left flex flex-col justify-between h-32 active:scale-95 hover:border-slate-500 hover:bg-slate-800/80 transition-all duration-150 shadow-md cursor-pointer";
+            }
 
             // Item Name
             const title = document.createElement('h3');
-            title.className = "text-xs font-bold text-slate-100 leading-snug line-clamp-2 uppercase font-display";
+            title.className = "text-xs font-bold text-slate-100 leading-snug line-clamp-2 uppercase font-display z-10";
             title.textContent = item.name;
 
             // Price badge
             const priceBadge = document.createElement('div');
-            priceBadge.className = "text-right mt-auto";
+            priceBadge.className = "text-right mt-auto z-10";
             
             const priceText = document.createElement('span');
             priceText.className = "text-sm font-black font-display text-indigo-400";

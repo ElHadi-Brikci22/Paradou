@@ -34,13 +34,23 @@ class CatalogController extends Controller
             'name' => 'required|string|max:255',
             'garment_target_id' => 'required|exists:garment_targets,id',
             'prices' => 'nullable|array',
-            'prices.*' => 'nullable|numeric|min:0'
+            'prices.*' => 'nullable|numeric|min:0',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg,webp|max:2048'
         ]);
 
-        DB::transaction(function () use ($validated) {
+        DB::transaction(function () use ($validated, $request) {
+            $imagePath = null;
+            if ($request->hasFile('image')) {
+                $file = $request->file('image');
+                $filename = time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
+                $file->move(public_path('images/catalog'), $filename);
+                $imagePath = 'images/catalog/' . $filename;
+            }
+
             $item = GarmentItem::create([
                 'name' => $validated['name'],
-                'garment_target_id' => $validated['garment_target_id']
+                'garment_target_id' => $validated['garment_target_id'],
+                'image_path' => $imagePath
             ]);
 
             if (!empty($validated['prices'])) {
@@ -70,14 +80,26 @@ class CatalogController extends Controller
             'name' => 'required|string|max:255',
             'garment_target_id' => 'required|exists:garment_targets,id',
             'prices' => 'nullable|array',
-            'prices.*' => 'nullable|numeric|min:0'
+            'prices.*' => 'nullable|numeric|min:0',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg,webp|max:2048'
         ]);
 
-        DB::transaction(function () use ($item, $validated) {
+        DB::transaction(function () use ($item, $validated, $request) {
             $item->update([
                 'name' => $validated['name'],
                 'garment_target_id' => $validated['garment_target_id']
             ]);
+
+            if ($request->hasFile('image')) {
+                // Delete old image if it exists on disk
+                if ($item->image_path && file_exists(public_path($item->image_path))) {
+                    @unlink(public_path($item->image_path));
+                }
+                $file = $request->file('image');
+                $filename = time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
+                $file->move(public_path('images/catalog'), $filename);
+                $item->update(['image_path' => 'images/catalog/' . $filename]);
+            }
 
             // Sync prices
             if (isset($validated['prices'])) {
