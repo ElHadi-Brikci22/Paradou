@@ -89,7 +89,7 @@
 
                             <!-- Add Item Box -->
                             <div class="flex items-center space-x-2 w-full sm:w-auto">
-                                <button type="button" onclick="addNewItem('{{ $key }}')"
+                                <button type="button" onclick="openAddRubricModal('{{ $key }}')"
                                         class="shrink-0 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold font-display rounded-lg shadow-lg shadow-indigo-600/10 active:translate-y-0.5 transition-all cursor-pointer flex items-center space-x-1.5">
                                     <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
@@ -123,6 +123,36 @@
         @endforeach
     </div>
 </div>
+
+<!-- Custom Add Rubric Item Modal -->
+<div id="add-rubric-modal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-slate-800 border border-slate-700 rounded-2xl w-full max-w-sm flex flex-col shadow-2xl overflow-hidden transform scale-95 transition-all duration-150">
+        <!-- Modal Header -->
+        <div class="px-6 py-4 bg-slate-800 border-b border-slate-700 flex justify-between items-center">
+            <h3 id="add-rubric-modal-title" class="text-base font-bold text-white font-display">Nouvelle entrée</h3>
+            <button onclick="closeAddRubricModal()" class="text-slate-400 hover:text-white cursor-pointer">
+                <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+        </div>
+
+        <!-- Modal Body / Form -->
+        <div class="p-6 space-y-4">
+            <div>
+                <label id="add-rubric-modal-label" class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Nom *</label>
+                <input type="text" id="add-rubric-modal-input" required placeholder="Saisissez la valeur..." 
+                       onkeydown="if(event.key === 'Enter') { event.preventDefault(); submitAddRubricModal(); }"
+                       class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2.5 text-sm text-slate-200 focus:outline-none focus:border-indigo-500">
+            </div>
+
+            <div class="pt-4 flex justify-end space-x-3 border-t border-slate-700/50">
+                <button type="button" onclick="closeAddRubricModal()" class="px-4 py-2 text-xs font-bold text-slate-400 hover:text-white transition-colors cursor-pointer">Annuler</button>
+                <button type="button" onclick="submitAddRubricModal()" class="px-5 py-2 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-500 rounded-lg transition-colors cursor-pointer">Ajouter</button>
+            </div>
+        </div>
+    </div>
+</div>
 @endsection
 
 @section('scripts')
@@ -147,16 +177,68 @@
         window.history.pushState({ path: newUrl }, '', newUrl);
     };
 
-    window.addNewItem = function(type) {
-        let label = "choix";
-        if (type === 'patterns') label = "motif";
-        else if (type === 'colors') label = "couleur";
-        else if (type === 'defects') label = "défaut";
-        else if (type === 'stains') label = "tache";
+    let currentModalType = '';
 
-        const val = prompt("Saisissez le nom du " + label + " :")?.trim();
+    window.openAddRubricModal = function(type) {
+        currentModalType = type;
+        
+        let title = "Nouvelle entrée";
+        let label = "Nom";
+        let placeholder = "";
+        
+        if (type === 'patterns') {
+            title = "Nouveau Motif";
+            label = "Nom du motif *";
+            placeholder = "Ex: Carreaux fins, Rayures, ...";
+        } else if (type === 'colors') {
+            title = "Nouvelle Couleur";
+            label = "Nom de la couleur *";
+            placeholder = "Ex: Bleu Turquoise, Rouge Brique, ...";
+        } else if (type === 'defects') {
+            title = "Nouveau Défaut";
+            label = "Nom du défaut *";
+            placeholder = "Ex: Fermeture cassée, Accroc, ...";
+        } else if (type === 'stains') {
+            title = "Nouvelle Tache";
+            label = "Nom de la tache *";
+            placeholder = "Ex: Café, Herbe, Cambouis, ...";
+        }
+        
+        document.getElementById('add-rubric-modal-title').textContent = title;
+        document.getElementById('add-rubric-modal-label').textContent = label;
+        
+        const input = document.getElementById('add-rubric-modal-input');
+        input.placeholder = placeholder;
+        input.value = '';
+        
+        const modal = document.getElementById('add-rubric-modal');
+        modal.classList.remove('hidden');
+        setTimeout(() => {
+            modal.querySelector('.transform').classList.remove('scale-95');
+            modal.querySelector('.transform').classList.add('scale-100');
+            input.focus();
+        }, 50);
+    };
 
-        if (!val) return; // Annulé ou vide
+    window.closeAddRubricModal = function() {
+        const modal = document.getElementById('add-rubric-modal');
+        modal.querySelector('.transform').classList.remove('scale-100');
+        modal.querySelector('.transform').classList.add('scale-95');
+        setTimeout(() => {
+            modal.classList.add('hidden');
+        }, 150);
+    };
+
+    window.submitAddRubricModal = function() {
+        const input = document.getElementById('add-rubric-modal-input');
+        const val = input.value.trim();
+        
+        if (val === '') {
+            alert("Veuillez saisir une valeur.");
+            return;
+        }
+
+        const type = currentModalType;
 
         // Check duplicates
         let exists = false;
@@ -186,6 +268,8 @@
         `;
 
         container.appendChild(badge);
+        
+        closeAddRubricModal();
 
         const form = document.querySelector(`#tab-content-${type} form`);
         if (!form) {
