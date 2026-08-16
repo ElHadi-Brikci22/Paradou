@@ -90,7 +90,7 @@
                             <!-- Add Item Box -->
                             <div class="flex items-center space-x-2 w-full sm:w-auto">
                                 <button type="button" onclick="addNewItem('{{ $key }}')"
-                                        class="shrink-0 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold font-display rounded-lg transition-colors cursor-pointer flex items-center space-x-1">
+                                        class="shrink-0 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold font-display rounded-lg shadow-lg shadow-indigo-600/10 active:translate-y-0.5 transition-all cursor-pointer flex items-center space-x-1.5">
                                     <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
                                     </svg>
@@ -100,9 +100,9 @@
                         </div>
 
                         <!-- Badges Grid Container -->
-                        <div class="flex flex-wrap gap-2.5 min-h-[100px] p-4 bg-slate-900/30 border border-slate-800 rounded-xl" id="badges-container-{{ $key }}">
+                        <div class="flex flex-wrap gap-2.5 min-h-[120px] p-5 bg-slate-950/40 border border-slate-800/80 rounded-xl" id="badges-container-{{ $key }}">
                             @foreach($meta['data'] as $item)
-                                <div class="badge-item flex items-center space-x-1.5 px-3 py-1 rounded-full text-xs font-semibold border border-slate-700 bg-slate-800 text-slate-200">
+                                <div class="badge-item flex items-center space-x-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold border border-slate-700/60 bg-slate-850 hover:bg-slate-800 hover:border-slate-600 text-slate-200 transition-all shadow-sm">
                                     <span>{{ $item }}</span>
                                     <input type="hidden" name="items[]" value="{{ $item }}">
                                     <button type="button" onclick="removeItem(this)" class="text-slate-400 hover:text-rose-400 font-bold transition-colors cursor-pointer ml-1">×</button>
@@ -113,7 +113,7 @@
                         <!-- Form submission footer -->
                         <div class="flex justify-end pt-4 border-t border-slate-700/50">
                             <button type="submit" 
-                                    class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold font-display rounded-lg shadow-lg shadow-indigo-600/10 transition-colors cursor-pointer">
+                                    class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold font-display rounded-lg shadow-lg shadow-indigo-600/10 active:translate-y-0.5 transition-all cursor-pointer">
                                 Enregistrer les modifications
                             </button>
                         </div>
@@ -178,7 +178,7 @@
             return;
         }
         const badge = document.createElement('div');
-        badge.className = "badge-item flex items-center space-x-1.5 px-3 py-1 rounded-full text-xs font-semibold border border-slate-700 bg-slate-800 text-slate-200";
+        badge.className = "badge-item flex items-center space-x-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold border border-slate-700/60 bg-slate-850 hover:bg-slate-800 hover:border-slate-600 text-slate-200 transition-all shadow-sm";
         badge.innerHTML = `
             <span>${val}</span>
             <input type="hidden" name="items[]" value="${val}">
