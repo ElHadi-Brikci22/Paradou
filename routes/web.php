@@ -68,4 +68,5 @@ Route::middleware('auth')->group(function () {
     });
 
     Route::post('/orders', [OrderController::class, 'store'])->name('orders.store');
+    Route::get('/option-image/{type}/{name}', [CheckoutController::class, 'getOptionImage'])->name('option.image');
 });

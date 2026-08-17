@@ -234,7 +234,7 @@
 
 <!-- 1. Item Options Modal (Colors, Defects, Stains) -->
 <div id="options-modal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-    <div class="bg-slate-800 border border-slate-700 rounded-2xl w-[500px] max-h-[90vh] flex flex-col shadow-2xl overflow-hidden transform scale-95 transition-all">
+    <div class="bg-slate-800 border border-slate-700 rounded-2xl w-full max-w-2xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden transform scale-95 transition-all">
         <!-- Header -->
         <div class="px-6 py-4 bg-slate-800 border-b border-slate-700 flex justify-between items-center">
             <div>
@@ -249,7 +249,7 @@
         </div>
 
         <!-- Content (Scrollable list of choices) -->
-        <div class="p-6 overflow-y-auto space-y-5">
+        <div class="p-6 overflow-y-auto space-y-6">
             <!-- Colors Selection -->
             @php
                 $colorMap = [
@@ -289,8 +289,8 @@
                 ];
             @endphp
             <div>
-                <span class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Couleur(s)</span>
-                <div class="flex flex-wrap gap-1.5" id="modal-colors-container">
+                <span class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2.5">Couleur(s)</span>
+                <div class="grid grid-cols-3 sm:grid-cols-5 md:grid-cols-6 gap-3" id="modal-colors-container">
                     @foreach($colors as $color)
                         @php
                             $normalizedColor = strtolower(trim($color));
@@ -302,9 +302,10 @@
                                 data-bg="{{ $c['bg'] }}"
                                 data-text="{{ $c['text'] }}"
                                 data-border="{{ $c['border'] }}"
-                                style="background-color: {{ $c['bg'] }}; color: {{ $c['text'] }}; border-color: {{ $c['border'] }}; font-weight: bold;"
-                                class="option-badge px-3 py-1 rounded-full text-xs border transition-all cursor-pointer">
-                            {{ $color }}
+                                class="option-badge group relative flex flex-col items-center justify-end p-2 rounded-xl border border-slate-700 bg-slate-900/50 hover:bg-slate-800 hover:border-slate-500 transition-all cursor-pointer aspect-square overflow-hidden">
+                            <img src="/option-image/colors/{{ urlencode($color) }}" class="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:opacity-85 transition-opacity z-0">
+                            <div class="badge-overlay absolute inset-0 bg-slate-950/45 group-hover:bg-slate-950/20 transition-all z-10"></div>
+                            <span class="z-20 text-[10px] font-black uppercase text-white text-center tracking-wider break-words drop-shadow-md leading-tight">{{ $color }}</span>
                         </button>
                     @endforeach
                 </div>
@@ -312,13 +313,15 @@
 
             <!-- Motifs Selection -->
             <div>
-                <span class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Motif(s)</span>
-                <div class="flex flex-wrap gap-1.5" id="modal-patterns-container">
+                <span class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2.5">Motif(s)</span>
+                <div class="grid grid-cols-3 sm:grid-cols-5 md:grid-cols-6 gap-3" id="modal-patterns-container">
                     @foreach($patterns as $pattern)
                         <button onclick="toggleItemOption('patterns', '{{ $pattern }}', this)" 
                                 data-pattern-btn="true"
-                                class="option-badge px-3 py-1 rounded-full text-xs border border-slate-700 bg-slate-900 text-slate-300 hover:border-slate-500 transition-colors">
-                            {{ $pattern }}
+                                class="option-badge group relative flex flex-col items-center justify-end p-2 rounded-xl border border-slate-700 bg-slate-900/50 hover:bg-slate-800 hover:border-slate-500 transition-all cursor-pointer aspect-square overflow-hidden">
+                            <img src="/option-image/patterns/{{ urlencode($pattern) }}" class="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:opacity-85 transition-opacity z-0">
+                            <div class="badge-overlay absolute inset-0 bg-slate-950/45 group-hover:bg-slate-950/20 transition-all z-10"></div>
+                            <span class="z-20 text-[10px] font-black uppercase text-white text-center tracking-wider break-words drop-shadow-md leading-tight">{{ $pattern }}</span>
                         </button>
                     @endforeach
                 </div>
@@ -326,12 +329,14 @@
 
             <!-- Defects Selection -->
             <div>
-                <span class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Défaut(s) signalé(s)</span>
-                <div class="flex flex-wrap gap-1.5" id="modal-defects-container">
+                <span class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2.5">Défaut(s) signalé(s)</span>
+                <div class="grid grid-cols-3 sm:grid-cols-5 md:grid-cols-6 gap-3" id="modal-defects-container">
                     @foreach($defects as $defect)
                         <button onclick="toggleItemOption('defects', '{{ $defect }}', this)" 
-                                class="option-badge px-3 py-1 rounded-full text-xs border border-slate-700 bg-slate-900 text-slate-300 hover:border-slate-500 transition-colors">
-                            {{ $defect }}
+                                class="option-badge group relative flex flex-col items-center justify-end p-2 rounded-xl border border-slate-700 bg-slate-900/50 hover:bg-slate-800 hover:border-slate-500 transition-all cursor-pointer aspect-square overflow-hidden">
+                            <img src="/option-image/defects/{{ urlencode($defect) }}" class="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:opacity-85 transition-opacity z-0">
+                            <div class="badge-overlay absolute inset-0 bg-slate-950/45 group-hover:bg-slate-950/20 transition-all z-10"></div>
+                            <span class="z-20 text-[10px] font-black uppercase text-white text-center tracking-wider break-words drop-shadow-md leading-tight">{{ $defect }}</span>
                         </button>
                     @endforeach
                 </div>
@@ -339,12 +344,14 @@
 
             <!-- Stains Selection -->
             <div>
-                <span class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Tache(s) à traiter</span>
-                <div class="flex flex-wrap gap-1.5" id="modal-stains-container">
+                <span class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2.5">Tache(s) à traiter</span>
+                <div class="grid grid-cols-3 sm:grid-cols-5 md:grid-cols-6 gap-3" id="modal-stains-container">
                     @foreach($stains as $stain)
                         <button onclick="toggleItemOption('stains', '{{ $stain }}', this)" 
-                                class="option-badge px-3 py-1 rounded-full text-xs border border-slate-700 bg-slate-900 text-slate-300 hover:border-slate-500 transition-colors">
-                            {{ $stain }}
+                                class="option-badge group relative flex flex-col items-center justify-end p-2 rounded-xl border border-slate-700 bg-slate-900/50 hover:bg-slate-800 hover:border-slate-500 transition-all cursor-pointer aspect-square overflow-hidden">
+                            <img src="/option-image/stains/{{ urlencode($stain) }}" class="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:opacity-85 transition-opacity z-0">
+                            <div class="badge-overlay absolute inset-0 bg-slate-950/45 group-hover:bg-slate-950/20 transition-all z-10"></div>
+                            <span class="z-20 text-[10px] font-black uppercase text-white text-center tracking-wider break-words drop-shadow-md leading-tight">{{ $stain }}</span>
                         </button>
                     @endforeach
                 </div>
@@ -1103,65 +1110,52 @@
         document.getElementById('options-modal-item-name').textContent = `${item.service_name} > ${item.name}`;
         document.getElementById('modal-notes-input').value = currentOptions.notes;
 
-        // Reset badge active classes
-        document.querySelectorAll('#options-modal .option-badge').forEach(badge => {
-            const isColor = badge.getAttribute('data-color-btn') === 'true';
-            const isPattern = badge.getAttribute('data-pattern-btn') === 'true';
-            const badgeText = badge.textContent.trim();
-            const isActive = currentOptions.colors.includes(badgeText) || 
-                             currentOptions.patterns.includes(badgeText) || 
-                             currentOptions.defects.includes(badgeText) || 
-                             currentOptions.stains.includes(badgeText);
-
-            if (isColor) {
-                if (isActive) {
-                    badge.classList.add('ring-4', 'ring-white', 'scale-105', 'shadow-lg', 'shadow-black/60');
-                    badge.style.borderColor = '#ffffff';
-                } else {
-                    badge.classList.remove('ring-4', 'ring-white', 'scale-105', 'shadow-lg', 'shadow-black/60');
-                    badge.style.borderColor = badge.getAttribute('data-border');
-                }
-            } else {
-                badge.classList.remove('bg-indigo-600', 'text-white', 'border-indigo-500');
-                badge.classList.add('bg-slate-900', 'text-slate-300', 'border-slate-700');
-                if (isActive) {
-                    badge.classList.remove('bg-slate-900', 'text-slate-300', 'border-slate-700');
-                    badge.classList.add('bg-indigo-600', 'text-white', 'border-indigo-500');
-                }
-            }
-        });
-
-        document.getElementById('options-modal').classList.remove('hidden');
-    }
-
-    function closeOptionsModal() {
-        document.getElementById('options-modal').classList.add('hidden');
-        currentOptionsIndex = null;
-    }
-
-    function toggleItemOption(type, value, btn) {
-        const index = currentOptions[type].indexOf(value);
-        const isColor = btn.getAttribute('data-color-btn') === 'true';
-
-        if (index === -1) {
-            currentOptions[type].push(value);
-            if (isColor) {
-                btn.classList.add('ring-4', 'ring-white', 'scale-105', 'shadow-lg', 'shadow-black/60');
-                btn.style.borderColor = '#ffffff';
-            } else {
-                btn.classList.remove('bg-slate-900', 'text-slate-300', 'border-slate-700');
-                btn.classList.add('bg-indigo-600', 'text-white', 'border-indigo-500');
-            }
+    function updateOptionBadgeState(btn, isActive) {
+        const img = btn.querySelector('img');
+        const overlay = btn.querySelector('.badge-overlay');
+        
+        if (isActive) {
+            btn.classList.add('border-indigo-500', 'scale-105', 'ring-2', 'ring-indigo-500/30', 'shadow-lg');
+            btn.classList.remove('border-slate-700');
+            if (img) img.classList.replace('opacity-60', 'opacity-85');
+            if (overlay) overlay.classList.replace('bg-slate-950/45', 'bg-slate-950/10');
         } else {
-            currentOptions[type].splice(index, 1);
-            if (isColor) {
-                btn.classList.remove('ring-4', 'ring-white', 'scale-105', 'shadow-lg', 'shadow-black/60');
-                btn.style.borderColor = btn.getAttribute('data-border');
-            } else {
-                btn.classList.remove('bg-indigo-600', 'text-white', 'border-indigo-500');
-                btn.classList.add('bg-slate-900', 'text-slate-300', 'border-slate-700');
-            }
+            btn.classList.remove('border-indigo-500', 'scale-105', 'ring-2', 'ring-indigo-500/30', 'shadow-lg');
+            btn.classList.add('border-slate-700');
+            if (img) img.classList.replace('opacity-85', 'opacity-60');
+            if (overlay) overlay.classList.replace('bg-slate-950/10', 'bg-slate-950/45');
         }
+    }
+
+    // Reset badge active classes
+    document.querySelectorAll('#options-modal .option-badge').forEach(badge => {
+        const badgeText = badge.querySelector('span').textContent.trim();
+        const isActive = currentOptions.colors.includes(badgeText) || 
+                         currentOptions.patterns.includes(badgeText) || 
+                         currentOptions.defects.includes(badgeText) || 
+                         currentOptions.stains.includes(badgeText);
+
+        updateOptionBadgeState(badge, isActive);
+    });
+
+    document.getElementById('options-modal').classList.remove('hidden');
+}
+
+function closeOptionsModal() {
+    document.getElementById('options-modal').classList.add('hidden');
+    currentOptionsIndex = null;
+}
+
+function toggleItemOption(type, value, btn) {
+    const index = currentOptions[type].indexOf(value);
+
+    if (index === -1) {
+        currentOptions[type].push(value);
+        updateOptionBadgeState(btn, true);
+    } else {
+        currentOptions[type].splice(index, 1);
+        updateOptionBadgeState(btn, false);
+    }
     }
 
     function saveItemOptions() {
