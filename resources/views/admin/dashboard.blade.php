@@ -299,6 +299,69 @@
             </div>
         @endif
 
+        <!-- Row 5: Analyse des Remises -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            
+            <!-- Summary Stats on Discounts -->
+            <div class="kpi-card rounded-2xl p-5 flex flex-col justify-between">
+                <div>
+                    <h3 class="text-sm font-bold text-slate-200 font-display mb-4">Statistiques des Remises</h3>
+                    
+                    <div class="space-y-4">
+                        <div class="bg-slate-900/40 p-3.5 rounded-xl border border-slate-700/20">
+                            <span class="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Montant Total des Remises</span>
+                            <span class="text-lg font-black text-amber-500 font-mono mt-1 block">{{ number_format($totalDiscountAmount, 0, '.', ' ') }} DA</span>
+                        </div>
+                        
+                        <div class="bg-slate-900/40 p-3.5 rounded-xl border border-slate-700/20">
+                            <span class="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Tickets avec Remise</span>
+                            <span class="text-lg font-black text-indigo-400 font-mono mt-1 block">{{ $totalDiscountedTickets }} / {{ $totalOrdersCount }}</span>
+                            <span class="text-[9px] text-slate-500 mt-0.5 block">Taux d'application : {{ $totalOrdersCount > 0 ? number_format(($totalDiscountedTickets / $totalOrdersCount) * 100, 1) : 0 }}%</span>
+                        </div>
+                        
+                        <div class="bg-slate-900/40 p-3.5 rounded-xl border border-slate-700/20">
+                            <span class="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Taux de Remise Moyen</span>
+                            <span class="text-lg font-black text-rose-400 font-mono mt-1 block">{{ number_format($averageDiscountPercent, 1) }} %</span>
+                            <span class="text-[9px] text-slate-500 mt-0.5 block">Sur le CA Brut total</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Daily Discounts Table (Col span 2) -->
+            <div class="kpi-card rounded-2xl p-5 lg:col-span-2">
+                <h3 class="text-sm font-bold text-slate-200 font-display mb-4">Historique Journalier des Remises</h3>
+                
+                @if(empty($dailyDiscounts))
+                    <p class="text-slate-500 text-xs py-8 text-center">Aucune remise accordée sur cette période.</p>
+                @else
+                    <div class="overflow-x-auto max-h-[280px] overflow-y-auto">
+                        <table class="w-full text-left border-collapse text-xs">
+                            <thead>
+                                <tr class="border-b border-slate-800 text-[10px] font-bold text-slate-500 uppercase tracking-wider sticky top-0 bg-slate-900 py-2">
+                                    <th class="pb-2">Date</th>
+                                    <th class="pb-2 text-center">Nombre de Remises</th>
+                                    <th class="pb-2 text-right">Montant des Remises</th>
+                                    <th class="pb-2 text-right">Taux de Remise Moyen</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-800/50">
+                                @foreach($dailyDiscounts as $dd)
+                                    <tr class="hover:bg-slate-800/10 transition-colors">
+                                        <td class="py-2.5 font-bold text-slate-300 font-mono">{{ $dd->date }}</td>
+                                        <td class="py-2.5 text-center text-slate-300 font-semibold">{{ $dd->count }}</td>
+                                        <td class="py-2.5 text-right font-bold text-amber-500 font-mono">{{ number_format($dd->amount, 0, '.', ' ') }} DA</td>
+                                        <td class="py-2.5 text-right font-black text-rose-400 font-mono">{{ number_format($dd->percentage, 1) }} %</td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                @endif
+            </div>
+
+        </div>
+
     </div>
 </div>
 @endsection

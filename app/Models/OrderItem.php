@@ -20,6 +20,8 @@ class OrderItem extends Model
         'defects',
         'stains',
         'is_ready',
+        'is_delivered',
+        'delivered_at',
         'notes'
     ];
 
@@ -28,6 +30,8 @@ class OrderItem extends Model
         'defects' => 'array',
         'stains' => 'array',
         'is_ready' => 'boolean',
+        'is_delivered' => 'boolean',
+        'delivered_at' => 'datetime',
     ];
 
     public function order()

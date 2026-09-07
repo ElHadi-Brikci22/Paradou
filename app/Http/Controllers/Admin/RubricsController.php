@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Cache;
 
 class RubricsController extends Controller
 {
@@ -79,6 +80,8 @@ class RubricsController extends Controller
         try {
             if ($type === 'patterns') {
                 $this->savePatternsList($items);
+                Cache::forget('patterns_list');
+                Cache::forget('menu_files_list');
             } else {
                 $filename = '';
                 if ($type === 'colors') $filename = 'Couleur.db';
@@ -86,6 +89,8 @@ class RubricsController extends Controller
                 elseif ($type === 'stains') $filename = 'Taches.db';
 
                 $this->saveDictionary($filename, $items);
+                Cache::forget("dict_{$filename}");
+                Cache::forget('menu_files_list');
             }
 
             return redirect()->route('admin.rubrics.index', ['tab' => $type])->with('success', 'La rubrique a été mise à jour avec succès.');

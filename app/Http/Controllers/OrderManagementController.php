@@ -33,6 +33,14 @@ class OrderManagementController extends Controller
         // Apply filters
         if ($status === 'express') {
             $query->where('is_express', true);
+        } elseif ($status === 'pending') {
+            $query->where('status', 'pending');
+        } elseif ($status === 'partially_delivered') {
+            $query->where('status', 'partially_delivered');
+        } elseif ($status === 'ready') {
+            $query->where('status', 'ready');
+        } elseif ($status === 'delivered') {
+            $query->where('status', 'delivered');
         } elseif ($status !== 'all') {
             $query->where('status', $status);
         }
@@ -70,7 +78,9 @@ class OrderManagementController extends Controller
         $item = OrderItem::findOrFail($id);
         $isReady = $request->input('is_ready', false);
 
-        $item->update(['is_ready' => $isReady]);
+        if (!$item->is_delivered) {
+            $item->update(['is_ready' => $isReady]);
+        }
 
         // Reload order to check other items
         $order = $item->order()->with('orderItems')->first();
@@ -84,8 +94,6 @@ class OrderManagementController extends Controller
 
         if ($allReady && $order->status === 'pending') {
             $order->update(['status' => 'ready']);
-            // Notifications SMS/WhatsApp désactivées
-            $notificationMessage = null;
         } elseif (!$allReady && $order->status === 'ready') {
             $order->update(['status' => 'pending']);
         }
@@ -101,20 +109,104 @@ class OrderManagementController extends Controller
     }
 
     /**
-     * Finalize delivery (retrait) and cash in remaining balance.
+     * Update all items ready states for an order upon clicking Modifier button.
+     */
+    public function updateItemsReady(Request $request, $id)
+    {
+        $order = Order::with('orderItems')->findOrFail($id);
+        $itemsData = $request->input('items', []);
+
+        foreach ($itemsData as $itemData) {
+            if (isset($itemData['id']) && isset($itemData['is_ready'])) {
+                OrderItem::where('id', $itemData['id'])
+                    ->where('order_id', $order->id)
+                    ->where('is_delivered', false)
+                    ->update(['is_ready' => (bool)$itemData['is_ready']]);
+            }
+        }
+
+        // Refresh items & recalculate status
+        $order->load('orderItems');
+        $allDelivered = $order->orderItems->isNotEmpty() && $order->orderItems->every(function ($oi) {
+            return (bool)$oi->is_delivered;
+        });
+
+        if ($allDelivered) {
+            $order->update([
+                'status' => 'delivered',
+                'actual_delivery_date' => $order->actual_delivery_date ?? now()
+            ]);
+        } else {
+            $anyDelivered = $order->orderItems->contains(function ($oi) {
+                return (bool)$oi->is_delivered;
+            });
+
+            $undeliveredItems = $order->orderItems->where('is_delivered', false);
+            $allUndeliveredReady = $undeliveredItems->isNotEmpty() && $undeliveredItems->every(function ($oi) {
+                return (bool)$oi->is_ready;
+            });
+
+            if ($anyDelivered) {
+                $order->update(['status' => 'partially_delivered']);
+            } elseif ($allUndeliveredReady) {
+                $order->update(['status' => 'ready']);
+            } else {
+                $order->update(['status' => 'pending']);
+            }
+        }
+
+        // Return updated order with relations for frontend cache
+        $order->load(['client', 'user', 'orderItems.service', 'orderItems.garmentItem']);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Modifications enregistrées avec succès.',
+            'order' => $order
+        ]);
+    }
+
+    /**
+     * Finalize delivery (partial or total) and cash in payment.
      */
     public function deliver(Request $request, $id)
     {
-        $order = Order::findOrFail($id);
+        $order = Order::with('orderItems')->findOrFail($id);
 
         if ($order->status === 'delivered') {
             return response()->json([
                 'success' => false,
-                'message' => 'Cette commande est déjà marquée comme livrée.'
+                'message' => 'Cette commande est déjà entièrement livrée.'
             ], 422);
         }
 
         $cashCollected = floatval($request->input('cash_collected', 0));
+        $itemIdsToDeliver = $request->input('item_ids', null); // Array of item IDs to deliver
+
+        // Find eligible undelivered items
+        $itemsQuery = OrderItem::where('order_id', $order->id)->where('is_delivered', false);
+        if (is_array($itemIdsToDeliver) && !empty($itemIdsToDeliver)) {
+            $itemsQuery->whereIn('id', $itemIdsToDeliver);
+        } else {
+            $itemsQuery->where('is_ready', true);
+        }
+
+        $itemsToDeliver = $itemsQuery->get();
+
+        if ($itemsToDeliver->isEmpty()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Aucun article prêt à être livré dans cette commande.'
+            ], 422);
+        }
+
+        $now = now();
+        foreach ($itemsToDeliver as $item) {
+            $item->update([
+                'is_ready' => true,
+                'is_delivered' => true,
+                'delivered_at' => $now,
+            ]);
+        }
 
         // Update financials
         $order->paid_amount += $cashCollected;
@@ -124,14 +216,29 @@ class OrderManagementController extends Controller
             $order->is_paid = true;
         }
 
-        $order->status = 'delivered';
-        $order->actual_delivery_date = now();
+        // Refresh items to check overall order status
+        $order->load('orderItems');
+        $allDelivered = $order->orderItems->isNotEmpty() && $order->orderItems->every(function ($oi) {
+            return (bool)$oi->is_delivered;
+        });
+
+        if ($allDelivered) {
+            $order->status = 'delivered';
+            $order->actual_delivery_date = $now;
+        } else {
+            $order->status = 'partially_delivered';
+        }
+
         $order->save();
+
+        $order->load(['client', 'user', 'orderItems.service', 'orderItems.garmentItem']);
 
         return response()->json([
             'success' => true,
-            'message' => 'Commande livrée avec succès !',
-            'order' => $order
+            'message' => $allDelivered ? 'Commande entièrement livrée avec succès !' : 'Livraison partielle effectuée avec succès !',
+            'order' => $order,
+            'is_all_delivered' => $allDelivered
         ]);
     }
 }
+

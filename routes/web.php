@@ -32,6 +32,8 @@ Route::middleware('auth')->group(function () {
     Route::middleware('role:admin')->group(function () {
         Route::get('/admin/dashboard', [DashboardController::class, 'index'])->name('admin.dashboard');
         Route::post('/orders/{id}/update', [OrderController::class, 'update'])->name('orders.update');
+        Route::delete('/admin/orders/bulk-destroy', [OrderController::class, 'bulkDestroy'])->name('admin.orders.bulk-destroy');
+        Route::delete('/admin/orders/{id}', [OrderController::class, 'destroy'])->name('admin.orders.destroy');
         Route::resource('/admin/users', UserController::class)->names('admin.users')->except(['create', 'show', 'edit']);
         Route::resource('/admin/clients', ClientController::class)->names('admin.clients')->except(['create', 'show', 'edit']);
         
@@ -64,9 +66,12 @@ Route::middleware('auth')->group(function () {
         Route::get('/clients/search', [ClientApiController::class, 'search'])->name('api.clients.search');
         Route::post('/clients', [ClientApiController::class, 'store'])->name('api.clients.store');
         Route::post('/order-items/{id}/ready', [OrderManagementController::class, 'toggleItemReady'])->name('api.order-items.ready');
+        Route::post('/orders/{id}/update-items', [OrderManagementController::class, 'updateItemsReady'])->name('api.orders.update-items');
         Route::post('/orders/{id}/deliver', [OrderManagementController::class, 'deliver'])->name('api.orders.deliver');
     });
 
     Route::post('/orders', [OrderController::class, 'store'])->name('orders.store');
-    Route::get('/option-image/{type}/{name}', [CheckoutController::class, 'getOptionImage'])->name('option.image');
 });
+
+Route::get('/option-image/{type}/{name}', [CheckoutController::class, 'getOptionImage'])->name('option.image');
+

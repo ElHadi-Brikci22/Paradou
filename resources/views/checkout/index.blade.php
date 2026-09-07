@@ -120,7 +120,7 @@
         <div id="billing-collapsed-view" class="flex items-center justify-between gap-4 py-1">
             <div class="flex-1">
                 <span class="text-[9px] text-slate-500 font-bold uppercase tracking-wider block">Net à Payer</span>
-                <span id="total-net-collapsed" class="text-xl font-black text-indigo-400 font-mono">0 DA</span>
+                <span id="total-net-collapsed" class="text-lg font-black text-indigo-400 font-mono">0 DA</span>
             </div>
             <button type="button" onclick="openPaymentView()" 
                     class="bg-indigo-600 hover:bg-indigo-500 text-white font-display font-bold py-2.5 px-5 rounded-xl shadow-lg shadow-indigo-600/25 active:translate-y-0.5 transition-all flex items-center justify-center space-x-2 cursor-pointer text-xs">
@@ -152,8 +152,12 @@
                         <span class="font-semibold text-indigo-400 uppercase tracking-wider text-[10px]">Remise</span>
                         <select id="discount-type-select" onchange="changeDiscountType()" 
                                 class="bg-slate-850 border border-slate-700 rounded text-[9px] font-bold text-indigo-300 py-0.5 px-1 focus:outline-none">
-                            <option value="percent">%</option>
-                            <option value="fixed">DA</option>
+                            @if(auth()->user()->role === 'admin')
+                                <option value="percent">%</option>
+                                <option value="fixed">DA</option>
+                            @else
+                                <option value="fixed" selected>DA</option>
+                            @endif
                         </select>
                     </div>
                     <div class="flex items-center space-x-2">
@@ -172,15 +176,15 @@
                 </div>
 
                 <!-- Net à Payer (Grand Total Box) -->
-                <div class="flex items-center justify-between bg-indigo-500/10 p-3 rounded-xl border border-indigo-500/20 my-2">
-                    <span class="text-xs font-bold text-indigo-400 uppercase tracking-wider">Net à Payer</span>
-                    <span id="total-net-expanded" class="text-lg font-black text-indigo-400 font-mono">0.00 DA</span>
+                <div class="flex items-center justify-between bg-indigo-500/10 p-2 rounded-lg border border-indigo-500/20 my-1">
+                    <span class="text-[10px] font-bold text-indigo-400 uppercase tracking-wider">Net à Payer</span>
+                    <span id="total-net-expanded" class="text-sm font-black text-indigo-400 font-mono">0.00 DA</span>
                 </div>
 
                 <!-- Remaining balance (Solde Box) -->
-                <div class="flex items-center justify-between bg-amber-500/10 p-3 rounded-xl border border-amber-500/20 my-2">
-                    <span class="text-xs font-bold text-amber-500 uppercase tracking-wider">Reste à payer (Solde)</span>
-                    <span id="remaining-balance" class="text-lg font-black text-amber-500 font-mono">0.00 DA</span>
+                <div class="flex items-center justify-between bg-amber-500/10 p-2 rounded-lg border border-amber-500/20 my-1">
+                    <span class="text-[10px] font-bold text-amber-500 uppercase tracking-wider">Reste à payer (Solde)</span>
+                    <span id="remaining-balance" class="text-sm font-black text-amber-500 font-mono">0.00 DA</span>
                 </div>
             </div>
 
@@ -209,13 +213,20 @@
                 <div>
                     <label class="block text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1">Caisse Ticket N°</label>
                     <input type="text" id="ticket-number-input" value="{{ $nextTicketNumber }}"
-                           class="w-full bg-slate-850 border border-slate-700 rounded-md px-2.5 py-1.5 text-xs text-slate-200 font-mono text-center focus:outline-none focus:border-indigo-500 font-mono">
+                           @if(auth()->user()->role !== 'admin') readonly @endif
+                           class="w-full bg-slate-850 border border-slate-700 rounded-md px-2.5 py-1.5 text-xs text-slate-200 font-mono text-center focus:outline-none focus:border-indigo-500 font-mono @if(auth()->user()->role !== 'admin') opacity-50 cursor-not-allowed @endif">
                 </div>
             </div>
             <div>
                 <label class="block text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1">Remarques / Notes du ticket</label>
                 <input type="text" id="remarks-input" placeholder="Ex: suspendu, urgent, ..."
                        class="w-full bg-slate-850 border border-slate-700 rounded-md px-2.5 py-1.5 text-xs text-slate-200 placeholder-slate-600 focus:outline-none focus:border-indigo-500">
+            </div>
+
+            <!-- No Print Checkbox -->
+            <div class="flex items-center space-x-2 py-1 select-none">
+                <input type="checkbox" id="no-print-toggle" class="rounded border-slate-700 bg-slate-900 text-indigo-600 focus:ring-indigo-500 cursor-pointer h-4 w-4">
+                <label for="no-print-toggle" class="text-xs font-semibold text-slate-300 cursor-pointer">Ne pas imprimer de ticket</label>
             </div>
 
             <!-- Submit action inside expanded view -->
@@ -229,12 +240,12 @@
             </div>
         </div>
     </div>
+</div>
 
 <!-- ================= MODALS OVERLAYS ================= -->
 
-<!-- 1. Item Options Modal (Colors, Defects, Stains) -->
-<div id="options-modal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-    <div class="bg-slate-800 border border-slate-700 rounded-2xl w-full max-w-2xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden transform scale-95 transition-all">
+<div id="options-modal" class="hidden fixed inset-0 bg-slate-950/70 z-50 flex items-center justify-center p-4" style="backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);">
+    <div class="bg-slate-800 border border-slate-700 rounded-2xl w-full max-w-2xl max-h-[85vh] flex flex-col shadow-2xl overflow-hidden transform scale-100 transition-all">
         <!-- Header -->
         <div class="px-6 py-4 bg-slate-800 border-b border-slate-700 flex justify-between items-center">
             <div>
@@ -374,8 +385,8 @@
 </div>
 
 <!-- 2. New Client Modal -->
-<div id="new-client-modal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-    <div class="bg-slate-800 border border-slate-700 rounded-2xl w-96 flex flex-col shadow-2xl overflow-hidden transform scale-95 transition-all">
+<div id="new-client-modal" class="hidden fixed inset-0 bg-slate-950/70 z-50 flex items-center justify-center p-4" style="backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);">
+    <div class="bg-slate-800 border border-slate-700 rounded-2xl w-96 flex flex-col shadow-2xl overflow-hidden transform scale-100 transition-all">
         <!-- Header -->
         <div class="px-6 py-4 bg-slate-800 border-b border-slate-700 flex justify-between items-center">
             <h3 class="text-base font-bold text-white font-display">Nouveau Client</h3>
@@ -427,8 +438,8 @@
 </div>
 
 <!-- 3. Client Selection Modal -->
-<div id="client-select-modal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-    <div class="bg-slate-800 border border-slate-700 rounded-2xl w-full max-w-md flex flex-col shadow-2xl overflow-hidden transform scale-95 transition-all">
+<div id="client-select-modal" class="hidden fixed inset-0 bg-slate-950/70 z-50 flex items-center justify-center p-4" style="backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);">
+    <div class="bg-slate-800 border border-slate-700 rounded-2xl w-full max-w-md flex flex-col shadow-2xl overflow-hidden transform scale-100 transition-all">
         <!-- Header -->
         <div class="px-6 py-4 bg-slate-800 border-b border-slate-700 flex justify-between items-center">
             <h3 class="text-base font-bold text-white font-display">Associer un Client</h3>
@@ -477,6 +488,7 @@
     const allItems = @json($items);
     const allServices = @json($services);
     const editingOrder = @json($editingOrder ?? null);
+    const IS_ADMIN = {{ auth()->user()->role === 'admin' ? 'true' : 'false' }};
     
     // Default client object
     const defaultClient = {
@@ -538,6 +550,9 @@
     
     // Auxiliary State for modal options
     let currentOptionsIndex = null;
+    let isAddingNewItem = false;
+    let pendingItem = null;
+    let pendingPrice = 0;
     let currentOptions = {
         colors: [],
         patterns: [],
@@ -671,7 +686,7 @@
             if (!hasPrice) return false;
 
             if (selectedServiceId === 2 || selectedServiceId === 4) {
-                return item.garment_target_id === 5;
+                return true;
             } else {
                 return item.garment_target_id === selectedTargetId;
             }
@@ -699,7 +714,7 @@
             }
 
             const card = document.createElement('button');
-            card.onclick = () => addToCart(item, price);
+            card.onclick = () => openOptionsModal(item, price);
 
             if (item.image_path) {
                 card.className = "relative border border-slate-700/60 p-3.5 rounded-2xl text-left flex flex-col justify-between h-32 active:scale-95 hover:border-slate-500 transition-all duration-150 shadow-md cursor-pointer overflow-hidden bg-cover bg-center";
@@ -731,31 +746,21 @@
     // ================= CART LOGIC =================
 
     function addToCart(item, price) {
-        // Check if item is already in cart under the same service
-        const existingIndex = cart.findIndex(cartItem => 
-            cartItem.id === item.id && 
-            cartItem.service_id === selectedServiceId
-        );
+        const currentService = allServices.find(s => s.id === selectedServiceId);
+        const sName = currentService ? currentService.name : 'Service';
 
-        if (existingIndex !== -1) {
-            cart[existingIndex].quantity += 1;
-        } else {
-            const currentService = allServices.find(s => s.id === selectedServiceId);
-            const sName = currentService ? currentService.name : 'Service';
-
-            cart.push({
-                id: item.id,
-                name: item.name,
-                service_id: selectedServiceId,
-                service_name: sName,
-                quantity: 1,
-                unit_price: price,
-                colors: [],
-                defects: [],
-                stains: [],
-                notes: ''
-            });
-        }
+        cart.push({
+            id: item.id,
+            name: item.name,
+            service_id: selectedServiceId,
+            service_name: sName,
+            quantity: 1,
+            unit_price: price,
+            colors: [],
+            defects: [],
+            stains: [],
+            notes: ''
+        });
 
         renderCart();
         updateCartCalculations();
@@ -813,26 +818,46 @@
             const bottomLine = document.createElement('div');
             bottomLine.className = "flex items-center justify-between pt-1 border-t border-slate-800/60";
 
-            // Qty controller
+            // Qty controller (supporte la saisie directe du poids + boutons +/-)
             const qtyCtrl = document.createElement('div');
             qtyCtrl.className = "flex items-center bg-slate-800 rounded-md border border-slate-700/50";
             
+            const isKiloService = item.service_id === 4 || (item.service_name && item.service_name.toLowerCase().includes('kilo'));
+            const step = isKiloService ? 0.5 : 1;
+
             const minusBtn = document.createElement('button');
-            minusBtn.onclick = () => updateItemQty(index, item.quantity - (selectedServiceId === 4 ? 0.5 : 1));
-            minusBtn.className = "px-2 py-1 text-slate-400 hover:text-white font-bold text-xs";
+            minusBtn.onclick = () => {
+                const currentQty = parseFloat(item.quantity) || 1;
+                const newQty = Math.max(0, parseFloat((currentQty - step).toFixed(2)));
+                updateItemQty(index, newQty);
+            };
+            minusBtn.className = "px-2 py-1 text-slate-400 hover:text-white font-bold text-xs cursor-pointer";
             minusBtn.textContent = '-';
             
-            const qtyText = document.createElement('span');
-            qtyText.className = "px-2 text-xs font-mono font-bold text-slate-200";
-            qtyText.textContent = item.quantity;
+            const qtyInput = document.createElement('input');
+            qtyInput.type = "number";
+            qtyInput.min = "0.01";
+            qtyInput.step = isKiloService ? "0.1" : "1";
+            qtyInput.value = item.quantity;
+            qtyInput.className = "w-12 bg-transparent text-center text-xs font-mono font-bold text-slate-200 focus:outline-none focus:bg-slate-900 focus:text-indigo-300 rounded";
+            qtyInput.onchange = (e) => {
+                let val = parseFloat(e.target.value);
+                if (isNaN(val) || val <= 0) val = 1;
+                updateItemQty(index, val);
+            };
+            qtyInput.onclick = (e) => e.stopPropagation();
             
             const plusBtn = document.createElement('button');
-            plusBtn.onclick = () => updateItemQty(index, item.quantity + (selectedServiceId === 4 ? 0.5 : 1));
-            plusBtn.className = "px-2 py-1 text-slate-400 hover:text-white font-bold text-xs";
+            plusBtn.onclick = () => {
+                const currentQty = parseFloat(item.quantity) || 1;
+                const newQty = parseFloat((currentQty + step).toFixed(2));
+                updateItemQty(index, newQty);
+            };
+            plusBtn.className = "px-2 py-1 text-slate-400 hover:text-white font-bold text-xs cursor-pointer";
             plusBtn.textContent = '+';
 
             qtyCtrl.appendChild(minusBtn);
-            qtyCtrl.appendChild(qtyText);
+            qtyCtrl.appendChild(qtyInput);
             qtyCtrl.appendChild(plusBtn);
 
             // Options triggers
@@ -909,8 +934,19 @@
             totalBrut = totalBrut * 2;
         }
 
-        const discountType = document.getElementById('discount-type-select').value;
+        let discountType = document.getElementById('discount-type-select').value;
+        if (!IS_ADMIN) {
+            discountType = 'fixed';
+            document.getElementById('discount-type-select').value = 'fixed';
+        }
+
         const discountInput = document.getElementById('discount-percent-input');
+
+        // Dynamically compute default client discount as fixed DA if cashier and not manually overridden
+        if (!IS_ADMIN && selectedClient && selectedClient.discount_percent > 0 && !isDiscountManuallyEdited) {
+            discountInput.value = Math.round((totalBrut * selectedClient.discount_percent) / 100);
+        }
+
         let discountValue = parseFloat(discountInput.value) || 0;
         if (discountValue < 0) discountValue = 0;
 
@@ -1039,10 +1075,22 @@
             });
     }
 
+    let isDiscountManuallyEdited = false;
+
     function selectClient(client) {
         selectedClient = { ...client };
-        document.getElementById('discount-type-select').value = 'percent';
-        document.getElementById('discount-percent-input').value = client.discount_percent;
+        isDiscountManuallyEdited = false;
+        
+        if (IS_ADMIN) {
+            document.getElementById('discount-type-select').value = 'percent';
+            document.getElementById('discount-percent-input').value = client.discount_percent;
+        } else {
+            document.getElementById('discount-type-select').value = 'fixed';
+            let totalBrut = 0;
+            cart.forEach(item => { totalBrut += item.unit_price * item.quantity; });
+            if (document.getElementById('express-toggle-input')?.checked) { totalBrut *= 2; }
+            document.getElementById('discount-percent-input').value = Math.round((totalBrut * client.discount_percent) / 100);
+        }
         
         renderSelectedClient();
         updateCartCalculations();
@@ -1051,8 +1099,15 @@
 
     function clearSelectedClient() {
         selectedClient = { ...defaultClient };
-        document.getElementById('discount-type-select').value = 'percent';
-        document.getElementById('discount-percent-input').value = defaultClient.discount_percent;
+        isDiscountManuallyEdited = false;
+        
+        if (IS_ADMIN) {
+            document.getElementById('discount-type-select').value = 'percent';
+            document.getElementById('discount-percent-input').value = defaultClient.discount_percent;
+        } else {
+            document.getElementById('discount-type-select').value = 'fixed';
+            document.getElementById('discount-percent-input').value = 0;
+        }
         
         renderSelectedClient();
         updateCartCalculations();
@@ -1060,11 +1115,15 @@
     }
 
     function changeDiscountType() {
+        if (!IS_ADMIN) {
+            document.getElementById('discount-type-select').value = 'fixed';
+        }
         document.getElementById('discount-percent-input').value = 0;
         updateCartCalculations();
     }
 
     function updateCustomDiscount() {
+        isDiscountManuallyEdited = true;
         updateCartCalculations();
     }
 
@@ -1083,33 +1142,6 @@
 
     // ================= CUSTOM OPTIONS MODAL =================
 
-    function openOptionsModal(index) {
-        currentOptionsIndex = index;
-        const item = cart[index];
-        
-        const knownPatterns = @json($patterns);
-        const itemColors = [];
-        const itemPatterns = [];
-        (item.colors || []).forEach(val => {
-            if (knownPatterns.includes(val)) {
-                itemPatterns.push(val);
-            } else {
-                itemColors.push(val);
-            }
-        });
-
-        currentOptions = {
-            colors: itemColors,
-            patterns: itemPatterns,
-            defects: [...item.defects],
-            stains: [...item.stains],
-            notes: item.notes
-        };
-
-        // Update UI
-        document.getElementById('options-modal-item-name').textContent = `${item.service_name} > ${item.name}`;
-        document.getElementById('modal-notes-input').value = currentOptions.notes;
-
     function updateOptionBadgeState(btn, isActive) {
         const img = btn.querySelector('img');
         const overlay = btn.querySelector('.badge-overlay');
@@ -1127,45 +1159,127 @@
         }
     }
 
-    // Reset badge active classes
-    document.querySelectorAll('#options-modal .option-badge').forEach(badge => {
-        const badgeText = badge.querySelector('span').textContent.trim();
-        const isActive = currentOptions.colors.includes(badgeText) || 
-                         currentOptions.patterns.includes(badgeText) || 
-                         currentOptions.defects.includes(badgeText) || 
-                         currentOptions.stains.includes(badgeText);
+    function openOptionsModal(indexOrItem, price = null) {
+        const knownPatterns = @json($patterns);
+        
+        if (price !== null) {
+            // Case A: Adding new item
+            isAddingNewItem = true;
+            pendingItem = indexOrItem;
+            pendingPrice = price;
+            currentOptionsIndex = null;
 
-        updateOptionBadgeState(badge, isActive);
-    });
+            currentOptions = {
+                colors: [],
+                patterns: [],
+                defects: [],
+                stains: [],
+                notes: ''
+            };
 
-    document.getElementById('options-modal').classList.remove('hidden');
-}
+            const currentService = allServices.find(s => s.id === selectedServiceId);
+            const sName = currentService ? currentService.name : 'Service';
+            document.getElementById('options-modal-item-name').textContent = `${sName} > ${pendingItem.name}`;
+            document.getElementById('modal-notes-input').value = '';
+        } else {
+            // Case B: Editing existing item in cart
+            isAddingNewItem = false;
+            currentOptionsIndex = indexOrItem;
+            const item = cart[currentOptionsIndex];
+            
+            const itemColors = [];
+            const itemPatterns = [];
+            (item.colors || []).forEach(val => {
+                if (knownPatterns.includes(val)) {
+                    itemPatterns.push(val);
+                } else {
+                    itemColors.push(val);
+                }
+            });
 
-function closeOptionsModal() {
-    document.getElementById('options-modal').classList.add('hidden');
-    currentOptionsIndex = null;
-}
+            currentOptions = {
+                colors: itemColors,
+                patterns: itemPatterns,
+                defects: [...item.defects],
+                stains: [...item.stains],
+                notes: item.notes
+            };
 
-function toggleItemOption(type, value, btn) {
-    const index = currentOptions[type].indexOf(value);
+            document.getElementById('options-modal-item-name').textContent = `${item.service_name} > ${item.name}`;
+            document.getElementById('modal-notes-input').value = currentOptions.notes;
+        }
 
-    if (index === -1) {
-        currentOptions[type].push(value);
-        updateOptionBadgeState(btn, true);
-    } else {
-        currentOptions[type].splice(index, 1);
-        updateOptionBadgeState(btn, false);
+        // Reset badge active classes
+        document.querySelectorAll('#options-modal .option-badge').forEach(badge => {
+            const badgeText = badge.querySelector('span').textContent.trim();
+            const isActive = currentOptions.colors.includes(badgeText) || 
+                             currentOptions.patterns.includes(badgeText) || 
+                             currentOptions.defects.includes(badgeText) || 
+                             currentOptions.stains.includes(badgeText);
+
+            updateOptionBadgeState(badge, isActive);
+        });
+
+        document.getElementById('options-modal').classList.remove('hidden');
     }
+
+    function closeOptionsModal() {
+        document.getElementById('options-modal').classList.add('hidden');
+        currentOptionsIndex = null;
+        pendingItem = null;
+        pendingPrice = 0;
+        isAddingNewItem = false;
+    }
+
+    function toggleItemOption(type, value, btn) {
+        const index = currentOptions[type].indexOf(value);
+
+        if (index === -1) {
+            currentOptions[type].push(value);
+            updateOptionBadgeState(btn, true);
+        } else {
+            currentOptions[type].splice(index, 1);
+            updateOptionBadgeState(btn, false);
+        }
     }
 
     function saveItemOptions() {
-        if (currentOptionsIndex !== null) {
+        if (isAddingNewItem) {
+            const colorsArray = [...currentOptions.colors, ...currentOptions.patterns];
+            const defectsArray = [...currentOptions.defects];
+            const stainsArray = [...currentOptions.stains];
+            const notesText = document.getElementById('modal-notes-input').value.trim();
+
+            // Always add as a new independent item in the cart
+            const currentService = allServices.find(s => s.id === selectedServiceId);
+            const sName = currentService ? currentService.name : 'Service';
+
+            cart.push({
+                id: pendingItem.id,
+                name: pendingItem.name,
+                service_id: selectedServiceId,
+                service_name: sName,
+                quantity: 1,
+                unit_price: pendingPrice,
+                colors: colorsArray,
+                defects: defectsArray,
+                stains: stainsArray,
+                notes: notesText
+            });
+
+            renderCart();
+            updateCartCalculations();
+            closePaymentView();
+            closeOptionsModal();
+        } else if (currentOptionsIndex !== null) {
+            // Case B: Edit existing item
             cart[currentOptionsIndex].colors = [...currentOptions.colors, ...currentOptions.patterns];
             cart[currentOptionsIndex].defects = [...currentOptions.defects];
             cart[currentOptionsIndex].stains = [...currentOptions.stains];
             cart[currentOptionsIndex].notes = document.getElementById('modal-notes-input').value.trim();
             
             renderCart();
+            updateCartCalculations();
             closeOptionsModal();
         }
     }
@@ -1258,6 +1372,7 @@ function toggleItemOption(type, value, btn) {
         const discountValue = parseFloat(document.getElementById('discount-percent-input').value) || 0;
 
         const isExpress = document.getElementById('express-toggle-input').checked;
+        const noPrint = document.getElementById('no-print-toggle').checked;
 
         const body = {
             client_id: clientId,
@@ -1287,8 +1402,10 @@ function toggleItemOption(type, value, btn) {
         .then(res => res.json())
         .then(data => {
             if (data.success) {
-                // Lancer l'impression complète de manière transparente via l'iframe cachée
-                printOrder(data.order_id, 'all');
+                // Lancer l'impression complète si l'option n'est pas cochée
+                if (!noPrint) {
+                    printOrder(data.order_id, 'all');
+                }
 
                 const alertMsg = editingOrder ? `Ticket N° ${data.ticket_number} modifié avec succès !` : `Ticket N° ${data.ticket_number} enregistré avec succès !`;
                 const alertTitle = editingOrder ? "Commande Modifiée" : "Commande Enregistrée";
@@ -1304,6 +1421,7 @@ function toggleItemOption(type, value, btn) {
                     cart = [];
                     // Reset express checkbox
                     document.getElementById('express-toggle-input').checked = false;
+                    document.getElementById('no-print-toggle').checked = false;
                     renderCart();
                     clearSelectedClient();
                     

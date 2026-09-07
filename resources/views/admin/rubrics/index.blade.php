@@ -125,8 +125,8 @@
 </div>
 
 <!-- Custom Add Rubric Item Modal -->
-<div id="add-rubric-modal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-    <div class="bg-slate-800 border border-slate-700 rounded-2xl w-full max-w-sm flex flex-col shadow-2xl overflow-hidden transform scale-95 transition-all duration-150">
+<div id="add-rubric-modal" class="hidden fixed inset-0 bg-slate-950/70 z-50 flex items-center justify-center p-4" style="backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);">
+    <div class="bg-slate-800 border border-slate-700 rounded-2xl w-full max-w-sm flex flex-col shadow-2xl overflow-hidden transform scale-100 transition-all duration-150">
         <!-- Modal Header -->
         <div class="px-6 py-4 bg-slate-800 border-b border-slate-700 flex justify-between items-center">
             <h3 id="add-rubric-modal-title" class="text-base font-bold text-white font-display">Nouvelle entrée</h3>

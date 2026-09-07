@@ -34,7 +34,13 @@ class LoginController extends Controller
 
         if (Auth::attempt($credentials, $remember)) {
             $request->session()->regenerate();
-            return redirect()->intended('/');
+            
+            $intended = session()->pull('url.intended', '/');
+            if (str_contains($intended, '/option-image/') || str_contains($intended, '/api/')) {
+                $intended = '/';
+            }
+            
+            return redirect($intended);
         }
 
         throw ValidationException::withMessages([

@@ -53,6 +53,10 @@ class OrderController extends Controller
                 }
 
                 $discountType = $validated['discount_type'] ?? 'percent';
+                if (Auth::user()->role !== 'admin' && $discountType === 'percent') {
+                    throw new \Exception("Les caissiers ne peuvent appliquer que des remises en montant fixe (DA).");
+                }
+                
                 $discountPercent = floatval($validated['discount_percent'] ?? 0);
                 $discountAmountInput = floatval($validated['discount_amount'] ?? 0);
                 $paidAmount = floatval($validated['paid_amount']);
@@ -268,6 +272,74 @@ class OrderController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Erreur lors de la modification du ticket : ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Delete a single order (admin only).
+     */
+    public function destroy($id)
+    {
+        if (Auth::user()->role !== 'admin') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Non autorisé. Seul un administrateur peut supprimer une commande.'
+            ], 403);
+        }
+
+        try {
+            $order = Order::findOrFail($id);
+
+            DB::transaction(function () use ($order) {
+                $order->orderItems()->delete();
+                $order->delete();
+            });
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Commande supprimée avec succès.'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur lors de la suppression de la commande : ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Bulk delete multiple orders (admin only).
+     */
+    public function bulkDestroy(Request $request)
+    {
+        if (Auth::user()->role !== 'admin') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Non autorisé. Seul un administrateur peut supprimer des commandes.'
+            ], 403);
+        }
+
+        $validated = $request->validate([
+            'ids' => 'required|array|min:1',
+            'ids.*' => 'exists:orders,id'
+        ]);
+
+        try {
+            DB::transaction(function () use ($validated) {
+                $ids = $validated['ids'];
+                OrderItem::whereIn('order_id', $ids)->delete();
+                Order::whereIn('id', $ids)->delete();
+            });
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Commandes sélectionnées supprimées avec succès.'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur lors de la suppression groupée : ' . $e->getMessage()
             ], 500);
         }
     }

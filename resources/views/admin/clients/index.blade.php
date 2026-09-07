@@ -170,8 +170,8 @@
 <!-- ================= MODALS OVERLAYS ================= -->
 
 <!-- Client Modal (Add & Edit) -->
-<div id="client-modal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-    <div class="bg-slate-800 border border-slate-700 rounded-2xl w-full max-w-md flex flex-col shadow-2xl overflow-hidden transform scale-95 transition-all">
+<div id="client-modal" class="hidden fixed inset-0 bg-slate-950/70 z-50 flex items-center justify-center p-4" style="backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);">
+    <div class="bg-slate-800 border border-slate-700 rounded-2xl w-full max-w-md flex flex-col shadow-2xl overflow-hidden transform scale-100 transition-all">
         <!-- Header -->
         <div class="px-6 py-4 bg-slate-800 border-b border-slate-700 flex justify-between items-center">
             <h3 id="modal-title" class="text-base font-bold text-white font-display">Nouveau Client</h3>

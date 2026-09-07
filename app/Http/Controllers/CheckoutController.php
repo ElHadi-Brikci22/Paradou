@@ -8,6 +8,7 @@ use App\Models\GarmentTarget;
 use App\Models\GarmentItem;
 use App\Models\ServicePrice;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Cache;
 
 class CheckoutController extends Controller
 {
@@ -90,78 +91,82 @@ class CheckoutController extends Controller
     }
 
     /**
-     * Helper to read choice dictionary files from the source MSK folders or fallback to hardcoded list
+     * Helper to read choice dictionary files from the source MSK folders or fallback to hardcoded list (cached)
      */
     private function getDictionary($filename, $fallback)
     {
-        $primaryPath = 'c:/Users/hadib/OneDrive/Bureau/MSK-DRY-PLUS-2022/db/' . $filename;
-        $fallbackPath = storage_path('app/db/' . $filename);
-        
-        $sourcePath = null;
-        if (File::exists($primaryPath)) {
-            $sourcePath = $primaryPath;
-        } elseif (File::exists($fallbackPath)) {
-            $sourcePath = $fallbackPath;
-        }
-
-        if ($sourcePath) {
-            try {
-                $content = mb_convert_encoding(File::get($sourcePath), 'UTF-8', 'Windows-1252');
-                $lines = explode("\n", str_replace("\r\n", "\n", $content));
-                $items = array_filter(array_map('trim', $lines));
-                if (count($items) > 0) {
-                    return array_values($items);
-                }
-            } catch (\Exception $e) {
-                // Ignore exception and use fallback
+        return Cache::remember("dict_{$filename}", 3600, function () use ($filename, $fallback) {
+            $primaryPath = 'c:/Users/hadib/OneDrive/Bureau/MSK-DRY-PLUS-2022/db/' . $filename;
+            $fallbackPath = storage_path('app/db/' . $filename);
+            
+            $sourcePath = null;
+            if (File::exists($primaryPath)) {
+                $sourcePath = $primaryPath;
+            } elseif (File::exists($fallbackPath)) {
+                $sourcePath = $fallbackPath;
             }
-        }
-        return $fallback;
+
+            if ($sourcePath) {
+                try {
+                    $content = mb_convert_encoding(File::get($sourcePath), 'UTF-8', 'Windows-1252');
+                    $lines = explode("\n", str_replace("\r\n", "\n", $content));
+                    $items = array_filter(array_map('trim', $lines));
+                    if (count($items) > 0) {
+                        return array_values($items);
+                    }
+                } catch (\Exception $e) {
+                    // Ignore exception and use fallback
+                }
+            }
+            return $fallback;
+        });
     }
 
     /**
-     * Helper to read item patterns from old MSK folder Menu/0/2
+     * Helper to read item patterns from old MSK folder Menu/0/2 (cached)
      */
     private function getPatterns($fallback)
     {
-        $primaryPath = 'c:/Users/hadib/OneDrive/Bureau/MSK-DRY-PLUS-2022/Menu/0/2';
-        $fallbackPath = storage_path('app/Menu/0/2');
-        
-        $sourcePath = null;
-        if (File::isDirectory($primaryPath)) {
-            $sourcePath = $primaryPath;
-        } elseif (File::isDirectory($fallbackPath)) {
-            $sourcePath = $fallbackPath;
-        }
+        return Cache::remember('patterns_list', 3600, function () use ($fallback) {
+            $primaryPath = 'c:/Users/hadib/OneDrive/Bureau/MSK-DRY-PLUS-2022/Menu/0/2';
+            $fallbackPath = storage_path('app/Menu/0/2');
+            
+            $sourcePath = null;
+            if (File::isDirectory($primaryPath)) {
+                $sourcePath = $primaryPath;
+            } elseif (File::isDirectory($fallbackPath)) {
+                $sourcePath = $fallbackPath;
+            }
 
-        if ($sourcePath && File::isDirectory($sourcePath)) {
-            try {
-                $files = File::files($sourcePath);
-                $patterns = [];
-                foreach ($files as $file) {
-                    if ($file->getExtension() === 'txt') {
-                        $filename = pathinfo($file->getFilename(), PATHINFO_FILENAME);
-                        if (str_starts_with($filename, '0-')) {
-                            // Clean leading 0- and spaces
-                            $clean = preg_replace('/^0-\s*/', '', $filename);
-                            // Correct spelling of A reure to A rayures
-                            if (strtolower($clean) === 'a reure') {
-                                $clean = 'A rayures';
-                            } elseif (strtolower($clean) === 'mouchte') {
-                                $clean = 'Moucheté';
+            if ($sourcePath && File::isDirectory($sourcePath)) {
+                try {
+                    $files = File::files($sourcePath);
+                    $patterns = [];
+                    foreach ($files as $file) {
+                        if ($file->getExtension() === 'txt') {
+                            $filename = pathinfo($file->getFilename(), PATHINFO_FILENAME);
+                            if (str_starts_with($filename, '0-')) {
+                                // Clean leading 0- and spaces
+                                $clean = preg_replace('/^0-\s*/', '', $filename);
+                                // Correct spelling of A reure to A rayures
+                                if (strtolower($clean) === 'a reure') {
+                                    $clean = 'A rayures';
+                                } elseif (strtolower($clean) === 'mouchte') {
+                                    $clean = 'Moucheté';
+                                }
+                                $patterns[] = $clean;
                             }
-                            $patterns[] = $clean;
                         }
                     }
+                    if (count($patterns) > 0) {
+                        return array_values(array_unique($patterns));
+                    }
+                } catch (\Exception $e) {
+                    // Ignore and use fallback
                 }
-                if (count($patterns) > 0) {
-                    return array_values(array_unique($patterns));
-                }
-            } catch (\Exception $e) {
-                // Ignore and use fallback
             }
-        }
-        return $fallback;
+            return $fallback;
+        });
     }
 
     /**
@@ -192,21 +197,43 @@ class CheckoutController extends Controller
                 elseif ($searchName === 'vert') $mappedName = 'ver';
             }
 
-            // Find matching jpg/jpeg/png
-            $files = File::files($menuPath);
-            foreach ($files as $file) {
-                $ext = strtolower($file->getExtension());
-                if (in_array($ext, ['jpg', 'jpeg', 'png'])) {
-                    $filename = pathinfo($file->getFilename(), PATHINFO_FILENAME);
-                    $cleanFile = strtolower(trim($filename));
-                    if ($type === 'patterns') {
-                        $cleanFile = preg_replace('/^0-\s*/', '', $cleanFile);
+            // Find matching jpg/jpeg/png using cached file mapping
+            $filesInfo = Cache::remember('menu_files_list', 3600, function () use ($menuPath) {
+                if (!File::isDirectory($menuPath)) {
+                    return [];
+                }
+                try {
+                    $files = File::files($menuPath);
+                    $list = [];
+                    foreach ($files as $file) {
+                        $ext = strtolower($file->getExtension());
+                        if (in_array($ext, ['jpg', 'jpeg', 'png'])) {
+                            $filename = pathinfo($file->getFilename(), PATHINFO_FILENAME);
+                            $cleanFile = strtolower(trim($filename));
+                            
+                            $list[$cleanFile] = [
+                                'path' => $file->getPathname(),
+                                'ext' => $ext
+                            ];
+                            
+                            $cleanPattern = preg_replace('/^0-\s*/', '', $cleanFile);
+                            $list[$cleanPattern] = [
+                                'path' => $file->getPathname(),
+                                'ext' => $ext
+                            ];
+                        }
                     }
-                    
-                    if ($cleanFile === $mappedName) {
-                        $fileContent = File::get($file->getPathname());
-                        return response($fileContent, 200)->header("Content-Type", "image/" . ($ext === 'png' ? 'png' : 'jpeg'));
-                    }
+                    return $list;
+                } catch (\Exception $e) {
+                    return [];
+                }
+            });
+
+            if (isset($filesInfo[$mappedName])) {
+                $info = $filesInfo[$mappedName];
+                if (File::exists($info['path'])) {
+                    $fileContent = File::get($info['path']);
+                    return response($fileContent, 200)->header("Content-Type", "image/" . ($info['ext'] === 'png' ? 'png' : 'jpeg'));
                 }
             }
         }

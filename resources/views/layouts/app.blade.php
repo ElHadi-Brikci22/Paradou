@@ -578,8 +578,8 @@
     </script>
 
     <!-- Custom Alert Modal Overlay -->
-    <div id="custom-alert-modal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-        <div class="bg-slate-800 border border-slate-700/80 rounded-2xl w-[380px] p-6 flex flex-col items-center shadow-2xl overflow-hidden transform scale-95 transition-all text-center">
+    <div id="custom-alert-modal" class="hidden fixed inset-0 bg-slate-950/70 z-50 flex items-center justify-center p-4" style="backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);">
+        <div class="bg-slate-800 border border-slate-700/80 rounded-2xl w-[380px] p-6 flex flex-col items-center shadow-2xl overflow-hidden transform scale-100 transition-all text-center">
             <!-- Logo Header -->
             <div class="flex items-center space-x-2 mb-4">
                 <svg class="h-6 w-6 stroke-indigo-500" fill="none" viewBox="0 0 24 24" stroke-width="2.5">

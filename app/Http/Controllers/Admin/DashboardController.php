@@ -141,21 +141,37 @@ class DashboardController extends Controller
                 }
             }
 
-            // 5. Calculations per user (when 'all' is selected)
+            // 5. Calculations per user (when 'all' is selected) - optimized to avoid N+1 queries
             $usersStats = [];
             if ($userId === 'all') {
+                $orderSums = Order::whereBetween('order_date', [$start, $end])
+                    ->select('user_id', DB::raw('SUM(total_amount) as ca'), DB::raw('SUM(paid_amount) as collected'), DB::raw('COUNT(id) as tickets'))
+                    ->groupBy('user_id')
+                    ->get()
+                    ->keyBy('user_id');
+
+                $expenseSums = Expense::whereBetween('expense_date', [$start, $end])
+                    ->select('user_id', DB::raw('SUM(amount) as expenses'))
+                    ->groupBy('user_id')
+                    ->get()
+                    ->keyBy('user_id');
+
                 foreach ($users as $u) {
-                    $userCA = Order::where('user_id', $u->id)->whereBetween('order_date', [$start, $end])->sum('total_amount');
-                    $userCollected = Order::where('user_id', $u->id)->whereBetween('order_date', [$start, $end])->sum('paid_amount');
-                    $userExpenses = Expense::where('user_id', $u->id)->whereBetween('expense_date', [$start, $end])->sum('amount');
-                    $userTickets = Order::where('user_id', $u->id)->whereBetween('order_date', [$start, $end])->count();
+                    $uOrder = $orderSums->get($u->id);
+                    $uExpense = $expenseSums->get($u->id);
+                    
+                    $ca = $uOrder ? floatval($uOrder->ca) : 0;
+                    $collected = $uOrder ? floatval($uOrder->collected) : 0;
+                    $expenses = $uExpense ? floatval($uExpense->expenses) : 0;
+                    $tickets = $uOrder ? intval($uOrder->tickets) : 0;
+                    
                     $usersStats[] = [
                         'user' => $u,
-                        'ca' => floatval($userCA),
-                        'collected' => floatval($userCollected),
-                        'expenses' => floatval($userExpenses),
-                        'profit' => floatval($userCollected - $userExpenses),
-                        'tickets' => $userTickets
+                        'ca' => $ca,
+                        'collected' => $collected,
+                        'expenses' => $expenses,
+                        'profit' => floatval($collected - $expenses),
+                        'tickets' => $tickets
                     ];
                 }
             }
@@ -357,6 +373,53 @@ class DashboardController extends Controller
             }
         }
 
+        // --- Discount statistics calculations ---
+        $discountStatsQuery = Order::whereBetween('order_date', [$start, $end]);
+        if ($segment !== 'all') {
+            $discountStatsQuery->whereHas('orderItems.service', function ($q) use ($segment) {
+                if ($segment === 'blanchisserie') {
+                    $q->where('code', 'blanchisserie');
+                } elseif ($segment === 'teinture') {
+                    $q->where('code', 'teinture');
+                } else {
+                    $q->where('code', '!=', 'blanchisserie')->where('code', '!=', 'teinture');
+                }
+            });
+        }
+        if ($userId !== 'all') {
+            $discountStatsQuery->where('user_id', $userId);
+        }
+
+        $totalDiscountedTickets = (clone $discountStatsQuery)->where('discount_amount', '>', 0)->count();
+        $totalDiscountAmount = floatval((clone $discountStatsQuery)->sum('discount_amount'));
+        
+        $totalGrossCA = $totalNetCA + $totalDiscountAmount;
+        $averageDiscountPercent = $totalGrossCA > 0 ? ($totalDiscountAmount / $totalGrossCA) * 100 : 0;
+
+        // Daily breakdown of discounts
+        $dailyDiscountsRaw = (clone $discountStatsQuery)
+            ->select(
+                DB::raw('DATE(order_date) as date_only'),
+                DB::raw('COUNT(CASE WHEN discount_amount > 0 THEN 1 END) as discount_count'),
+                DB::raw('SUM(discount_amount) as discount_sum'),
+                DB::raw('SUM(total_amount + discount_amount) as gross_sum')
+            )
+            ->groupBy('date_only')
+            ->orderBy('date_only', 'desc')
+            ->get();
+
+        $dailyDiscounts = [];
+        foreach ($dailyDiscountsRaw as $dd) {
+            $gross = floatval($dd->gross_sum);
+            $sum = floatval($dd->discount_sum);
+            $dailyDiscounts[] = (object)[
+                'date' => Carbon::parse($dd->date_only)->format('d/m/Y'),
+                'count' => intval($dd->discount_count),
+                'amount' => $sum,
+                'percentage' => $gross > 0 ? ($sum / $gross) * 100 : 0
+            ];
+        }
+
         return view('admin.dashboard', compact(
             'range',
             'userId',
@@ -376,7 +439,11 @@ class DashboardController extends Controller
             'serviceColors',
             'trendLabels',
             'trendData',
-            'usersStats'
+            'usersStats',
+            'totalDiscountedTickets',
+            'totalDiscountAmount',
+            'averageDiscountPercent',
+            'dailyDiscounts'
         ));
     }
 }

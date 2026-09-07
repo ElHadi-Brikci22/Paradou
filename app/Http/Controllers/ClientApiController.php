@@ -41,6 +41,17 @@ class ClientApiController extends Controller
             'remarks' => 'nullable|string'
         ]);
 
+        if (!empty($validated['phone'])) {
+            $phone = trim($validated['phone']);
+            $existing = Client::where('phone', $phone)->first();
+            if ($existing) {
+                return response()->json([
+                    'success' => false,
+                    'message' => "Ce numéro existe déjà et appartient au client {$existing->name}"
+                ]);
+            }
+        }
+
         // Generate next code
         $lastClient = Client::orderBy('id', 'desc')->first();
         $nextCode = $lastClient ? str_pad(intval($lastClient->code) + 1, 6, '0', STR_PAD_LEFT) : '000001';

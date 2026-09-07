@@ -281,9 +281,9 @@
 <!-- ================= MODALS OVERLAYS ================= -->
 
 <!-- 1. Catalog Modal (Add & Edit Item) -->
-<div id="catalog-modal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-    <div class="bg-slate-800 border border-slate-700 rounded-2xl w-full max-w-lg flex flex-col shadow-2xl overflow-hidden transform scale-95 transition-all">
-        <div class="px-6 py-4 bg-slate-800 border-b border-slate-700 flex justify-between items-center">
+<div id="catalog-modal" class="hidden fixed inset-0 bg-slate-950/70 z-50 flex items-center justify-center p-4" style="backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);">
+    <div class="bg-slate-800 border border-slate-700 rounded-2xl w-full max-w-lg max-h-[85vh] flex flex-col shadow-2xl overflow-hidden transform scale-100 transition-all">
+        <div class="px-6 py-4 bg-slate-800 border-b border-slate-700 flex justify-between items-center shrink-0">
             <h3 id="modal-title" class="text-base font-bold text-white font-display">Nouvel Article</h3>
             <button onclick="closeCatalogModal()" class="text-slate-400 hover:text-white cursor-pointer">
                 <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -292,7 +292,7 @@
             </button>
         </div>
 
-        <form id="catalog-form" method="POST" enctype="multipart/form-data" class="p-6 space-y-4 overflow-y-auto max-h-[75vh]">
+        <form id="catalog-form" method="POST" enctype="multipart/form-data" class="p-6 space-y-4 overflow-y-auto flex-1">
             @csrf
             <div id="form-method-container"></div>
 
@@ -342,8 +342,8 @@
 </div>
 
 <!-- 2. Target Modal (Add & Edit Category) -->
-<div id="target-modal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-    <div class="bg-slate-800 border border-slate-700 rounded-2xl w-full max-w-sm flex flex-col shadow-2xl overflow-hidden transform scale-95 transition-all">
+<div id="target-modal" class="hidden fixed inset-0 bg-slate-950/70 z-50 flex items-center justify-center p-4" style="backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);">
+    <div class="bg-slate-800 border border-slate-700 rounded-2xl w-full max-w-sm flex flex-col shadow-2xl overflow-hidden transform scale-100 transition-all">
         <div class="px-6 py-4 bg-slate-800 border-b border-slate-700 flex justify-between items-center">
             <h3 id="target-modal-title" class="text-base font-bold text-white font-display">Nouvelle Catégorie</h3>
             <button onclick="closeTargetModal()" class="text-slate-400 hover:text-white cursor-pointer">
@@ -372,8 +372,8 @@
 </div>
 
 <!-- 3. Service Modal (Add & Edit Service) -->
-<div id="service-modal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-    <div class="bg-slate-800 border border-slate-700 rounded-2xl w-full max-w-sm flex flex-col shadow-2xl overflow-hidden transform scale-95 transition-all">
+<div id="service-modal" class="hidden fixed inset-0 bg-slate-950/70 z-50 flex items-center justify-center p-4" style="backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);">
+    <div class="bg-slate-800 border border-slate-700 rounded-2xl w-full max-w-sm flex flex-col shadow-2xl overflow-hidden transform scale-100 transition-all">
         <div class="px-6 py-4 bg-slate-800 border-b border-slate-700 flex justify-between items-center">
             <h3 id="service-modal-title" class="text-base font-bold text-white font-display">Nouveau Service</h3>
             <button onclick="closeServiceModal()" class="text-slate-400 hover:text-white cursor-pointer">

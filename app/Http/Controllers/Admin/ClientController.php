@@ -47,6 +47,16 @@ class ClientController extends Controller
             'remarks' => 'nullable|string'
         ]);
 
+        if (!empty($validated['phone'])) {
+            $phone = trim($validated['phone']);
+            $existing = Client::where('phone', $phone)->first();
+            if ($existing) {
+                return back()->withInput()->withErrors([
+                    'phone' => "Ce numéro existe déjà et appartient au client {$existing->name}"
+                ]);
+            }
+        }
+
         // Generate next code (excluding GUEST)
         $lastClient = Client::where('code', '!=', 'GUEST')->orderBy('id', 'desc')->first();
         $nextCode = $lastClient ? str_pad(intval($lastClient->code) + 1, 6, '0', STR_PAD_LEFT) : '000001';
@@ -86,6 +96,16 @@ class ClientController extends Controller
             'credit' => 'nullable|numeric|min:0',
             'remarks' => 'nullable|string'
         ]);
+
+        if (!empty($validated['phone'])) {
+            $phone = trim($validated['phone']);
+            $existing = Client::where('phone', $phone)->where('id', '!=', $client->id)->first();
+            if ($existing) {
+                return back()->withInput()->withErrors([
+                    'phone' => "Ce numéro existe déjà et appartient au client {$existing->name}"
+                ]);
+            }
+        }
 
         $client->update([
             'name' => $validated['name'],
