@@ -8,33 +8,38 @@ Ce guide explique étape par étape comment installer et configurer l'applicatio
 
 * **Système d'exploitation** : Windows 10 ou Windows 11 (64 bits).
 * **Navigateur** : Microsoft Edge (déjà intégré à Windows) ou Google Chrome.
-* **Environnement Serveur** : Laragon (ou le dossier portable `C:\laragon`).
-* *Note : Node.js et Git ne sont **PAS** nécessaires sur le PC du client car les fichiers du site sont déjà compilés.*
+* **Environnement Serveur** : Laragon Full 64 bits (sur `C:\laragon`).
+* *Note : Node.js, Git et Composer ne sont **PAS** nécessaires sur le PC du client car les dépendances et fichiers du site sont déjà présents.*
 
 ---
 
 ## 2. Étapes d'Installation chez le Client
 
-### Étape 1 : Copier les dossiers sur le PC du client
-1. Si le client n'a pas Laragon : Installez Laragon sur `C:\laragon` (ou copiez votre dossier `C:\laragon` sur sa machine).
-2. Placez le dossier du projet dans le répertoire `www` :
-   `C:\laragon\www\msk-dry-plus`
+### Étape 1 : Installer Laragon et Copier le Projet
+1. Installez Laragon sur `C:\laragon`.
+2. Ouvrez Laragon et cliquez sur **« Tout Démarrer »**.
+3. Placez le dossier du projet dans le répertoire `www` :
+   `C:\laragon\www\Paradou` (ou `C:\laragon\www\msk-dry-plus`).
 
 ### Étape 2 : Importer la Base de Données
-1. Lancez Laragon (ou démarrez MySQL).
-2. Ouvrez le terminal Laragon ou HeidiSQL / phpMyAdmin.
-3. Importez le fichier `database.sql` situé à la racine du projet :
-   * Soit via la commande :
-     ```cmd
-     mysql -u root < C:\laragon\www\msk-dry-plus\database.sql
-     ```
-   * Soit en ouvrant le fichier `database.sql` dans HeidiSQL et en cliquant sur **Exécuter**.
+1. Dans Laragon, cliquez sur **« Terminal »**.
+2. Exécutez simplement la commande :
+   ```cmd
+   mysql -u root < C:\laragon\www\Paradou\database.sql
+   ```
+   *(Ou importez le fichier `database.sql` via HeidiSQL).*
 
 ### Étape 3 : Créer le Raccourci sur le Bureau
-1. Allez dans le dossier `C:\laragon\www\msk-dry-plus\`.
+1. Allez dans le dossier `C:\laragon\www\Paradou\`.
 2. Double-cliquez sur le fichier :
    👉 **`Creer_Raccourci_Bureau.bat`**
 3. Un raccourci nommé **« MSK DRY PLUS - Caisse »** avec le logo de l'application apparaît instantanément sur le Bureau de l'ordinateur.
+
+### Étape 4 : Configurer l'Imprimante Ticket (Impression Directe)
+1. Branchez votre imprimante thermique en USB et installez son pilote Windows.
+2. Dans **Paramètres Windows** > **Imprimantes et scanners**, définissez l'imprimante thermique comme **« Imprimante par défaut »**.
+3. Réglez le format de papier sur **80 mm** dans les préférences d'impression.
+4. L'impression automatique sans boîte de dialogue est déjà activée dans le lanceur.
 
 ---
 
@@ -42,7 +47,7 @@ Ce guide explique étape par étape comment installer et configurer l'applicatio
 
 * **Pour lancer l'application** : Double-cliquez simplement sur le raccourci **« MSK DRY PLUS - Caisse »** sur le Bureau.
   * Les services locaux se lancent automatiquement en arrière-plan sans aucune fenêtre noire.
-  * L'application s'ouvre directement en plein écran en mode Application dédiée (sans barre d'adresse ni onglets).
+  * L'application s'ouvre directement en plein écran en mode Application dédiée tactile.
 
 * **Pour sauvegarder les données** :
   * Double-cliquez sur **`Sauvegarder_Base_De_Donnees.bat`**.
@@ -57,7 +62,8 @@ Ce guide explique étape par étape comment installer et configurer l'applicatio
 
 * **Administrateur** :
   * Identifiant : `admin` (ou `admin@paradou.com`)
-  * Mot de passe : `password` (ou celui configuré)
+  * Mot de passe : `password`
 * **Caissier** :
   * Identifiant : `caissier` (ou `caissier@paradou.com`)
   * Mot de passe : `password`
+
