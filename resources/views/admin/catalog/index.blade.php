@@ -111,6 +111,7 @@
                             <tr class="border-b border-slate-800 text-[10px] font-bold text-slate-400 uppercase tracking-wider bg-slate-800/20">
                                 <th class="py-3.5 px-6">Nom de l'article</th>
                                 <th class="py-3.5 px-4">Cible</th>
+                                <th class="py-3.5 px-3 text-center font-display font-medium text-amber-400">Poids std (g)</th>
                                 @foreach($services as $service)
                                     <th class="py-3.5 px-3 text-center font-display font-medium">{{ $service->name }}</th>
                                 @endforeach
@@ -142,6 +143,13 @@
                                         <span class="px-2 py-0.5 rounded text-[9px] font-bold bg-slate-800 text-slate-300 border border-slate-700/60 uppercase">
                                             {{ $item->garmentTarget ? $item->garmentTarget->name : '-' }}
                                         </span>
+                                    </td>
+                                    <td class="py-3 px-3 text-center font-mono">
+                                        @if($item->standard_weight)
+                                            <span class="text-amber-400 font-bold">{{ floatval($item->standard_weight) }}</span> <span class="text-[9px] text-slate-500">g</span>
+                                        @else
+                                            <span class="text-slate-600">-</span>
+                                        @endif
                                     </td>
                                     @foreach($services as $service)
                                         @php
@@ -320,6 +328,13 @@
                 <p class="text-[10px] text-slate-500 mt-1">Sélectionnez une image pour l'article (Optionnel).</p>
             </div>
 
+            <div>
+                <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Poids standard (en grammes)</label>
+                <input type="number" id="catalog-item-weight" name="standard_weight" min="0" step="10" placeholder="Ex: 500 (pour 500g)" 
+                       class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-amber-400 font-mono focus:outline-none focus:border-amber-500">
+                <p class="text-[10px] text-slate-500 mt-1">Poids moyen utilisé pour le calcul automatique du service Au Kilo (Optionnel).</p>
+            </div>
+
             <div class="pt-2">
                 <h4 class="text-xs font-bold text-slate-300 uppercase tracking-wider border-b border-slate-700/60 pb-1.5 mb-3">Grille Tarifaire (DA)</h4>
                 <div class="grid grid-cols-2 gap-4">
@@ -471,6 +486,7 @@
         
         document.getElementById('catalog-item-name').value = "";
         document.getElementById('catalog-item-target').value = "";
+        document.getElementById('catalog-item-weight').value = "";
         document.getElementById('catalog-item-image').value = "";
         
         @foreach($services as $service)
@@ -487,6 +503,7 @@
 
         document.getElementById('catalog-item-name').value = item.name;
         document.getElementById('catalog-item-target').value = item.garment_target_id || "";
+        document.getElementById('catalog-item-weight').value = item.standard_weight ? parseFloat(item.standard_weight) : "";
         document.getElementById('catalog-item-image').value = "";
 
         @foreach($services as $service)

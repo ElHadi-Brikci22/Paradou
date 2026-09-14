@@ -22,6 +22,7 @@ class Order extends Model
         'discount_type',
         'discount_amount',
         'total_amount',
+        'total_weight',
         'paid_amount',
         'balance_amount',
         'remarks',
@@ -49,5 +50,15 @@ class Order extends Model
     public function orderItems()
     {
         return $this->hasMany(OrderItem::class);
+    }
+
+    public function isGuestOrder(): bool
+    {
+        return !$this->client || $this->client->isPassager();
+    }
+
+    public function isCredit(): bool
+    {
+        return in_array($this->status, ['delivered', 'partially_delivered']) && floatval($this->balance_amount) > 0;
     }
 }

@@ -38,9 +38,9 @@ class RubricsController extends Controller
     {
         $colors = $this->loadDictionary('Couleur.db', [
             'argent', 'azur', 'beige', 'blanc', 'blanc cassé', 'bleu', 'bleu ciel', 
-            'bleu marine', 'bleu turquoise', 'bordeaux', 'brun', 'écru', 'fauve', 
-            'grenat', 'gris', 'ivoire', 'jaune', 'kaki', 'marron', 'mauve', 'or', 
-            'orange', 'rose', 'rouge', 'saumon', 'sépia', 'vert', 'vert émeraude', 'violet'
+            'bleu marine', 'bleu turquoise', 'blond', 'blond vénitien', 'bordeaux', 'brun', 'châtain', 'écru', 'fauve', 
+            'fushia', 'grenat', 'gris', 'indigo', 'ivoire', 'jaune', 'kaki', 'marron', 'mauve', 'noir', 'or', 
+            'orange', 'rose', 'rouge', 'saumon', 'sépia', 'vert', 'vert eau', 'vert émeraude', 'vert olive', 'vert pistache', 'violet'
         ]);
 
         $defects = $this->loadDictionary('Defauts.db', [

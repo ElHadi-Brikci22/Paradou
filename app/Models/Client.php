@@ -20,8 +20,22 @@ class Client extends Model
         'credit'
     ];
 
+    protected $appends = ['is_passager'];
+
     public function orders()
     {
         return $this->hasMany(Order::class);
+    }
+
+    public function isPassager(): bool
+    {
+        return $this->code === 'GUEST' 
+            || stripos($this->name, 'passage') !== false 
+            || stripos($this->name, 'passager') !== false;
+    }
+
+    public function getIsPassagerAttribute(): bool
+    {
+        return $this->isPassager();
     }
 }

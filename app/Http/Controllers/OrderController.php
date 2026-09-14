@@ -27,10 +27,17 @@ class OrderController extends Controller
             'target_delivery_date' => 'required|date',
             'remarks' => 'nullable|string',
             'is_express' => 'nullable|boolean',
+            'total_weight' => 'nullable|numeric|min:0',
             'items' => 'required|array|min:1',
             'items.*.service_id' => 'required|exists:services,id',
             'items.*.garment_item_id' => 'required|exists:garment_items,id',
-            'items.*.quantity' => 'required|numeric|min:0.01',
+            'items.*.pieces' => 'nullable|integer|min:1',
+            'items.*.weight' => 'nullable|numeric|min:0',
+            'items.*.length' => 'nullable|numeric|min:0',
+            'items.*.width' => 'nullable|numeric|min:0',
+            'items.*.area' => 'nullable|numeric|min:0',
+            'items.*.is_measured' => 'nullable|boolean',
+            'items.*.quantity' => 'required|numeric|min:0',
             'items.*.unit_price' => 'required|numeric|min:0',
             'items.*.colors' => 'nullable|array',
             'items.*.defects' => 'nullable|array',
@@ -41,7 +48,7 @@ class OrderController extends Controller
         try {
             $order = DB::transaction(function () use (&$validated) {
                 // Generate next ticket number if not provided
-                $ticketNumber = $validated['ticket_number'];
+                $ticketNumber = $validated['ticket_number'] ?? null;
                 if (empty($ticketNumber)) {
                     $lastOrder = Order::orderBy('id', 'desc')->first();
                     $ticketNumber = $lastOrder ? str_pad(intval($lastOrder->ticket_number) + 1, 6, '0', STR_PAD_LEFT) : '000001';
@@ -53,11 +60,10 @@ class OrderController extends Controller
                 }
 
                 $discountType = $validated['discount_type'] ?? 'percent';
-                if (Auth::user()->role !== 'admin' && $discountType === 'percent') {
-                    throw new \Exception("Les caissiers ne peuvent appliquer que des remises en montant fixe (DA).");
-                }
-                
                 $discountPercent = floatval($validated['discount_percent'] ?? 0);
+                if (Auth::user()->role !== 'admin' && $discountType === 'percent' && $discountPercent > 0) {
+                    throw new \Exception("Les caissiers ne peuvent appliquer que des remises en montant fixe (DA).", 422);
+                }
                 $discountAmountInput = floatval($validated['discount_amount'] ?? 0);
                 $paidAmount = floatval($validated['paid_amount']);
                 $isExpress = filter_var($validated['is_express'] ?? false, FILTER_VALIDATE_BOOLEAN);
@@ -68,7 +74,16 @@ class OrderController extends Controller
                     if ($isExpress) {
                         $validated['items'][$idx]['unit_price'] = floatval($item['unit_price']) * 2;
                     }
-                    $subtotal += floatval($validated['items'][$idx]['quantity']) * floatval($validated['items'][$idx]['unit_price']);
+                    $garmentItem = \App\Models\GarmentItem::find($item['garment_item_id']);
+                    $isCarpet = $garmentItem && $garmentItem->isCarpet();
+                    $isMeasured = isset($item['is_measured']) ? filter_var($item['is_measured'], FILTER_VALIDATE_BOOLEAN) : false;
+
+                    if ($isCarpet && !$isMeasured) {
+                        $itemSubtotal = 0;
+                    } else {
+                        $itemSubtotal = floatval($validated['items'][$idx]['quantity']) * floatval($validated['items'][$idx]['unit_price']);
+                    }
+                    $subtotal += $itemSubtotal;
                 }
 
                 // Apply order-level discount
@@ -99,6 +114,7 @@ class OrderController extends Controller
                     'discount_type' => $discountType,
                     'discount_amount' => $discountAmount,
                     'total_amount' => $totalAmount,
+                    'total_weight' => isset($validated['total_weight']) && $validated['total_weight'] !== '' ? floatval($validated['total_weight']) : null,
                     'paid_amount' => $paidAmount,
                     'balance_amount' => $balanceAmount,
                     'remarks' => $validated['remarks'] ?? null,
@@ -109,12 +125,30 @@ class OrderController extends Controller
                 foreach ($validated['items'] as $item) {
                     $qty = floatval($item['quantity']);
                     $uPrice = floatval($item['unit_price']);
-                    $itemTotal = $qty * $uPrice;
+                    
+                    $garmentItem = \App\Models\GarmentItem::find($item['garment_item_id']);
+                    $isCarpet = $garmentItem && $garmentItem->isCarpet();
+                    $isMeasured = isset($item['is_measured']) ? filter_var($item['is_measured'], FILTER_VALIDATE_BOOLEAN) : false;
+                    $length = isset($item['length']) && $item['length'] !== '' ? floatval($item['length']) : null;
+                    $width = isset($item['width']) && $item['width'] !== '' ? floatval($item['width']) : null;
+                    $area = isset($item['area']) && $item['area'] !== '' ? floatval($item['area']) : null;
+
+                    if ($isCarpet && !$isMeasured) {
+                        $itemTotal = 0;
+                    } else {
+                        $itemTotal = $qty * $uPrice;
+                    }
 
                     OrderItem::create([
                         'order_id' => $order->id,
                         'service_id' => $item['service_id'],
                         'garment_item_id' => $item['garment_item_id'],
+                        'pieces' => isset($item['pieces']) ? intval($item['pieces']) : 1,
+                        'weight' => isset($item['weight']) && $item['weight'] !== '' ? floatval($item['weight']) : null,
+                        'length' => $length,
+                        'width' => $width,
+                        'area' => $area,
+                        'is_measured' => $isMeasured,
                         'quantity' => $qty,
                         'unit_price' => $uPrice,
                         'total_price' => $itemTotal,
@@ -140,10 +174,11 @@ class OrderController extends Controller
             ]);
 
         } catch (\Exception $e) {
+            $status = ($e->getCode() >= 400 && $e->getCode() < 600) ? $e->getCode() : 422;
             return response()->json([
                 'success' => false,
                 'message' => 'Erreur lors de la création du ticket : ' . $e->getMessage()
-            ], 500);
+            ], $status);
         }
     }
 
@@ -170,10 +205,17 @@ class OrderController extends Controller
             'target_delivery_date' => 'required|date',
             'remarks' => 'nullable|string',
             'is_express' => 'nullable|boolean',
+            'total_weight' => 'nullable|numeric|min:0',
             'items' => 'required|array|min:1',
             'items.*.service_id' => 'required|exists:services,id',
             'items.*.garment_item_id' => 'required|exists:garment_items,id',
-            'items.*.quantity' => 'required|numeric|min:0.01',
+            'items.*.pieces' => 'nullable|integer|min:1',
+            'items.*.weight' => 'nullable|numeric|min:0',
+            'items.*.length' => 'nullable|numeric|min:0',
+            'items.*.width' => 'nullable|numeric|min:0',
+            'items.*.area' => 'nullable|numeric|min:0',
+            'items.*.is_measured' => 'nullable|boolean',
+            'items.*.quantity' => 'required|numeric|min:0',
             'items.*.unit_price' => 'required|numeric|min:0',
             'items.*.colors' => 'nullable|array',
             'items.*.defects' => 'nullable|array',
@@ -205,7 +247,16 @@ class OrderController extends Controller
                     if ($isExpress) {
                         $validated['items'][$idx]['unit_price'] = floatval($item['unit_price']) * 2;
                     }
-                    $subtotal += floatval($validated['items'][$idx]['quantity']) * floatval($validated['items'][$idx]['unit_price']);
+                    $garmentItem = \App\Models\GarmentItem::find($item['garment_item_id']);
+                    $isCarpet = $garmentItem && $garmentItem->isCarpet();
+                    $isMeasured = isset($item['is_measured']) ? filter_var($item['is_measured'], FILTER_VALIDATE_BOOLEAN) : false;
+
+                    if ($isCarpet && !$isMeasured) {
+                        $itemSubtotal = 0;
+                    } else {
+                        $itemSubtotal = floatval($validated['items'][$idx]['quantity']) * floatval($validated['items'][$idx]['unit_price']);
+                    }
+                    $subtotal += $itemSubtotal;
                 }
 
                 // Apply order-level discount
@@ -228,6 +279,7 @@ class OrderController extends Controller
                     'discount_type' => $discountType,
                     'discount_amount' => $discountAmount,
                     'total_amount' => $totalAmount,
+                    'total_weight' => isset($validated['total_weight']) && $validated['total_weight'] !== '' ? floatval($validated['total_weight']) : null,
                     'paid_amount' => $paidAmount,
                     'balance_amount' => $balanceAmount,
                     'is_paid' => $isPaid,
@@ -243,12 +295,30 @@ class OrderController extends Controller
                 foreach ($validated['items'] as $item) {
                     $qty = floatval($item['quantity']);
                     $uPrice = floatval($item['unit_price']);
-                    $itemTotal = $qty * $uPrice;
+
+                    $garmentItem = \App\Models\GarmentItem::find($item['garment_item_id']);
+                    $isCarpet = $garmentItem && $garmentItem->isCarpet();
+                    $isMeasured = isset($item['is_measured']) ? filter_var($item['is_measured'], FILTER_VALIDATE_BOOLEAN) : false;
+                    $length = isset($item['length']) && $item['length'] !== '' ? floatval($item['length']) : null;
+                    $width = isset($item['width']) && $item['width'] !== '' ? floatval($item['width']) : null;
+                    $area = isset($item['area']) && $item['area'] !== '' ? floatval($item['area']) : null;
+
+                    if ($isCarpet && !$isMeasured) {
+                        $itemTotal = 0;
+                    } else {
+                        $itemTotal = $qty * $uPrice;
+                    }
 
                     OrderItem::create([
                         'order_id' => $order->id,
                         'service_id' => $item['service_id'],
                         'garment_item_id' => $item['garment_item_id'],
+                        'pieces' => isset($item['pieces']) ? intval($item['pieces']) : 1,
+                        'weight' => isset($item['weight']) && $item['weight'] !== '' ? floatval($item['weight']) : null,
+                        'length' => $length,
+                        'width' => $width,
+                        'area' => $area,
+                        'is_measured' => $isMeasured,
                         'quantity' => $qty,
                         'unit_price' => $uPrice,
                         'total_price' => $itemTotal,

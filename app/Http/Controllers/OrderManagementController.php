@@ -41,6 +41,9 @@ class OrderManagementController extends Controller
             $query->where('status', 'ready');
         } elseif ($status === 'delivered') {
             $query->where('status', 'delivered');
+        } elseif ($status === 'credit') {
+            $query->whereIn('status', ['delivered', 'partially_delivered'])
+                  ->where('balance_amount', '>', 0);
         } elseif ($status !== 'all') {
             $query->where('status', $status);
         }
@@ -170,7 +173,7 @@ class OrderManagementController extends Controller
      */
     public function deliver(Request $request, $id)
     {
-        $order = Order::with('orderItems')->findOrFail($id);
+        $order = Order::with(['orderItems', 'client'])->findOrFail($id);
 
         if ($order->status === 'delivered') {
             return response()->json([
@@ -181,6 +184,17 @@ class OrderManagementController extends Controller
 
         $cashCollected = floatval($request->input('cash_collected', 0));
         $itemIdsToDeliver = $request->input('item_ids', null); // Array of item IDs to deliver
+
+        // VÉRIFICATION CLIENT PASSAGER : Aucun crédit autorisé
+        if ($order->isGuestOrder()) {
+            $projectedBalance = max(0, $order->total_amount - ($order->paid_amount + $cashCollected));
+            if ($projectedBalance > 0) {
+                return response()->json([
+                    'success' => false,
+                    'message' => "Le client passager n'est pas autorisé au crédit. La totalité du solde (" . number_format($order->balance_amount, 0, '.', '') . " DA restants) doit être réglée pour pouvoir récupérer la commande."
+                ], 422);
+            }
+        }
 
         // Find eligible undelivered items
         $itemsQuery = OrderItem::where('order_id', $order->id)->where('is_delivered', false);
@@ -238,6 +252,143 @@ class OrderManagementController extends Controller
             'message' => $allDelivered ? 'Commande entièrement livrée avec succès !' : 'Livraison partielle effectuée avec succès !',
             'order' => $order,
             'is_all_delivered' => $allDelivered
+        ]);
+    }
+
+    /**
+     * Settle remaining balance for an already delivered credit order.
+     */
+    public function settleCredit(Request $request, $id)
+    {
+        $order = Order::with(['orderItems', 'client'])->findOrFail($id);
+
+        if ($order->balance_amount <= 0) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Cette commande est déjà totalement soldée (solde à 0 DA).'
+            ], 422);
+        }
+
+        $cashCollected = floatval($request->input('cash_collected', 0));
+        if ($cashCollected <= 0) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Veuillez saisir un montant valide à encaisser.'
+            ], 422);
+        }
+
+        $order->paid_amount += $cashCollected;
+        $order->balance_amount = max(0, $order->total_amount - $order->paid_amount);
+
+        if ($order->balance_amount <= 0) {
+            $order->is_paid = true;
+        }
+
+        $order->save();
+        $order->load(['client', 'user', 'orderItems.service', 'orderItems.garmentItem']);
+
+        return response()->json([
+            'success' => true,
+            'message' => $order->balance_amount <= 0 
+                ? 'Crédit entièrement soldé avec succès !' 
+                : 'Acompte enregistré avec succès. Nouveau solde restant : ' . number_format($order->balance_amount, 0, '.', '') . ' DA.',
+            'order' => $order,
+            'is_paid' => $order->is_paid
+        ]);
+    }
+
+    /**
+     * Update carpet dimensions (length, width, area), calculate item price and update order totals.
+     */
+    public function updateCarpetDimensions(Request $request, $id)
+    {
+        $orderItem = OrderItem::with(['order.orderItems', 'garmentItem'])->findOrFail($id);
+        $order = $orderItem->order;
+
+        $validated = $request->validate([
+            'length' => 'required|numeric|min:0.01',
+            'width' => 'required|numeric|min:0.01',
+            'area' => 'nullable|numeric|min:0.01',
+            'unit_price' => 'nullable|numeric|min:0',
+        ]);
+
+        $length = round(floatval($validated['length']), 2);
+        $width = round(floatval($validated['width']), 2);
+        $area = isset($validated['area']) && floatval($validated['area']) > 0 
+            ? round(floatval($validated['area']), 2) 
+            : round($length * $width, 2);
+
+        $unitPrice = isset($validated['unit_price']) && floatval($validated['unit_price']) > 0 
+            ? floatval($validated['unit_price']) 
+            : floatval($orderItem->unit_price);
+
+        // Calculate total for this carpet item: area * unit_price
+        $itemTotalPrice = round($area * $unitPrice, 2);
+
+        $orderItem->update([
+            'length' => $length,
+            'width' => $width,
+            'area' => $area,
+            'quantity' => $area,
+            'unit_price' => $unitPrice,
+            'total_price' => $itemTotalPrice,
+            'is_measured' => true,
+            'is_ready' => true,
+        ]);
+
+        // Recalculate order total
+        $order->load(['orderItems.garmentItem', 'orderItems.service', 'client', 'user']);
+        $subtotal = 0;
+        foreach ($order->orderItems as $item) {
+            $subtotal += floatval($item->total_price);
+        }
+
+        // Handle discount
+        $discountAmount = 0;
+        if ($order->discount_type === 'fixed') {
+            $discountAmount = min($subtotal, floatval($order->discount_amount));
+            $order->discount_percent = $subtotal > 0 ? round(($discountAmount / $subtotal) * 100) : 0;
+        } else {
+            $discountPercent = floatval($order->discount_percent);
+            $discountAmount = round($subtotal * ($discountPercent / 100), 2);
+        }
+        $order->discount_amount = $discountAmount;
+        $order->total_amount = max(0, $subtotal - $discountAmount);
+        $order->balance_amount = max(0, $order->total_amount - floatval($order->paid_amount));
+        $order->is_paid = ($order->balance_amount <= 0);
+
+        // Update order status if all undelivered items are ready
+        $allDelivered = $order->orderItems->isNotEmpty() && $order->orderItems->every(fn($oi) => (bool)$oi->is_delivered);
+        if ($allDelivered) {
+            $order->status = 'delivered';
+        } else {
+            $anyDelivered = $order->orderItems->contains(fn($oi) => (bool)$oi->is_delivered);
+            $undelivered = $order->orderItems->where('is_delivered', false);
+            $allUndeliveredReady = $undelivered->isNotEmpty() && $undelivered->every(fn($oi) => (bool)$oi->is_ready);
+
+            if ($anyDelivered) {
+                $order->status = 'partially_delivered';
+            } elseif ($allUndeliveredReady) {
+                $order->status = 'ready';
+            } else {
+                $order->status = 'pending';
+            }
+        }
+
+        $order->save();
+
+        // Optional notification simulation if order became ready
+        $notificationMessage = null;
+        if ($order->status === 'ready') {
+            $notificationMessage = $this->notificationService->sendReadyNotification($order);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => "Dimensions enregistrées ({$length}m × {$width}m = {$area} m²). Prix calculé : " . number_format($itemTotalPrice, 0, '.', ' ') . " DA.",
+            'item' => $orderItem,
+            'order' => $order,
+            'notification' => $notificationMessage
         ]);
     }
 }

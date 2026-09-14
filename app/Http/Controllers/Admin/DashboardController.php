@@ -129,8 +129,10 @@ class DashboardController extends Controller
                 }
             } else {
                 // Group by year-month for longer periods
+                $isSqlite = DB::connection()->getDriverName() === 'sqlite';
+                $monthExpr = $isSqlite ? "strftime('%Y-%m', order_date)" : 'DATE_FORMAT(order_date, "%Y-%m")';
                 $salesTrend = (clone $trendQuery)
-                    ->select(DB::raw('DATE_FORMAT(order_date, "%Y-%m") as month'), DB::raw('SUM(total_amount) as total'))
+                    ->select(DB::raw("{$monthExpr} as month"), DB::raw('SUM(total_amount) as total'))
                     ->groupBy('month')
                     ->orderBy('month', 'asc')
                     ->get();
@@ -420,6 +422,46 @@ class DashboardController extends Controller
             ];
         }
 
+        // --- Credit statistics calculations (Commandes livrées non soldées) ---
+        $creditStatsQuery = Order::whereIn('status', ['delivered', 'partially_delivered'])
+            ->where('balance_amount', '>', 0)
+            ->whereBetween('order_date', [$start, $end]);
+
+        if ($segment !== 'all') {
+            $creditStatsQuery->whereHas('orderItems.service', function ($q) use ($segment) {
+                if ($segment === 'blanchisserie') {
+                    $q->where('code', 'blanchisserie');
+                } elseif ($segment === 'teinture') {
+                    $q->where('code', 'teinture');
+                } else {
+                    $q->where('code', '!=', 'blanchisserie')->where('code', '!=', 'teinture');
+                }
+            });
+        }
+        if ($userId !== 'all') {
+            $creditStatsQuery->where('user_id', $userId);
+        }
+
+        $totalCreditTickets = (clone $creditStatsQuery)->count();
+        $totalCreditAmount = floatval((clone $creditStatsQuery)->sum('balance_amount'));
+        $totalCreditOrderTotal = floatval((clone $creditStatsQuery)->sum('total_amount'));
+        $totalCreditPaid = floatval((clone $creditStatsQuery)->sum('paid_amount'));
+
+        $creditOrders = (clone $creditStatsQuery)
+            ->with(['client', 'user'])
+            ->orderBy('order_date', 'desc')
+            ->limit(50)
+            ->get();
+
+        // Global credit stats (all time, not bound to date filter)
+        $globalCreditQuery = Order::whereIn('status', ['delivered', 'partially_delivered'])
+            ->where('balance_amount', '>', 0);
+        if ($userId !== 'all') {
+            $globalCreditQuery->where('user_id', $userId);
+        }
+        $globalOutstandingCredit = floatval((clone $globalCreditQuery)->sum('balance_amount'));
+        $globalOutstandingTickets = (clone $globalCreditQuery)->count();
+
         return view('admin.dashboard', compact(
             'range',
             'userId',
@@ -443,7 +485,14 @@ class DashboardController extends Controller
             'totalDiscountedTickets',
             'totalDiscountAmount',
             'averageDiscountPercent',
-            'dailyDiscounts'
+            'dailyDiscounts',
+            'totalCreditTickets',
+            'totalCreditAmount',
+            'totalCreditOrderTotal',
+            'totalCreditPaid',
+            'creditOrders',
+            'globalOutstandingCredit',
+            'globalOutstandingTickets'
         ));
     }
 }

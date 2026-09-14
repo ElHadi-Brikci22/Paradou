@@ -33,6 +33,7 @@ class CatalogController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'garment_target_id' => 'required|exists:garment_targets,id',
+            'standard_weight' => 'nullable|numeric|min:0',
             'prices' => 'nullable|array',
             'prices.*' => 'nullable|numeric|min:0',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg,webp|max:2048'
@@ -50,7 +51,8 @@ class CatalogController extends Controller
             $item = GarmentItem::create([
                 'name' => $validated['name'],
                 'garment_target_id' => $validated['garment_target_id'],
-                'image_path' => $imagePath
+                'image_path' => $imagePath,
+                'standard_weight' => isset($validated['standard_weight']) && $validated['standard_weight'] !== '' ? floatval($validated['standard_weight']) : null,
             ]);
 
             if (!empty($validated['prices'])) {
@@ -79,6 +81,7 @@ class CatalogController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'garment_target_id' => 'required|exists:garment_targets,id',
+            'standard_weight' => 'nullable|numeric|min:0',
             'prices' => 'nullable|array',
             'prices.*' => 'nullable|numeric|min:0',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg,webp|max:2048'
@@ -87,7 +90,8 @@ class CatalogController extends Controller
         DB::transaction(function () use ($item, $validated, $request) {
             $item->update([
                 'name' => $validated['name'],
-                'garment_target_id' => $validated['garment_target_id']
+                'garment_target_id' => $validated['garment_target_id'],
+                'standard_weight' => isset($validated['standard_weight']) && $validated['standard_weight'] !== '' ? floatval($validated['standard_weight']) : null,
             ]);
 
             if ($request->hasFile('image')) {

@@ -12,7 +12,7 @@ class ClientApiController extends Controller
      */
     public function search(Request $request)
     {
-        $query = $request->input('q', '');
+        $query = $request->input('q', $request->input('query', ''));
 
         if (empty(trim($query))) {
             return response()->json([]);

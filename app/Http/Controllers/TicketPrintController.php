@@ -29,7 +29,7 @@ class TicketPrintController extends Controller
         // Generate flat array of tags (e.g. if qty of costume is 2, make 2 tags)
         $tags = [];
         foreach ($order->orderItems as $item) {
-            $qty = intval(ceil($item->quantity));
+            $qty = !empty($item->pieces) ? intval($item->pieces) : intval(ceil($item->quantity));
             for ($i = 0; $i < $qty; $i++) {
                 $tags[] = [
                     'index' => ($i + 1),
@@ -57,7 +57,7 @@ class TicketPrintController extends Controller
 
         $tags = [];
         foreach ($order->orderItems as $item) {
-            $qty = intval(ceil($item->quantity));
+            $qty = !empty($item->pieces) ? intval($item->pieces) : intval(ceil($item->quantity));
             for ($i = 0; $i < $qty; $i++) {
                 $tags[] = [
                     'index' => ($i + 1),

@@ -9,20 +9,15 @@
     <title>@yield('title', 'Caisse Tactile') - PARADOU</title>
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect x=%2210%22 y=%225%22 width=%2280%22 height=%2290%22 rx=%2210%22 fill=%22%234f46e5%22/><line x1=%2210%22 y1=%2225%22 x2=%2290%22 y2=%2225%22 stroke=%22white%22 stroke-width=%225%22/><circle cx=%2225%22 cy=%2215%22 r=%224%22 fill=%22white%22/><circle cx=%2240%22 cy=%2215%22 r=%224%22 fill=%22white%22/><circle cx=%2255%22 cy=%2215%22 r=%224%22 fill=%22white%22/><circle cx=%2250%22 cy=%2260%22 r=%2220%22 fill=%22none%22 stroke=%22white%22 stroke-width=%228%22/><circle cx=%2250%22 cy=%2260%22 r=%2212%22 fill=%22none%22 stroke=%22white%22 stroke-width=%224%22 stroke-dasharray=%2210 5%22/></svg>">
 
-    <!-- Google Fonts: Inter & Outfit -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-
     <!-- Tailwind & Vite Assets -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
     <style>
         body {
-            font-family: 'Inter', sans-serif;
+            font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
         }
         .font-display {
-            font-family: 'Outfit', sans-serif;
+            font-family: 'Outfit', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
         }
         /* Custom scrollbar for checkout */
         ::-webkit-scrollbar {
@@ -578,7 +573,7 @@
     </script>
 
     <!-- Custom Alert Modal Overlay -->
-    <div id="custom-alert-modal" class="hidden fixed inset-0 bg-slate-950/70 z-50 flex items-center justify-center p-4" style="backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);">
+    <div id="custom-alert-modal" class="hidden fixed inset-0 bg-slate-950/70 flex items-center justify-center p-4" style="backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); z-index: 999999;">
         <div class="bg-slate-800 border border-slate-700/80 rounded-2xl w-[380px] p-6 flex flex-col items-center shadow-2xl overflow-hidden transform scale-100 transition-all text-center">
             <!-- Logo Header -->
             <div class="flex items-center space-x-2 mb-4">

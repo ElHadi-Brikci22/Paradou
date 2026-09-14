@@ -41,9 +41,9 @@ class CheckoutController extends Controller
         // Retrieve choice dictionaries (with fallbacks)
         $colors = $this->getDictionary('Couleur.db', [
             'argent', 'azur', 'beige', 'blanc', 'blanc cassé', 'bleu', 'bleu ciel', 
-            'bleu marine', 'bleu turquoise', 'bordeaux', 'brun', 'écru', 'fauve', 
-            'grenat', 'gris', 'ivoire', 'jaune', 'kaki', 'marron', 'mauve', 'or', 
-            'orange', 'rose', 'rouge', 'saumon', 'sépia', 'vert', 'vert émeraude', 'violet'
+            'bleu marine', 'bleu turquoise', 'blond', 'blond vénitien', 'bordeaux', 'brun', 'châtain', 'écru', 'fauve', 
+            'fushia', 'grenat', 'gris', 'indigo', 'ivoire', 'jaune', 'kaki', 'marron', 'mauve', 'noir', 'or', 
+            'orange', 'rose', 'rouge', 'saumon', 'sépia', 'vert', 'vert eau', 'vert émeraude', 'vert olive', 'vert pistache', 'violet'
         ]);
 
         $defects = $this->getDictionary('Defauts.db', [
@@ -96,17 +96,9 @@ class CheckoutController extends Controller
     private function getDictionary($filename, $fallback)
     {
         return Cache::remember("dict_{$filename}", 3600, function () use ($filename, $fallback) {
-            $primaryPath = 'c:/Users/hadib/OneDrive/Bureau/MSK-DRY-PLUS-2022/db/' . $filename;
-            $fallbackPath = storage_path('app/db/' . $filename);
-            
-            $sourcePath = null;
-            if (File::exists($primaryPath)) {
-                $sourcePath = $primaryPath;
-            } elseif (File::exists($fallbackPath)) {
-                $sourcePath = $fallbackPath;
-            }
+            $sourcePath = storage_path('app/db/' . $filename);
 
-            if ($sourcePath) {
+            if (File::exists($sourcePath)) {
                 try {
                     $content = mb_convert_encoding(File::get($sourcePath), 'UTF-8', 'Windows-1252');
                     $lines = explode("\n", str_replace("\r\n", "\n", $content));
@@ -128,17 +120,9 @@ class CheckoutController extends Controller
     private function getPatterns($fallback)
     {
         return Cache::remember('patterns_list', 3600, function () use ($fallback) {
-            $primaryPath = 'c:/Users/hadib/OneDrive/Bureau/MSK-DRY-PLUS-2022/Menu/0/2';
-            $fallbackPath = storage_path('app/Menu/0/2');
-            
-            $sourcePath = null;
-            if (File::isDirectory($primaryPath)) {
-                $sourcePath = $primaryPath;
-            } elseif (File::isDirectory($fallbackPath)) {
-                $sourcePath = $fallbackPath;
-            }
+            $sourcePath = storage_path('app/Menu/0/2');
 
-            if ($sourcePath && File::isDirectory($sourcePath)) {
+            if (File::isDirectory($sourcePath)) {
                 try {
                     $files = File::files($sourcePath);
                     $patterns = [];
@@ -267,7 +251,8 @@ class CheckoutController extends Controller
                 'jaune' => '#eab308', 'kaki' => '#606730', 'marron' => '#451a03', 'mauve' => '#c084fc',
                 'or' => '#eab308', 'orange' => '#f97316', 'rose' => '#ec4899', 'rouge' => '#ef4444',
                 'saumon' => '#fca5a5', 'sépia' => '#78350f', 'vert' => '#22c55e', 'vert émeraude' => '#10b981',
-                'violet' => '#8b5cf6'
+                'vert eau' => '#a7f3d0', 'vert pistache' => '#bef264', 'vert olive' => '#65a30d',
+                'violet' => '#8b5cf6', 'noir' => '#000000', 'fushia' => '#d946ef'
             ];
             $search = strtolower(trim($name));
             $hex = $colorMap[$search] ?? '#475569';

@@ -13,6 +13,12 @@ class OrderItem extends Model
         'order_id',
         'service_id',
         'garment_item_id',
+        'pieces',
+        'weight',
+        'length',
+        'width',
+        'area',
+        'is_measured',
         'quantity',
         'unit_price',
         'total_price',
@@ -26,6 +32,10 @@ class OrderItem extends Model
     ];
 
     protected $casts = [
+        'length' => 'float',
+        'width' => 'float',
+        'area' => 'float',
+        'is_measured' => 'boolean',
         'colors' => 'array',
         'defects' => 'array',
         'stains' => 'array',
@@ -33,6 +43,14 @@ class OrderItem extends Model
         'is_delivered' => 'boolean',
         'delivered_at' => 'datetime',
     ];
+
+    public function isCarpet(): bool
+    {
+        if ($this->garmentItem && method_exists($this->garmentItem, 'isCarpet') && $this->garmentItem->isCarpet()) {
+            return true;
+        }
+        return $this->area !== null || $this->length !== null || $this->width !== null;
+    }
 
     public function order()
     {

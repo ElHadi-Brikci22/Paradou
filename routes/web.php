@@ -40,6 +40,7 @@ Route::middleware('auth')->group(function () {
         // Price Management (wholesale & retail)
         Route::get('/admin/prices', [PriceController::class, 'index'])->name('admin.prices.index');
         Route::post('/admin/prices/update', [PriceController::class, 'update'])->name('admin.prices.update');
+        Route::post('/admin/prices/service-price', [PriceController::class, 'updateServicePrice'])->name('admin.prices.service-price');
 
         // Catalog & pricing management
         Route::get('/admin/catalog', [CatalogController::class, 'index'])->name('admin.catalog.index');
@@ -66,8 +67,10 @@ Route::middleware('auth')->group(function () {
         Route::get('/clients/search', [ClientApiController::class, 'search'])->name('api.clients.search');
         Route::post('/clients', [ClientApiController::class, 'store'])->name('api.clients.store');
         Route::post('/order-items/{id}/ready', [OrderManagementController::class, 'toggleItemReady'])->name('api.order-items.ready');
+        Route::post('/order-items/{id}/dimensions', [OrderManagementController::class, 'updateCarpetDimensions'])->name('api.order-items.dimensions');
         Route::post('/orders/{id}/update-items', [OrderManagementController::class, 'updateItemsReady'])->name('api.orders.update-items');
         Route::post('/orders/{id}/deliver', [OrderManagementController::class, 'deliver'])->name('api.orders.deliver');
+        Route::post('/orders/{id}/settle-credit', [OrderManagementController::class, 'settleCredit'])->name('api.orders.settle-credit');
     });
 
     Route::post('/orders', [OrderController::class, 'store'])->name('orders.store');

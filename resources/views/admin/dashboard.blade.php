@@ -103,8 +103,8 @@
             <div class="kpi-card rounded-2xl p-4 border-l-4 border-l-amber-500">
                 <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Reste à Encaisser</p>
                 <p class="text-xl font-black font-display text-amber-500 mt-2">{{ number_format($totalBalance, 0, '.', ' ') }} DA</p>
-                <div class="flex items-center justify-between text-[10px] text-slate-500 mt-2">
-                    <span>Soldes clients restants</span>
+                <div class="flex items-center justify-between text-[10px] text-slate-400 mt-2">
+                    <span>Dont livrés à crédit : <strong class="text-amber-400 font-mono">{{ number_format($totalCreditAmount, 0, '.', ' ') }} DA</strong> ({{ $totalCreditTickets }})</span>
                 </div>
             </div>
 
@@ -299,7 +299,124 @@
             </div>
         @endif
 
-        <!-- Row 5: Analyse des Remises -->
+        <!-- Row 5: Suivi & Analyse des Commandes Livrées à Crédit -->
+        <div class="kpi-card rounded-2xl p-5 border-l-4 border-l-amber-500">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5 pb-3 border-b border-slate-700/40">
+                <div class="flex items-center space-x-2.5">
+                    <div class="h-8 w-8 rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-400 flex items-center justify-center">
+                        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-bold text-slate-100 font-display">Commandes Livrées à Crédit (Créances Clients)</h3>
+                        <p class="text-[11px] text-slate-400">Suivi des vêtements remis au client sans encaissement intégral du solde</p>
+                    </div>
+                </div>
+                <a href="{{ route('orders.index', ['status' => 'credit']) }}" 
+                   class="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/30 text-xs font-bold transition-colors">
+                    <span>Voir dans le Suivi des Commandes</span>
+                    <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                    </svg>
+                </a>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Chiffres Clés Crédit (Col 1) -->
+                <div class="space-y-3 flex flex-col justify-between">
+                    <div class="bg-slate-900/50 p-4 rounded-xl border border-slate-700/30">
+                        <span class="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Solde Crédit de la Période</span>
+                        <span class="text-xl font-black text-amber-400 font-mono mt-1 block">{{ number_format($totalCreditAmount, 0, '.', ' ') }} DA</span>
+                        <div class="text-[10px] text-slate-400 mt-1 flex justify-between">
+                            <span>Tickets concernés : <strong class="text-white">{{ $totalCreditTickets }}</strong></span>
+                            <span>Déjà perçu : {{ number_format($totalCreditPaid, 0, '.', ' ') }} DA</span>
+                        </div>
+                    </div>
+
+                    <div class="bg-slate-900/50 p-4 rounded-xl border border-slate-700/30">
+                        <span class="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Part du Crédit sur les Ventes</span>
+                        <span class="text-xl font-black text-rose-400 font-mono mt-1 block">{{ $totalNetCA > 0 ? number_format(($totalCreditAmount / $totalNetCA) * 100, 1) : 0 }} %</span>
+                        <span class="text-[10px] text-slate-500 mt-0.5 block">Du Chiffre d'Affaires Net de la période</span>
+                    </div>
+
+                    <div class="bg-slate-900/50 p-4 rounded-xl border border-amber-500/30 bg-gradient-to-br from-slate-900/60 to-amber-950/20">
+                        <span class="text-[10px] text-amber-300 font-bold uppercase tracking-wider block">Créances Totales Magasin (Tout Temps)</span>
+                        <span class="text-xl font-black text-amber-400 font-mono mt-1 block">{{ number_format($globalOutstandingCredit, 0, '.', ' ') }} DA</span>
+                        <span class="text-[10px] text-slate-400 mt-0.5 block">Sur un total de <strong class="text-white">{{ $globalOutstandingTickets }} tickets</strong> livrés non soldés</span>
+                    </div>
+                </div>
+
+                <!-- Détail des Commandes Crédit (Col 2-3) -->
+                <div class="lg:col-span-2 flex flex-col">
+                    <h4 class="text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Détail des Tickets Livrés Non Soldés ({{ $creditOrders->count() }})</h4>
+                    
+                    @if($creditOrders->isEmpty())
+                        <div class="flex-1 flex flex-col items-center justify-center p-8 bg-slate-900/30 rounded-xl border border-slate-800 text-center">
+                            <svg class="h-10 w-10 text-emerald-400 mb-2 opacity-60" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <p class="text-xs font-bold text-slate-300">Aucune créance sur cette période</p>
+                            <p class="text-[10px] text-slate-500">Toutes les commandes livrées ont été intégralement réglées.</p>
+                        </div>
+                    @else
+                        <div class="overflow-x-auto max-h-[320px] overflow-y-auto rounded-xl border border-slate-800 bg-slate-900/40">
+                            <table class="w-full text-left border-collapse text-xs">
+                                <thead>
+                                    <tr class="border-b border-slate-800 text-[10px] font-bold text-slate-400 uppercase tracking-wider sticky top-0 bg-slate-900 py-2.5 px-3">
+                                        <th class="py-2 px-3">Ticket</th>
+                                        <th class="py-2 px-3">Client</th>
+                                        <th class="py-2 px-3">Date</th>
+                                        <th class="py-2 px-3 text-right">Total Net</th>
+                                        <th class="py-2 px-3 text-right">Payé</th>
+                                        <th class="py-2 px-3 text-right">Solde Dû</th>
+                                        <th class="py-2 px-3 text-center">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-800/50">
+                                    @foreach($creditOrders as $co)
+                                        <tr class="hover:bg-slate-800/30 transition-colors">
+                                            <td class="py-2.5 px-3 font-mono font-bold text-slate-200">
+                                                #{{ $co->ticket_number }}
+                                            </td>
+                                            <td class="py-2.5 px-3">
+                                                <div class="font-bold text-slate-200">{{ $co->client ? $co->client->name : 'N/A' }}</div>
+                                                <div class="text-[9px] text-slate-400 font-mono">{{ $co->client && $co->client->phone ? $co->client->phone : ($co->client ? $co->client->code : '') }}</div>
+                                            </td>
+                                            <td class="py-2.5 px-3 text-slate-400 font-mono text-[10px]">
+                                                {{ $co->order_date->format('d/m/Y') }}
+                                            </td>
+                                            <td class="py-2.5 px-3 text-right font-mono text-slate-300">
+                                                {{ number_format($co->total_amount, 0, '.', ' ') }} DA
+                                            </td>
+                                            <td class="py-2.5 px-3 text-right font-mono text-emerald-400">
+                                                {{ number_format($co->paid_amount, 0, '.', ' ') }} DA
+                                            </td>
+                                            <td class="py-2.5 px-3 text-right">
+                                                <span class="inline-flex items-center px-2 py-0.5 rounded font-mono font-bold text-[10px] bg-amber-500/10 text-amber-400 border border-amber-500/30">
+                                                    {{ number_format($co->balance_amount, 0, '.', ' ') }} DA
+                                                </span>
+                                            </td>
+                                            <td class="py-2.5 px-3 text-center">
+                                                <a href="{{ route('orders.index', ['status' => 'credit', 'search' => $co->ticket_number]) }}" 
+                                                   class="p-1 rounded bg-slate-800 hover:bg-slate-700 text-amber-400 hover:text-amber-300 inline-flex items-center transition-colors" title="Régler ce ticket">
+                                                    <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                                    </svg>
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    @endif
+                </div>
+            </div>
+        </div>
+
+        <!-- Row 6: Analyse des Remises -->
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
             
             <!-- Summary Stats on Discounts -->
@@ -367,8 +484,8 @@
 @endsection
 
 @section('scripts')
-<!-- Load Chart.js from CDN -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<!-- Load Chart.js locally for offline support -->
+<script src="{{ asset('js/chart.min.js') }}"></script>
 <script>
     document.addEventListener("DOMContentLoaded", () => {
         

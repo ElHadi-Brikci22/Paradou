@@ -247,10 +247,31 @@
         </thead>
         <tbody>
             @foreach($order->orderItems as $item)
+                @php
+                    $isKilo = $item->service_id === 4 || str_contains(strtolower($item->service->name), 'kilo');
+                    $isCarpet = $item->isCarpet();
+                @endphp
                 <tr>
                     <td>
                         <span class="font-bold">{{ $item->garmentItem->name }}</span> 
                         <span style="font-size: 9px; text-transform: uppercase;">({{ $item->service->name }})</span>
+                        @if($isKilo && $item->pieces)
+                            <span style="font-size: 9px; font-weight: bold; color: #555;">[{{ $item->pieces }} pcs]</span>
+                        @elseif($isCarpet && $item->pieces)
+                            <span style="font-size: 9px; font-weight: bold; color: #555;">[{{ $item->pieces }} pcs]</span>
+                        @endif
+
+                        @if($isCarpet)
+                            @if($item->is_measured && $item->area)
+                                <div style="font-size: 9px; font-weight: bold; color: #222;">
+                                    📏 {{ $item->length }}m × {{ $item->width }}m = {{ $item->area }} m² ({{ number_format($item->unit_price, 0, '.', '') }} DA/m²)
+                                </div>
+                            @else
+                                <div style="font-size: 9px; font-style: italic; color: #555;">
+                                    📏 {{ number_format($item->unit_price, 0, '.', '') }} DA/m² (Métrage à l'atelier)
+                                </div>
+                            @endif
+                        @endif
                         
                         <!-- Options formatting -->
                         @php
@@ -267,12 +288,47 @@
                             </div>
                         @endif
                     </td>
-                    <td class="text-center font-bold">{{ floatval($item->quantity) }}</td>
-                    <td class="text-right font-bold">{{ number_format($item->total_price, 0, '.', '') }} DA</td>
+                    <td class="text-center font-bold">
+                        @if($isKilo)
+                            {{ number_format($item->quantity, 2) }} kg
+                        @elseif($isCarpet)
+                            @if($item->is_measured && $item->area)
+                                {{ number_format($item->area, 2) }} m²
+                            @else
+                                {{ $item->pieces ?? 1 }} pc
+                            @endif
+                        @else
+                            {{ floatval($item->quantity) }}
+                        @endif
+                    </td>
+                    <td class="text-right font-bold">
+                        @if($isCarpet && !$item->is_measured)
+                            <span style="font-size: 9px; font-style: italic; color: #666;">À mesurer</span>
+                        @else
+                            {{ number_format($item->total_price, 0, '.', '') }} DA
+                        @endif
+                    </td>
                 </tr>
             @endforeach
         </tbody>
     </table>
+
+    <div class="divider"></div>
+
+    @php
+        $totalPieces = $order->orderItems->sum(function($i) {
+            $isKilo = $i->service_id === 4 || ($i->service && str_contains(strtolower($i->service->name), 'kilo'));
+            if ($isKilo) return $i->pieces ?: 1;
+            if ($i->isCarpet()) return $i->pieces ?: 1;
+            return $i->pieces ?: intval(ceil($i->quantity));
+        });
+    @endphp
+    <div class="info-section" style="margin: 2mm 0;">
+        <div class="info-row font-bold" style="font-size: 11px;">
+            <span>TOTAL ARTICLES DÉPOSÉS :</span>
+            <span>{{ $totalPieces }} {{ $totalPieces > 1 ? 'pièces' : 'pièce' }}</span>
+        </div>
+    </div>
 
     <div class="divider"></div>
 
@@ -282,6 +338,12 @@
         $discountAmount = $order->discount_amount;
     @endphp
     <div class="totals-section">
+        @if($order->total_weight && $order->total_weight > 0)
+            <div class="totals-row">
+                <span class="font-bold">Poids total (Au Kilo):</span>
+                <span class="font-bold">{{ number_format($order->total_weight, 2) }} kg ({{ round($order->total_weight * 1000) }} g)</span>
+            </div>
+        @endif
         <div class="totals-row">
             <span>Sous-total brut:</span>
             <span>{{ number_format($totalBrut, 0, '.', '') }} DA</span>

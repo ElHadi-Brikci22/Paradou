@@ -11,8 +11,20 @@ class Service extends Model
 
     protected $fillable = [
         'name',
-        'code'
+        'code',
+        'price',
+        'wholesale_price'
     ];
+
+    protected $casts = [
+        'price' => 'decimal:2',
+        'wholesale_price' => 'decimal:2',
+    ];
+
+    public function isKilo(): bool
+    {
+        return $this->code === 'au_kilo' || str_contains(strtolower($this->name), 'kilo') || $this->id === 4;
+    }
 
     public function servicePrices()
     {

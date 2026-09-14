@@ -101,6 +101,24 @@
 <!-- Right Panel: Checkout / Cart (1/3 width) -->
 <div class="w-96 shrink-0 bg-slate-800/40 backdrop-blur-md flex flex-col overflow-hidden">
 
+    <!-- Sticky Kilo Weight Banner (Visible when kilo items are in cart) -->
+    <div id="cart-kilo-summary-bar" class="hidden shrink-0 bg-slate-800/90 border-b border-amber-500/20 px-4 py-2.5 flex items-center justify-between shadow-sm">
+        <div class="flex items-center space-x-2">
+            <span class="text-base">⚖️</span>
+            <div>
+                <span class="text-[9px] uppercase font-black text-amber-400 tracking-wider block">Poids Total Commande</span>
+                <span id="cart-kilo-total-weight-text" class="text-xs font-mono font-bold text-white">0.00 kg (0 g)</span>
+            </div>
+        </div>
+        <span id="cart-kilo-items-count" class="text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30 px-2 py-0.5 rounded-full">0 pcs</span>
+    </div>
+
+    <!-- Cart Header with Article Count -->
+    <div class="px-4 py-2.5 bg-slate-800/60 border-b border-slate-700/50 flex items-center justify-between shrink-0">
+        <span class="text-xs font-bold text-slate-300 uppercase tracking-wider font-display">Panier</span>
+        <span id="cart-total-articles-count" class="text-[11px] font-mono font-bold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 px-2 py-0.5 rounded-full">0 article</span>
+    </div>
+
     <!-- Cart items list (Scrollable) -->
     <div class="flex-1 overflow-y-auto p-4 space-y-3" id="cart-items-container">
         <!-- Rendered dynamically by JS -->
@@ -117,15 +135,23 @@
     <div class="bg-slate-900 border-t border-slate-700/50 p-4 shrink-0 transition-all duration-300">
         
         <!-- 1. Collapsed View (Review Cart Mode) -->
-        <div id="billing-collapsed-view" class="flex items-center justify-between gap-4 py-1">
-            <div class="flex-1">
-                <span class="text-[9px] text-slate-500 font-bold uppercase tracking-wider block">Net à Payer</span>
-                <span id="total-net-collapsed" class="text-lg font-black text-indigo-400 font-mono">0 DA</span>
+        <div id="billing-collapsed-view" class="space-y-2 py-1">
+            <div id="cart-kilo-weight-badge-collapsed" class="hidden flex items-center justify-between bg-amber-500/10 border border-amber-500/20 px-3 py-1.5 rounded-lg text-amber-400">
+                <span class="text-[10px] font-bold uppercase tracking-wider flex items-center space-x-1">
+                    <span>⚖️ Poids Total Au Kilo</span>
+                </span>
+                <span id="total-weight-collapsed" class="text-xs font-mono font-black">0.00 kg</span>
             </div>
-            <button type="button" onclick="openPaymentView()" 
-                    class="bg-indigo-600 hover:bg-indigo-500 text-white font-display font-bold py-2.5 px-5 rounded-xl shadow-lg shadow-indigo-600/25 active:translate-y-0.5 transition-all flex items-center justify-center space-x-2 cursor-pointer text-xs">
-                <span>Payer & Valider ➜</span>
-            </button>
+            <div class="flex items-center justify-between gap-4">
+                <div class="flex-1">
+                    <span class="text-[9px] text-slate-500 font-bold uppercase tracking-wider block">Net à Payer</span>
+                    <span id="total-net-collapsed" class="text-lg font-black text-indigo-400 font-mono">0 DA</span>
+                </div>
+                <button type="button" onclick="openPaymentView()" 
+                        class="bg-indigo-600 hover:bg-indigo-500 text-white font-display font-bold py-2.5 px-5 rounded-xl shadow-lg shadow-indigo-600/25 active:translate-y-0.5 transition-all flex items-center justify-center space-x-2 cursor-pointer text-xs">
+                    <span>Payer & Valider ➜</span>
+                </button>
+            </div>
         </div>
 
         <!-- 2. Expanded View (Payment Mode) - Hidden by default -->
@@ -144,6 +170,14 @@
                 <div class="flex justify-between text-slate-400">
                     <span>Sous-total brut</span>
                     <span id="total-brut" class="font-semibold font-mono">0.00 DA</span>
+                </div>
+
+                <!-- Total weight for kilo service -->
+                <div id="cart-kilo-weight-badge-expanded" class="hidden flex items-center justify-between bg-amber-500/10 border border-amber-500/20 px-2.5 py-1.5 rounded-lg text-amber-400">
+                    <span class="text-[10px] font-bold uppercase tracking-wider flex items-center space-x-1">
+                        <span>⚖️ Poids Total (Au Kilo)</span>
+                    </span>
+                    <span id="total-weight-expanded" class="text-xs font-mono font-black">0.00 kg (0 g)</span>
                 </div>
 
                 <!-- Discount Input & Type -->
@@ -244,8 +278,8 @@
 
 <!-- ================= MODALS OVERLAYS ================= -->
 
-<div id="options-modal" class="hidden fixed inset-0 bg-slate-950/70 z-50 flex items-center justify-center p-4" style="backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);">
-    <div class="bg-slate-800 border border-slate-700 rounded-2xl w-full max-w-2xl max-h-[85vh] flex flex-col shadow-2xl overflow-hidden transform scale-100 transition-all">
+<div id="options-modal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-slate-800 border border-slate-700 rounded-2xl w-[500px] max-h-[90vh] flex flex-col shadow-2xl overflow-hidden transform scale-95 transition-all">
         <!-- Header -->
         <div class="px-6 py-4 bg-slate-800 border-b border-slate-700 flex justify-between items-center">
             <div>
@@ -260,7 +294,7 @@
         </div>
 
         <!-- Content (Scrollable list of choices) -->
-        <div class="p-6 overflow-y-auto space-y-6">
+        <div class="p-6 overflow-y-auto space-y-5">
             <!-- Colors Selection -->
             @php
                 $colorMap = [
@@ -296,12 +330,17 @@
                     'sépia' => ['bg' => '#78350f', 'text' => '#ffffff', 'border' => '#451a03'],
                     'vert' => ['bg' => '#16a34a', 'text' => '#ffffff', 'border' => '#15803d'],
                     'vert émeraude' => ['bg' => '#059669', 'text' => '#ffffff', 'border' => '#047857'],
-                    'violet' => ['bg' => '#7c3aed', 'text' => '#ffffff', 'border' => '#6d28d9']
+                    'vert eau' => ['bg' => '#a7f3d0', 'text' => '#065f46', 'border' => '#6ee7b7'],
+                    'vert pistache' => ['bg' => '#bef264', 'text' => '#3f6212', 'border' => '#a3e635'],
+                    'vert olive' => ['bg' => '#65a30d', 'text' => '#ffffff', 'border' => '#4d7c0f'],
+                    'violet' => ['bg' => '#7c3aed', 'text' => '#ffffff', 'border' => '#6d28d9'],
+                    'noir' => ['bg' => '#09090b', 'text' => '#ffffff', 'border' => '#3f3f46'],
+                    'fushia' => ['bg' => '#d946ef', 'text' => '#ffffff', 'border' => '#c026d3']
                 ];
             @endphp
             <div>
-                <span class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2.5">Couleur(s)</span>
-                <div class="grid grid-cols-3 sm:grid-cols-5 md:grid-cols-6 gap-3" id="modal-colors-container">
+                <span class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Couleur(s)</span>
+                <div class="flex flex-wrap gap-1.5" id="modal-colors-container">
                     @foreach($colors as $color)
                         @php
                             $normalizedColor = strtolower(trim($color));
@@ -313,10 +352,9 @@
                                 data-bg="{{ $c['bg'] }}"
                                 data-text="{{ $c['text'] }}"
                                 data-border="{{ $c['border'] }}"
-                                class="option-badge group relative flex flex-col items-center justify-end p-2 rounded-xl border border-slate-700 bg-slate-900/50 hover:bg-slate-800 hover:border-slate-500 transition-all cursor-pointer aspect-square overflow-hidden">
-                            <img src="/option-image/colors/{{ urlencode($color) }}" class="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:opacity-85 transition-opacity z-0">
-                            <div class="badge-overlay absolute inset-0 bg-slate-950/45 group-hover:bg-slate-950/20 transition-all z-10"></div>
-                            <span class="z-20 text-[10px] font-black uppercase text-white text-center tracking-wider break-words drop-shadow-md leading-tight">{{ $color }}</span>
+                                style="background-color: {{ $c['bg'] }}; color: {{ $c['text'] }}; border-color: {{ $c['border'] }}; font-weight: bold;"
+                                class="option-badge px-3 py-1 rounded-full text-xs border transition-all cursor-pointer">
+                            {{ $color }}
                         </button>
                     @endforeach
                 </div>
@@ -324,15 +362,13 @@
 
             <!-- Motifs Selection -->
             <div>
-                <span class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2.5">Motif(s)</span>
-                <div class="grid grid-cols-3 sm:grid-cols-5 md:grid-cols-6 gap-3" id="modal-patterns-container">
+                <span class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Motif(s)</span>
+                <div class="flex flex-wrap gap-1.5" id="modal-patterns-container">
                     @foreach($patterns as $pattern)
                         <button onclick="toggleItemOption('patterns', '{{ $pattern }}', this)" 
                                 data-pattern-btn="true"
-                                class="option-badge group relative flex flex-col items-center justify-end p-2 rounded-xl border border-slate-700 bg-slate-900/50 hover:bg-slate-800 hover:border-slate-500 transition-all cursor-pointer aspect-square overflow-hidden">
-                            <img src="/option-image/patterns/{{ urlencode($pattern) }}" class="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:opacity-85 transition-opacity z-0">
-                            <div class="badge-overlay absolute inset-0 bg-slate-950/45 group-hover:bg-slate-950/20 transition-all z-10"></div>
-                            <span class="z-20 text-[10px] font-black uppercase text-white text-center tracking-wider break-words drop-shadow-md leading-tight">{{ $pattern }}</span>
+                                class="option-badge px-3 py-1 rounded-full text-xs border border-slate-700 bg-slate-900 text-slate-300 hover:border-slate-500 transition-colors">
+                            {{ $pattern }}
                         </button>
                     @endforeach
                 </div>
@@ -340,14 +376,12 @@
 
             <!-- Defects Selection -->
             <div>
-                <span class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2.5">Défaut(s) signalé(s)</span>
-                <div class="grid grid-cols-3 sm:grid-cols-5 md:grid-cols-6 gap-3" id="modal-defects-container">
+                <span class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Défaut(s) signalé(s)</span>
+                <div class="flex flex-wrap gap-1.5" id="modal-defects-container">
                     @foreach($defects as $defect)
                         <button onclick="toggleItemOption('defects', '{{ $defect }}', this)" 
-                                class="option-badge group relative flex flex-col items-center justify-end p-2 rounded-xl border border-slate-700 bg-slate-900/50 hover:bg-slate-800 hover:border-slate-500 transition-all cursor-pointer aspect-square overflow-hidden">
-                            <img src="/option-image/defects/{{ urlencode($defect) }}" class="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:opacity-85 transition-opacity z-0">
-                            <div class="badge-overlay absolute inset-0 bg-slate-950/45 group-hover:bg-slate-950/20 transition-all z-10"></div>
-                            <span class="z-20 text-[10px] font-black uppercase text-white text-center tracking-wider break-words drop-shadow-md leading-tight">{{ $defect }}</span>
+                                class="option-badge px-3 py-1 rounded-full text-xs border border-slate-700 bg-slate-900 text-slate-300 hover:border-slate-500 transition-colors">
+                            {{ $defect }}
                         </button>
                     @endforeach
                 </div>
@@ -355,14 +389,12 @@
 
             <!-- Stains Selection -->
             <div>
-                <span class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2.5">Tache(s) à traiter</span>
-                <div class="grid grid-cols-3 sm:grid-cols-5 md:grid-cols-6 gap-3" id="modal-stains-container">
+                <span class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Tache(s) à traiter</span>
+                <div class="flex flex-wrap gap-1.5" id="modal-stains-container">
                     @foreach($stains as $stain)
                         <button onclick="toggleItemOption('stains', '{{ $stain }}', this)" 
-                                class="option-badge group relative flex flex-col items-center justify-end p-2 rounded-xl border border-slate-700 bg-slate-900/50 hover:bg-slate-800 hover:border-slate-500 transition-all cursor-pointer aspect-square overflow-hidden">
-                            <img src="/option-image/stains/{{ urlencode($stain) }}" class="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:opacity-85 transition-opacity z-0">
-                            <div class="badge-overlay absolute inset-0 bg-slate-950/45 group-hover:bg-slate-950/20 transition-all z-10"></div>
-                            <span class="z-20 text-[10px] font-black uppercase text-white text-center tracking-wider break-words drop-shadow-md leading-tight">{{ $stain }}</span>
+                                class="option-badge px-3 py-1 rounded-full text-xs border border-slate-700 bg-slate-900 text-slate-300 hover:border-slate-500 transition-colors">
+                            {{ $stain }}
                         </button>
                     @endforeach
                 </div>
@@ -528,7 +560,16 @@
         // Update all item prices in the cart
         cart.forEach(cartItem => {
             const itemObj = allItems.find(i => i.id === cartItem.id);
-            if (itemObj) {
+            const itemService = allServices.find(s => s.id === cartItem.service_id);
+            const isItemKilo = itemService && (itemService.code === 'au_kilo' || itemService.name.toLowerCase().includes('kilo') || cartItem.service_id === 4);
+
+            if (isItemKilo && itemService && itemService.price !== null && itemService.price !== undefined && itemService.price !== '') {
+                if (mode === 'wholesale' && itemService.wholesale_price !== null && itemService.wholesale_price !== undefined && itemService.wholesale_price !== '') {
+                    cartItem.unit_price = parseFloat(itemService.wholesale_price);
+                } else {
+                    cartItem.unit_price = parseFloat(itemService.price);
+                }
+            } else if (itemObj) {
                 const prices = itemObj.service_prices || itemObj.servicePrices || [];
                 const priceObj = prices.find(sp => sp.service_id === cartItem.service_id);
                 if (priceObj) {
@@ -602,13 +643,27 @@
             
             // Populate cart
             cart = editingOrder.order_items.map(item => {
+                const stdW = item.garment_item && item.garment_item.standard_weight ? parseFloat(item.garment_item.standard_weight) : 1000;
+                const itmWeight = item.weight !== null && item.weight !== undefined ? parseFloat(item.weight) : parseFloat(item.quantity);
+                const isCarpet = (item.garment_item && item.garment_item.unit_type === 'm2') || 
+                                 (item.garment_item && item.garment_item.name && item.garment_item.name.toLowerCase().includes('tapis')) ||
+                                 item.area !== null;
                 return {
                     id: item.garment_item_id,
-                    name: item.garment_item.name,
+                    name: item.garment_item ? item.garment_item.name : 'Article',
                     service_id: item.service_id,
-                    service_name: item.service.name,
+                    service_name: item.service ? item.service.name : 'Service',
+                    is_carpet: isCarpet,
+                    is_measured: !!item.is_measured,
+                    length: item.length,
+                    width: item.width,
+                    area: item.area,
+                    standard_weight: stdW,
+                    pieces: item.pieces ? parseInt(item.pieces) : 1,
+                    weight: itmWeight,
                     quantity: parseFloat(item.quantity),
                     unit_price: parseFloat(item.unit_price) / (editingOrder.is_express ? 2 : 1), // standard unit price
+                    total_price: parseFloat(item.total_price),
                     colors: item.colors || [],
                     defects: item.defects || [],
                     stains: item.stains || [],
@@ -678,11 +733,15 @@
         if (!grid || !empty) return;
         grid.innerHTML = '';
 
+        const currentService = allServices.find(s => s.id === selectedServiceId);
+        const isKiloService = currentService && (currentService.code === 'au_kilo' || currentService.name.toLowerCase().includes('kilo') || selectedServiceId === 4);
+        const serviceHasUniformPrice = isKiloService && currentService && currentService.price !== null && currentService.price !== undefined && currentService.price !== '';
+
         // Filter items safely
         const filtered = allItems.filter(item => {
             const prices = item.service_prices || item.servicePrices || [];
-            // Must have a service price for the selected service
-            const hasPrice = prices.some(sp => sp.service_id === selectedServiceId);
+            // Must have a service price for the selected service OR service has a uniform price
+            const hasPrice = serviceHasUniformPrice || prices.some(sp => sp.service_id === selectedServiceId);
             if (!hasPrice) return false;
 
             if (selectedServiceId === 2 || selectedServiceId === 4) {
@@ -705,7 +764,14 @@
             const prices = item.service_prices || item.servicePrices || [];
             const priceObj = prices.find(sp => sp.service_id === selectedServiceId);
             let price = 0;
-            if (priceObj) {
+
+            if (isKiloService && currentService && currentService.price !== null && currentService.price !== undefined && currentService.price !== '') {
+                if (pricingMode === 'wholesale' && currentService.wholesale_price !== null && currentService.wholesale_price !== undefined && currentService.wholesale_price !== '') {
+                    price = parseFloat(currentService.wholesale_price);
+                } else {
+                    price = parseFloat(currentService.price);
+                }
+            } else if (priceObj) {
                 if (pricingMode === 'wholesale' && priceObj.wholesale_price !== null && priceObj.wholesale_price !== undefined && priceObj.wholesale_price !== '') {
                     price = parseFloat(priceObj.wholesale_price);
                 } else {
@@ -713,8 +779,15 @@
                 }
             }
 
+            const isCarpet = (item.unit_type === 'm2') || 
+                             (item.name && (item.name.toLowerCase().includes('tapis') || item.name.toLowerCase().includes('m²')));
+
             const card = document.createElement('button');
-            card.onclick = () => openOptionsModal(item, price);
+            if (isKiloService) {
+                card.onclick = () => selectKiloItem(item, price);
+            } else {
+                card.onclick = () => openOptionsModal(item, price);
+            }
 
             if (item.image_path) {
                 card.className = "relative border border-slate-700/60 p-3.5 rounded-2xl text-left flex flex-col justify-between h-32 active:scale-95 hover:border-slate-500 transition-all duration-150 shadow-md cursor-pointer overflow-hidden bg-cover bg-center";
@@ -727,6 +800,35 @@
             const title = document.createElement('h3');
             title.className = "text-xs font-bold text-slate-100 leading-snug line-clamp-2 uppercase font-display z-10";
             title.textContent = item.name;
+            card.appendChild(title);
+
+            // Weight badge if Kilo Service
+            if (isKiloService) {
+                const stdG = item.standard_weight ? parseFloat(item.standard_weight) : null;
+                const weightBadge = document.createElement('div');
+                weightBadge.className = "z-10 mt-1 flex flex-col gap-0.5";
+                if (stdG) {
+                    const estItemPrice = Math.round((stdG / 1000) * price);
+                    weightBadge.innerHTML = `
+                        <span class="text-[9px] font-bold text-amber-300 bg-amber-500/20 border border-amber-500/30 px-1.5 py-0.5 rounded-full inline-flex items-center space-x-1">
+                            <span>⚖️</span><span>${stdG >= 1000 ? (stdG/1000).toFixed(2) + ' kg' : stdG + 'g'}</span>
+                        </span>
+                        ${price > 0 ? `<span class="text-[9px] text-slate-400 font-mono">≈ ${estItemPrice} DA</span>` : ''}
+                    `;
+                } else {
+                    weightBadge.innerHTML = `<span class="text-[9px] font-bold text-slate-400 bg-slate-700/50 border border-slate-600/50 px-1.5 py-0.5 rounded-full inline-flex items-center space-x-1"><span>⚖️</span><span>Au Kilo</span></span>`;
+                }
+                card.appendChild(weightBadge);
+            } else if (isCarpet) {
+                const carpetBadge = document.createElement('div');
+                carpetBadge.className = "z-10 mt-1 flex flex-col gap-0.5";
+                carpetBadge.innerHTML = `
+                    <span class="text-[9px] font-bold text-amber-300 bg-amber-500/20 border border-amber-500/30 px-1.5 py-0.5 rounded-full inline-flex items-center space-x-1">
+                        <span>📏</span><span>Métrage atelier</span>
+                    </span>
+                `;
+                card.appendChild(carpetBadge);
+            }
 
             // Price badge
             const priceBadge = document.createElement('div');
@@ -734,14 +836,69 @@
             
             const priceText = document.createElement('span');
             priceText.className = "text-sm font-black font-display text-indigo-400";
-            priceText.textContent = `${price.toFixed(0)} DA`;
+            if (isKiloService) {
+                priceText.textContent = `${price.toFixed(0)} DA/kg`;
+            } else if (isCarpet) {
+                priceText.textContent = `${price.toFixed(0)} DA/m²`;
+            } else {
+                priceText.textContent = `${price.toFixed(0)} DA`;
+            }
 
             priceBadge.appendChild(priceText);
-            card.appendChild(title);
             card.appendChild(priceBadge);
             grid.appendChild(card);
         });
     }
+
+    // ================= CARPET SERVICE QUICK SELECT =================
+
+    window.selectCarpetItem = function(item, price) {
+        openOptionsModal(item, price);
+    };
+
+    // ================= KILO SERVICE QUICK SELECT =================
+
+    window.selectKiloItem = function(item, price) {
+        const currentService = allServices.find(s => s.id === selectedServiceId);
+        const sName = currentService ? currentService.name : 'Au Kilo';
+
+        const effectivePrice = (price && price > 0) ? price : (currentService ? (pricingMode === 'wholesale' && currentService.wholesale_price ? parseFloat(currentService.wholesale_price) : (parseFloat(currentService.price) || 0)) : 0);
+
+        const stdWeightG = item.standard_weight ? parseFloat(item.standard_weight) : 500;
+        const stdWeightKg = stdWeightG / 1000;
+
+        const existingIndex = cart.findIndex(ci => ci.id === item.id && ci.service_id === selectedServiceId);
+
+        if (existingIndex !== -1) {
+            const currentPieces = cart[existingIndex].pieces || 1;
+            cart[existingIndex].pieces = currentPieces + 1;
+            const currentWeight = (cart[existingIndex].weight !== undefined && cart[existingIndex].weight !== null) ? cart[existingIndex].weight : cart[existingIndex].quantity;
+            const newWeight = parseFloat((currentWeight + stdWeightKg).toFixed(3));
+            cart[existingIndex].weight = newWeight;
+            cart[existingIndex].quantity = newWeight;
+            cart[existingIndex].unit_price = effectivePrice;
+        } else {
+            cart.push({
+                id: item.id,
+                name: item.name,
+                service_id: selectedServiceId,
+                service_name: sName,
+                standard_weight: stdWeightG,
+                pieces: 1,
+                weight: stdWeightKg,
+                quantity: stdWeightKg,
+                unit_price: effectivePrice,
+                colors: [],
+                defects: [],
+                stains: [],
+                notes: ''
+            });
+        }
+
+        renderCart();
+        updateCartCalculations();
+        closePaymentView();
+    };
 
     // ================= CART LOGIC =================
 
@@ -789,6 +946,8 @@
             const topLine = document.createElement('div');
             topLine.className = "flex items-start justify-between";
 
+            const isKiloService = item.service_id === 4 || (item.service_name && item.service_name.toLowerCase().includes('kilo'));
+
             const info = document.createElement('div');
             const nameText = document.createElement('h4');
             nameText.className = "text-xs font-bold text-slate-100 uppercase";
@@ -800,6 +959,31 @@
             
             info.appendChild(nameText);
             info.appendChild(serviceText);
+
+            if (isKiloService && item.standard_weight) {
+                const stdTag = document.createElement('span');
+                stdTag.className = "text-[9px] font-bold text-amber-400 bg-amber-400/10 border border-amber-400/20 px-1 py-0.5 rounded uppercase tracking-wider ml-1";
+                stdTag.textContent = `${item.standard_weight}g/pc`;
+                info.appendChild(stdTag);
+            } else if (item.is_carpet) {
+                const carpetTag = document.createElement('span');
+                carpetTag.className = "text-[9px] font-bold text-amber-300 bg-amber-500/10 border border-amber-500/20 px-1.5 py-0.5 rounded uppercase tracking-wider ml-1";
+                carpetTag.textContent = item.is_measured ? `${item.area} m²` : "Métrage atelier";
+                info.appendChild(carpetTag);
+            }
+
+            // Visible options summary directly in the cart item line!
+            const optBadges = [];
+            if (item.colors && item.colors.length > 0) optBadges.push(`<span class="text-indigo-400 font-semibold">🎨 ${item.colors.join(', ')}</span>`);
+            if (item.defects && item.defects.length > 0) optBadges.push(`<span class="text-rose-400 font-semibold">⚠️ ${item.defects.join(', ')}</span>`);
+            if (item.stains && item.stains.length > 0) optBadges.push(`<span class="text-amber-400 font-semibold">🫧 ${item.stains.join(', ')}</span>`);
+            if (item.notes) optBadges.push(`<span class="text-slate-300">📝 ${item.notes}</span>`);
+            if (optBadges.length > 0) {
+                const optContainer = document.createElement('div');
+                optContainer.className = "text-[10px] space-x-1 mt-0.5 leading-tight flex flex-wrap gap-y-0.5";
+                optContainer.innerHTML = optBadges.join('<span class="text-slate-600 font-normal"> | </span>');
+                info.appendChild(optContainer);
+            }
 
             const deleteBtn = document.createElement('button');
             deleteBtn.onclick = () => removeFromCart(index);
@@ -818,54 +1002,161 @@
             const bottomLine = document.createElement('div');
             bottomLine.className = "flex items-center justify-between pt-1 border-t border-slate-800/60";
 
-            // Qty controller (supporte la saisie directe du poids + boutons +/-)
             const qtyCtrl = document.createElement('div');
-            qtyCtrl.className = "flex items-center bg-slate-800 rounded-md border border-slate-700/50";
-            
-            const isKiloService = item.service_id === 4 || (item.service_name && item.service_name.toLowerCase().includes('kilo'));
-            const step = isKiloService ? 0.5 : 1;
+            qtyCtrl.className = "flex items-center space-x-1.5";
 
-            const minusBtn = document.createElement('button');
-            minusBtn.onclick = () => {
-                const currentQty = parseFloat(item.quantity) || 1;
-                const newQty = Math.max(0, parseFloat((currentQty - step).toFixed(2)));
-                updateItemQty(index, newQty);
-            };
-            minusBtn.className = "px-2 py-1 text-slate-400 hover:text-white font-bold text-xs cursor-pointer";
-            minusBtn.textContent = '-';
-            
-            const qtyInput = document.createElement('input');
-            qtyInput.type = "number";
-            qtyInput.min = "0.01";
-            qtyInput.step = isKiloService ? "0.1" : "1";
-            qtyInput.value = item.quantity;
-            qtyInput.className = "w-12 bg-transparent text-center text-xs font-mono font-bold text-slate-200 focus:outline-none focus:bg-slate-900 focus:text-indigo-300 rounded";
-            qtyInput.onchange = (e) => {
-                let val = parseFloat(e.target.value);
-                if (isNaN(val) || val <= 0) val = 1;
-                updateItemQty(index, val);
-            };
-            qtyInput.onclick = (e) => e.stopPropagation();
-            
-            const plusBtn = document.createElement('button');
-            plusBtn.onclick = () => {
-                const currentQty = parseFloat(item.quantity) || 1;
-                const newQty = parseFloat((currentQty + step).toFixed(2));
-                updateItemQty(index, newQty);
-            };
-            plusBtn.className = "px-2 py-1 text-slate-400 hover:text-white font-bold text-xs cursor-pointer";
-            plusBtn.textContent = '+';
+            if (isKiloService) {
+                // Controller for Kilo Service:
+                // 1) Pieces counter (- / X pcs / +)
+                const piecesBox = document.createElement('div');
+                piecesBox.className = "flex items-center bg-slate-800 rounded-md border border-slate-700/50";
 
-            qtyCtrl.appendChild(minusBtn);
-            qtyCtrl.appendChild(qtyInput);
-            qtyCtrl.appendChild(plusBtn);
+                const minusBtn = document.createElement('button');
+                minusBtn.className = "px-2 py-1 text-slate-400 hover:text-white font-bold text-xs cursor-pointer";
+                minusBtn.textContent = '-';
+                minusBtn.onclick = () => {
+                    const stdKg = (item.standard_weight ? parseFloat(item.standard_weight) : 1000) / 1000;
+                    const currentPieces = item.pieces || 1;
+                    if (currentPieces <= 1) {
+                        removeFromCart(index);
+                    } else {
+                        item.pieces = currentPieces - 1;
+                        item.weight = parseFloat(Math.max(0.01, ((item.weight || item.quantity) - stdKg)).toFixed(3));
+                        item.quantity = item.weight;
+                        renderCart();
+                        updateCartCalculations();
+                    }
+                };
+
+                const piecesText = document.createElement('span');
+                piecesText.className = "px-1.5 text-[11px] font-bold text-slate-200 select-none whitespace-nowrap";
+                piecesText.textContent = `${item.pieces || 1} pcs`;
+
+                const plusBtn = document.createElement('button');
+                plusBtn.className = "px-2 py-1 text-slate-400 hover:text-white font-bold text-xs cursor-pointer";
+                plusBtn.textContent = '+';
+                plusBtn.onclick = () => {
+                    const stdKg = (item.standard_weight ? parseFloat(item.standard_weight) : 1000) / 1000;
+                    item.pieces = (item.pieces || 1) + 1;
+                    item.weight = parseFloat(((item.weight || item.quantity) + stdKg).toFixed(3));
+                    item.quantity = item.weight;
+                    renderCart();
+                    updateCartCalculations();
+                };
+
+                piecesBox.appendChild(minusBtn);
+                piecesBox.appendChild(piecesText);
+                piecesBox.appendChild(plusBtn);
+
+                // 2) Direct Weight Input (kg)
+                const weightBox = document.createElement('div');
+                weightBox.className = "flex items-center bg-slate-800 rounded-md border border-slate-700/50 px-1.5 py-0.5";
+
+                const weightInput = document.createElement('input');
+                weightInput.type = "number";
+                weightInput.min = "0.01";
+                weightInput.step = "0.05";
+                weightInput.value = (item.weight !== undefined && item.weight !== null ? parseFloat(item.weight) : parseFloat(item.quantity)).toFixed(2);
+                weightInput.className = "w-12 bg-transparent text-center text-xs font-mono font-bold text-amber-400 focus:outline-none focus:bg-slate-900 rounded";
+                weightInput.title = "Poids en kg (modifiable)";
+                weightInput.onchange = (e) => {
+                    let val = parseFloat(e.target.value);
+                    if (isNaN(val) || val <= 0) val = 0.1;
+                    item.weight = val;
+                    item.quantity = val;
+                    renderCart();
+                    updateCartCalculations();
+                };
+                weightInput.onclick = (e) => e.stopPropagation();
+
+                const kgLabel = document.createElement('span');
+                kgLabel.className = "text-[10px] text-slate-400 font-bold pr-0.5 select-none";
+                kgLabel.textContent = "kg";
+
+                weightBox.appendChild(weightInput);
+                weightBox.appendChild(kgLabel);
+
+                qtyCtrl.appendChild(piecesBox);
+                qtyCtrl.appendChild(weightBox);
+            } else if (item.is_carpet) {
+                // Pieces counter for carpet (- / 1 pc / +)
+                const piecesBox = document.createElement('div');
+                piecesBox.className = "flex items-center bg-slate-800 rounded-md border border-slate-700/50";
+
+                const minusBtn = document.createElement('button');
+                minusBtn.onclick = () => {
+                    removeFromCart(index);
+                };
+                minusBtn.className = "px-2 py-1 text-slate-400 hover:text-white font-bold text-xs cursor-pointer";
+                minusBtn.textContent = '-';
+                minusBtn.title = "Supprimer cet article";
+
+                const piecesText = document.createElement('span');
+                piecesText.className = "px-1.5 text-xs font-mono font-bold text-slate-200";
+                piecesText.textContent = `1 pc`;
+
+                const plusBtn = document.createElement('button');
+                plusBtn.onclick = () => {
+                    const itemObj = allItems.find(i => i.id === item.id) || { id: item.id, name: item.name, unit_type: 'm2' };
+                    openOptionsModal(itemObj, item.unit_price);
+                };
+                plusBtn.className = "px-2 py-1 text-slate-400 hover:text-white font-bold text-xs cursor-pointer";
+                plusBtn.textContent = '+';
+                plusBtn.title = "Ajouter un autre tapis (avec ses options)";
+
+                piecesBox.appendChild(minusBtn);
+                piecesBox.appendChild(piecesText);
+                piecesBox.appendChild(plusBtn);
+
+                qtyCtrl.appendChild(piecesBox);
+            } else {
+                // Non-kilo standard piece counter
+                const countBox = document.createElement('div');
+                countBox.className = "flex items-center bg-slate-800 rounded-md border border-slate-700/50";
+
+                const minusBtn = document.createElement('button');
+                minusBtn.onclick = () => {
+                    const currentQty = parseFloat(item.quantity) || 1;
+                    const newQty = Math.max(0, currentQty - 1);
+                    updateItemQty(index, newQty);
+                };
+                minusBtn.className = "px-2 py-1 text-slate-400 hover:text-white font-bold text-xs cursor-pointer";
+                minusBtn.textContent = '-';
+                
+                const qtyInput = document.createElement('input');
+                qtyInput.type = "number";
+                qtyInput.min = "1";
+                qtyInput.step = "1";
+                qtyInput.value = item.quantity;
+                qtyInput.className = "w-10 bg-transparent text-center text-xs font-mono font-bold text-slate-200 focus:outline-none focus:bg-slate-900 focus:text-indigo-300 rounded";
+                qtyInput.onchange = (e) => {
+                    let val = parseFloat(e.target.value);
+                    if (isNaN(val) || val <= 0) val = 1;
+                    updateItemQty(index, val);
+                };
+                qtyInput.onclick = (e) => e.stopPropagation();
+                
+                const plusBtn = document.createElement('button');
+                plusBtn.onclick = () => {
+                    const currentQty = parseFloat(item.quantity) || 1;
+                    updateItemQty(index, currentQty + 1);
+                };
+                plusBtn.className = "px-2 py-1 text-slate-400 hover:text-white font-bold text-xs cursor-pointer";
+                plusBtn.textContent = '+';
+
+                countBox.appendChild(minusBtn);
+                countBox.appendChild(qtyInput);
+                countBox.appendChild(plusBtn);
+
+                qtyCtrl.appendChild(countBox);
+            }
 
             // Options triggers
             const actionContainer = document.createElement('div');
-            actionContainer.className = "flex items-center space-x-3";
+            actionContainer.className = "flex items-center space-x-2.5";
 
             // Option details tags indicator (if any color/defect is chosen)
-            const badgesCount = item.colors.length + item.defects.length + item.stains.length;
+            const badgesCount = (item.colors ? item.colors.length : 0) + (item.defects ? item.defects.length : 0) + (item.stains ? item.stains.length : 0);
             if (badgesCount > 0) {
                 const badge = document.createElement('span');
                 badge.className = "text-[9px] bg-amber-500/20 text-amber-500 font-bold px-1.5 py-0.5 rounded-full";
@@ -876,6 +1167,7 @@
             const optionsBtn = document.createElement('button');
             optionsBtn.onclick = () => openOptionsModal(index);
             optionsBtn.className = "text-slate-400 hover:text-indigo-400 transition-colors p-1 bg-slate-800/80 hover:bg-slate-800 rounded-md border border-slate-700/50";
+            optionsBtn.title = "Options (couleurs, défauts, taches, notes)";
             optionsBtn.innerHTML = `
                 <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
@@ -887,11 +1179,36 @@
             const isExpress = document.getElementById('express-toggle-input')?.checked || false;
             const displayUnitPrice = isExpress ? (item.unit_price * 2) : item.unit_price;
 
-            const priceText = document.createElement('span');
-            priceText.className = "text-xs font-bold text-slate-300 font-mono";
-            priceText.textContent = `${(displayUnitPrice * item.quantity).toFixed(0)} DA`;
+            const pricingWrap = document.createElement('div');
+            pricingWrap.className = "flex flex-col items-end";
 
-            actionContainer.appendChild(priceText);
+            if (isKiloService) {
+                const uPriceText = document.createElement('span');
+                uPriceText.className = "text-[9px] text-slate-500 font-mono";
+                uPriceText.textContent = `${displayUnitPrice.toFixed(0)} DA/kg`;
+                pricingWrap.appendChild(uPriceText);
+            } else if (item.is_carpet) {
+                const uPriceText = document.createElement('span');
+                uPriceText.className = "text-[9px] text-amber-400 font-mono";
+                uPriceText.textContent = `${displayUnitPrice.toFixed(0)} DA/m²`;
+                pricingWrap.appendChild(uPriceText);
+            }
+
+            const priceText = document.createElement('span');
+            priceText.className = "text-xs font-bold font-mono";
+            if (item.is_carpet && !item.is_measured) {
+                priceText.className += " text-amber-400";
+                priceText.textContent = "À mesurer";
+            } else if (item.is_carpet && item.is_measured) {
+                priceText.className += " text-emerald-400";
+                priceText.textContent = `${(displayUnitPrice * item.area).toFixed(0)} DA`;
+            } else {
+                priceText.className += " text-slate-200";
+                priceText.textContent = `${(displayUnitPrice * item.quantity).toFixed(0)} DA`;
+            }
+            pricingWrap.appendChild(priceText);
+
+            actionContainer.appendChild(pricingWrap);
 
             bottomLine.appendChild(qtyCtrl);
             bottomLine.appendChild(actionContainer);
@@ -925,9 +1242,63 @@
 
     function updateCartCalculations() {
         let totalBrut = 0;
+        let totalKiloWeight = 0;
+        let kiloPiecesCount = 0;
+        let totalArticlesCount = 0;
+
         cart.forEach(item => {
-            totalBrut += item.unit_price * item.quantity;
+            if (item.is_carpet && !item.is_measured) {
+                // Not measured yet: doesn't add to subtotal
+            } else if (item.is_carpet && item.is_measured) {
+                totalBrut += item.unit_price * item.area;
+            } else {
+                totalBrut += item.unit_price * item.quantity;
+            }
+            const isKilo = item.service_id === 4 || (item.service_name && item.service_name.toLowerCase().includes('kilo'));
+            if (isKilo) {
+                totalKiloWeight += (item.weight !== undefined && item.weight !== null ? parseFloat(item.weight) : parseFloat(item.quantity));
+                kiloPiecesCount += (item.pieces || 1);
+                totalArticlesCount += (item.pieces || 1);
+            } else if (item.is_carpet) {
+                totalArticlesCount += (item.pieces || 1);
+            } else {
+                totalArticlesCount += (parseFloat(item.quantity) || 1);
+            }
         });
+
+        // Update Total Articles Count Badge
+        const totalArticlesBadge = document.getElementById('cart-total-articles-count');
+        if (totalArticlesBadge) {
+            totalArticlesBadge.textContent = `${totalArticlesCount} ${totalArticlesCount > 1 ? 'articles' : 'article'}`;
+        }
+
+        // Update Kilo Weight Badges
+        const kiloSummaryBar = document.getElementById('cart-kilo-summary-bar');
+        const kiloBadgeCollapsed = document.getElementById('cart-kilo-weight-badge-collapsed');
+        const kiloBadgeExpanded = document.getElementById('cart-kilo-weight-badge-expanded');
+
+        if (totalKiloWeight > 0) {
+            const grams = Math.round(totalKiloWeight * 1000);
+            const weightFormatted = `${totalKiloWeight.toFixed(2)} kg (${grams} g)`;
+
+            if (kiloSummaryBar) {
+                kiloSummaryBar.classList.remove('hidden');
+                document.getElementById('cart-kilo-total-weight-text').textContent = weightFormatted;
+                document.getElementById('cart-kilo-items-count').textContent = `${kiloPiecesCount} pcs`;
+            }
+            if (kiloBadgeCollapsed) {
+                kiloBadgeCollapsed.classList.remove('hidden');
+                document.getElementById('total-weight-collapsed').textContent = `${totalKiloWeight.toFixed(2)} kg`;
+            }
+            if (kiloBadgeExpanded) {
+                kiloBadgeExpanded.classList.remove('hidden');
+                document.getElementById('total-weight-expanded').textContent = weightFormatted;
+            }
+        } else {
+            if (kiloSummaryBar) kiloSummaryBar.classList.add('hidden');
+            if (kiloBadgeCollapsed) kiloBadgeCollapsed.classList.add('hidden');
+            if (kiloBadgeExpanded) kiloBadgeExpanded.classList.add('hidden');
+        }
 
         const isExpress = document.getElementById('express-toggle-input')?.checked || false;
         if (isExpress) {
@@ -1143,19 +1514,24 @@
     // ================= CUSTOM OPTIONS MODAL =================
 
     function updateOptionBadgeState(btn, isActive) {
-        const img = btn.querySelector('img');
-        const overlay = btn.querySelector('.badge-overlay');
+        const isColor = btn.getAttribute('data-color-btn') === 'true';
         
-        if (isActive) {
-            btn.classList.add('border-indigo-500', 'scale-105', 'ring-2', 'ring-indigo-500/30', 'shadow-lg');
-            btn.classList.remove('border-slate-700');
-            if (img) img.classList.replace('opacity-60', 'opacity-85');
-            if (overlay) overlay.classList.replace('bg-slate-950/45', 'bg-slate-950/10');
+        if (isColor) {
+            if (isActive) {
+                btn.classList.add('ring-4', 'ring-white', 'scale-105', 'shadow-lg', 'shadow-black/60');
+                btn.style.borderColor = '#ffffff';
+            } else {
+                btn.classList.remove('ring-4', 'ring-white', 'scale-105', 'shadow-lg', 'shadow-black/60');
+                btn.style.borderColor = btn.getAttribute('data-border') || '#334155';
+            }
         } else {
-            btn.classList.remove('border-indigo-500', 'scale-105', 'ring-2', 'ring-indigo-500/30', 'shadow-lg');
-            btn.classList.add('border-slate-700');
-            if (img) img.classList.replace('opacity-85', 'opacity-60');
-            if (overlay) overlay.classList.replace('bg-slate-950/10', 'bg-slate-950/45');
+            if (isActive) {
+                btn.classList.remove('bg-slate-900', 'text-slate-300', 'border-slate-700');
+                btn.classList.add('bg-indigo-600', 'text-white', 'border-indigo-500');
+            } else {
+                btn.classList.remove('bg-indigo-600', 'text-white', 'border-indigo-500');
+                btn.classList.add('bg-slate-900', 'text-slate-300', 'border-slate-700');
+            }
         }
     }
 
@@ -1211,7 +1587,7 @@
 
         // Reset badge active classes
         document.querySelectorAll('#options-modal .option-badge').forEach(badge => {
-            const badgeText = badge.querySelector('span').textContent.trim();
+            const badgeText = badge.textContent.trim();
             const isActive = currentOptions.colors.includes(badgeText) || 
                              currentOptions.patterns.includes(badgeText) || 
                              currentOptions.defects.includes(badgeText) || 
@@ -1254,18 +1630,63 @@
             const currentService = allServices.find(s => s.id === selectedServiceId);
             const sName = currentService ? currentService.name : 'Service';
 
-            cart.push({
-                id: pendingItem.id,
-                name: pendingItem.name,
-                service_id: selectedServiceId,
-                service_name: sName,
-                quantity: 1,
-                unit_price: pendingPrice,
-                colors: colorsArray,
-                defects: defectsArray,
-                stains: stainsArray,
-                notes: notesText
-            });
+            const isCarpet = (pendingItem.unit_type === 'm2') || 
+                             (pendingItem.name && (pendingItem.name.toLowerCase().includes('tapis') || pendingItem.name.toLowerCase().includes('m²')));
+            const isKiloService = currentService && (currentService.code === 'au_kilo' || currentService.name.toLowerCase().includes('kilo') || selectedServiceId === 4);
+            const stdWeightG = pendingItem.standard_weight ? parseFloat(pendingItem.standard_weight) : 1000;
+            const stdWeightKg = stdWeightG / 1000;
+
+            if (isCarpet) {
+                cart.push({
+                    id: pendingItem.id,
+                    name: pendingItem.name,
+                    service_id: selectedServiceId,
+                    service_name: sName,
+                    is_carpet: true,
+                    is_measured: false,
+                    pieces: 1,
+                    length: null,
+                    width: null,
+                    area: null,
+                    quantity: 1,
+                    unit_price: pendingPrice,
+                    total_price: 0,
+                    colors: colorsArray,
+                    defects: defectsArray,
+                    stains: stainsArray,
+                    notes: notesText
+                });
+            } else if (isKiloService) {
+                cart.push({
+                    id: pendingItem.id,
+                    name: pendingItem.name,
+                    service_id: selectedServiceId,
+                    service_name: sName,
+                    standard_weight: stdWeightG,
+                    pieces: 1,
+                    weight: stdWeightKg,
+                    quantity: stdWeightKg,
+                    unit_price: pendingPrice,
+                    colors: colorsArray,
+                    defects: defectsArray,
+                    stains: stainsArray,
+                    notes: notesText
+                });
+            } else {
+                cart.push({
+                    id: pendingItem.id,
+                    name: pendingItem.name,
+                    service_id: selectedServiceId,
+                    service_name: sName,
+                    quantity: 1,
+                    pieces: 1,
+                    unit_price: pendingPrice,
+                    colors: colorsArray,
+                    defects: defectsArray,
+                    stains: stainsArray,
+                    notes: notesText
+                });
+            }
 
             renderCart();
             updateCartCalculations();
@@ -1357,16 +1778,52 @@
         const remarks = document.getElementById('remarks-input').value.trim();
 
         // Build items payload
-        const payloadItems = cart.map(item => ({
-            service_id: item.service_id,
-            garment_item_id: item.id,
-            quantity: item.quantity,
-            unit_price: item.unit_price,
-            colors: item.colors,
-            defects: item.defects,
-            stains: item.stains,
-            notes: item.notes
-        }));
+        let orderTotalWeight = 0;
+        const payloadItems = [];
+        cart.forEach(item => {
+            const isKilo = item.service_id === 4 || (item.service_name && item.service_name.toLowerCase().includes('kilo'));
+            if (isKilo) {
+                orderTotalWeight += (item.weight !== undefined && item.weight !== null ? parseFloat(item.weight) : parseFloat(item.quantity));
+            }
+            if (item.is_carpet) {
+                const carpetPieces = parseInt(item.pieces) || 1;
+                for (let p = 0; p < carpetPieces; p++) {
+                    payloadItems.push({
+                        service_id: item.service_id,
+                        garment_item_id: item.id,
+                        pieces: 1,
+                        weight: null,
+                        length: p === 0 ? item.length : null,
+                        width: p === 0 ? item.width : null,
+                        area: p === 0 ? item.area : null,
+                        is_measured: p === 0 ? !!item.is_measured : false,
+                        quantity: 1,
+                        unit_price: item.unit_price,
+                        colors: item.colors || [],
+                        defects: item.defects || [],
+                        stains: item.stains || [],
+                        notes: item.notes || null
+                    });
+                }
+            } else {
+                payloadItems.push({
+                    service_id: item.service_id,
+                    garment_item_id: item.id,
+                    pieces: item.pieces || 1,
+                    weight: item.weight !== undefined && item.weight !== null ? parseFloat(item.weight) : null,
+                    length: null,
+                    width: null,
+                    area: null,
+                    is_measured: false,
+                    quantity: item.quantity,
+                    unit_price: item.unit_price,
+                    colors: item.colors || [],
+                    defects: item.defects || [],
+                    stains: item.stains || [],
+                    notes: item.notes || null
+                });
+            }
+        });
 
         const discountType = document.getElementById('discount-type-select').value;
         const discountValue = parseFloat(document.getElementById('discount-percent-input').value) || 0;
@@ -1384,6 +1841,7 @@
             target_delivery_date: targetDeliveryDate,
             remarks: remarks,
             is_express: isExpress,
+            total_weight: orderTotalWeight > 0 ? parseFloat(orderTotalWeight.toFixed(3)) : null,
             items: payloadItems
         };
 
