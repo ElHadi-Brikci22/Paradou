@@ -645,7 +645,7 @@
             cart = editingOrder.order_items.map(item => {
                 const stdW = item.garment_item && item.garment_item.standard_weight ? parseFloat(item.garment_item.standard_weight) : 1000;
                 const itmWeight = item.weight !== null && item.weight !== undefined ? parseFloat(item.weight) : parseFloat(item.quantity);
-                const isCarpet = (item.garment_item && item.garment_item.unit_type === 'm2') || 
+                const isCarpet = (item.garment_item && (item.garment_item.is_carpet || item.garment_item.unit_type === 'm2')) || 
                                  (item.garment_item && item.garment_item.name && item.garment_item.name.toLowerCase().includes('tapis')) ||
                                  item.area !== null;
                 return {
@@ -779,7 +779,7 @@
                 }
             }
 
-            const isCarpet = (item.unit_type === 'm2') || 
+            const isCarpet = (item.is_carpet) || (item.unit_type === 'm2') || 
                              (item.name && (item.name.toLowerCase().includes('tapis') || item.name.toLowerCase().includes('m²')));
 
             const card = document.createElement('button');
@@ -1630,7 +1630,7 @@
             const currentService = allServices.find(s => s.id === selectedServiceId);
             const sName = currentService ? currentService.name : 'Service';
 
-            const isCarpet = (pendingItem.unit_type === 'm2') || 
+            const isCarpet = (pendingItem.is_carpet) || (pendingItem.unit_type === 'm2') || 
                              (pendingItem.name && (pendingItem.name.toLowerCase().includes('tapis') || pendingItem.name.toLowerCase().includes('m²')));
             const isKiloService = currentService && (currentService.code === 'au_kilo' || currentService.name.toLowerCase().includes('kilo') || selectedServiceId === 4);
             const stdWeightG = pendingItem.standard_weight ? parseFloat(pendingItem.standard_weight) : 1000;

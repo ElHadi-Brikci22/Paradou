@@ -808,8 +808,10 @@
             const garment = item.garment_item || item.garmentItem || {};
             const srv = item.service || {};
 
-            const isCarpet = (garment.unit_type === 'm2') || 
+            const isCarpet = (garment.is_carpet) || 
+                             (garment.unit_type === 'm2') || 
                              (garment.name && garment.name.toLowerCase().includes('tapis')) ||
+                             (garment.name && garment.name.toLowerCase().includes('m²')) ||
                              (item.area !== null && item.area !== undefined && item.area !== '');
 
             const isKiloItem = item.service_id === 4 || (srv.name && srv.name.toLowerCase().includes('kilo'));

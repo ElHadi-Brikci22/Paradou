@@ -34,6 +34,7 @@ class CatalogController extends Controller
             'name' => 'required|string|max:255',
             'garment_target_id' => 'required|exists:garment_targets,id',
             'standard_weight' => 'nullable|numeric|min:0',
+            'is_carpet' => 'nullable|boolean',
             'prices' => 'nullable|array',
             'prices.*' => 'nullable|numeric|min:0',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg,webp|max:2048'
@@ -48,11 +49,15 @@ class CatalogController extends Controller
                 $imagePath = 'images/catalog/' . $filename;
             }
 
+            $isCarpet = $request->boolean('is_carpet');
+
             $item = GarmentItem::create([
                 'name' => $validated['name'],
                 'garment_target_id' => $validated['garment_target_id'],
                 'image_path' => $imagePath,
                 'standard_weight' => isset($validated['standard_weight']) && $validated['standard_weight'] !== '' ? floatval($validated['standard_weight']) : null,
+                'is_carpet' => $isCarpet,
+                'unit_type' => $isCarpet ? 'm2' : 'piece',
             ]);
 
             if (!empty($validated['prices'])) {
@@ -82,16 +87,21 @@ class CatalogController extends Controller
             'name' => 'required|string|max:255',
             'garment_target_id' => 'required|exists:garment_targets,id',
             'standard_weight' => 'nullable|numeric|min:0',
+            'is_carpet' => 'nullable|boolean',
             'prices' => 'nullable|array',
             'prices.*' => 'nullable|numeric|min:0',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg,webp|max:2048'
         ]);
 
         DB::transaction(function () use ($item, $validated, $request) {
+            $isCarpet = $request->boolean('is_carpet');
+
             $item->update([
                 'name' => $validated['name'],
                 'garment_target_id' => $validated['garment_target_id'],
                 'standard_weight' => isset($validated['standard_weight']) && $validated['standard_weight'] !== '' ? floatval($validated['standard_weight']) : null,
+                'is_carpet' => $isCarpet,
+                'unit_type' => $isCarpet ? 'm2' : 'piece',
             ]);
 
             if ($request->hasFile('image')) {

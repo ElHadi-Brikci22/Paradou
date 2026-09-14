@@ -136,7 +136,14 @@
                                                      N/A
                                                  </div>
                                              @endif
-                                             <span>{{ $item->name }}</span>
+                                             <div class="flex items-center space-x-2">
+                                                 <span>{{ $item->name }}</span>
+                                                 @if($item->isCarpet())
+                                                     <span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-amber-500/15 text-amber-300 border border-amber-500/30 uppercase tracking-wide">
+                                                         📐 Tapis (m²)
+                                                     </span>
+                                                 @endif
+                                             </div>
                                          </div>
                                      </td>
                                     <td class="py-3 px-4">
@@ -335,6 +342,22 @@
                 <p class="text-[10px] text-slate-500 mt-1">Poids moyen utilisé pour le calcul automatique du service Au Kilo (Optionnel).</p>
             </div>
 
+            <!-- Type Tapis / Métrage Checkbox -->
+            <div class="p-3.5 bg-slate-900/80 rounded-xl border border-slate-700/80 hover:border-indigo-500/50 transition-colors">
+                <label class="flex items-start space-x-3 cursor-pointer select-none">
+                    <input type="checkbox" id="catalog-item-is-carpet" name="is_carpet" value="1"
+                           class="mt-0.5 w-4 h-4 text-indigo-600 bg-slate-800 border-slate-600 rounded focus:ring-indigo-500 focus:ring-offset-slate-900 cursor-pointer">
+                    <div class="flex-1">
+                        <span class="text-xs font-bold text-slate-200 uppercase tracking-wide flex items-center space-x-1.5">
+                            <span>📐 Article de type Tapis (Facturation au m²)</span>
+                        </span>
+                        <p class="text-[11px] text-slate-400 mt-1 leading-relaxed">
+                            Cochez cette case pour traiter cet article comme un tapis : saisie des dimensions (Longueur × Largeur) et calcul du montant au m² à la caisse et à la livraison.
+                        </p>
+                    </div>
+                </label>
+            </div>
+
             <div class="pt-2">
                 <h4 class="text-xs font-bold text-slate-300 uppercase tracking-wider border-b border-slate-700/60 pb-1.5 mb-3">Grille Tarifaire (DA)</h4>
                 <div class="grid grid-cols-2 gap-4">
@@ -488,6 +511,7 @@
         document.getElementById('catalog-item-target').value = "";
         document.getElementById('catalog-item-weight').value = "";
         document.getElementById('catalog-item-image').value = "";
+        document.getElementById('catalog-item-is-carpet').checked = false;
         
         @foreach($services as $service)
             document.getElementById('catalog-price-{{ $service->id }}').value = "";
@@ -505,6 +529,9 @@
         document.getElementById('catalog-item-target').value = item.garment_target_id || "";
         document.getElementById('catalog-item-weight').value = item.standard_weight ? parseFloat(item.standard_weight) : "";
         document.getElementById('catalog-item-image').value = "";
+
+        const isCarpet = Boolean(item.is_carpet || item.unit_type === 'm2' || (item.name && (item.name.toLowerCase().includes('tapis') || item.name.toLowerCase().includes('m²'))));
+        document.getElementById('catalog-item-is-carpet').checked = isCarpet;
 
         @foreach($services as $service)
             document.getElementById('catalog-price-{{ $service->id }}').value = prices['{{ $service->id }}'] || "";

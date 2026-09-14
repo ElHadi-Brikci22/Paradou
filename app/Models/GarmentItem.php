@@ -14,15 +14,21 @@ class GarmentItem extends Model
         'name',
         'image_path',
         'standard_weight',
-        'unit_type'
+        'unit_type',
+        'is_carpet'
+    ];
+
+    protected $casts = [
+        'is_carpet' => 'boolean',
     ];
 
     public function isCarpet(): bool
     {
-        return $this->unit_type === 'm2' 
+        return (bool) ($this->is_carpet 
+            || $this->unit_type === 'm2' 
             || stripos($this->name, 'tapis') !== false 
             || stripos($this->name, 'm²') !== false 
-            || stripos($this->name, 'm2') !== false;
+            || stripos($this->name, 'm2') !== false);
     }
 
     public function getStandardWeightKgAttribute()
