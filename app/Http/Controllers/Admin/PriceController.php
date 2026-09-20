@@ -16,8 +16,8 @@ class PriceController extends Controller
      */
     public function index()
     {
-        $targets = GarmentTarget::all();
-        $services = Service::all();
+        $targets = GarmentTarget::orderBy('sort_order', 'asc')->orderBy('id', 'asc')->get();
+        $services = Service::orderBy('sort_order', 'asc')->orderBy('id', 'asc')->get();
         
         // Load items with target and servicePrices
         $items = GarmentItem::with(['garmentTarget', 'servicePrices'])->get();

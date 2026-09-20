@@ -15,9 +15,50 @@
         color: white;
         border-color: rgb(99, 102, 241); /* Indigo 500 */
     }
+    .subcat-pill-active {
+        background-color: rgb(79, 70, 229) !important; /* Indigo 600 */
+        color: white !important;
+        border-color: rgb(99, 102, 241) !important; /* Indigo 500 */
+        box-shadow: 0 4px 6px -1px rgba(99, 102, 241, 0.25) !important;
+    }
     /* Grid adjustments for catalog */
     .catalog-grid {
         grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+    }
+
+    /* Collapsed Cart Rail animations and theme styles */
+    #checkout-cart-panel {
+        will-change: width;
+    }
+    #cart-collapsed-rail {
+        user-select: none;
+    }
+    .theme-light #checkout-cart-panel {
+        background-color: #ffffff !important;
+        border-color: #e2e8f0 !important;
+    }
+    .theme-light #cart-collapsed-rail {
+        background-color: #f8fafc !important;
+        border-color: #e2e8f0 !important;
+    }
+    .theme-light #cart-collapsed-rail:hover {
+        background-color: #f1f5f9 !important;
+    }
+    .theme-light #cart-collapsed-rail .bg-slate-900\/90 {
+        background-color: #ffffff !important;
+        border-color: #cbd5e1 !important;
+    }
+    .theme-light #cart-collapsed-rail span.text-slate-400 {
+        color: #64748b !important;
+    }
+
+    @keyframes cartBadgePulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.4); filter: drop-shadow(0 0 10px rgba(99, 102, 241, 0.9)); }
+        100% { transform: scale(1); }
+    }
+    .cart-badge-pulse {
+        animation: cartBadgePulse 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     }
 </style>
 @endsection
@@ -47,6 +88,11 @@
         @endforeach
     </div>
 
+    <!-- Subcategory Pills (Tertiary sub-bar, dynamically populated & ordered by sort_order) -->
+    <div id="subcategories-bar" class="hidden bg-slate-950/40 px-6 py-2 border-b border-slate-800/80 shrink-0 flex items-center gap-1.5 overflow-x-auto transition-all">
+        <!-- Rendered dynamically by renderSubcategoryPills() -->
+    </div>
+
     <!-- Client & Pricing Context Bar -->
     <div class="bg-slate-800/25 px-6 py-2.5 border-b border-slate-700/30 shrink-0 flex items-center justify-between gap-4">
         <!-- Client Selector Button -->
@@ -67,19 +113,34 @@
             </button>
         </div>
 
-        <!-- Pricing Mode Switcher -->
-        <div class="flex items-center space-x-2">
-            <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Type de Tarif :</span>
-            <div class="flex bg-slate-900/85 p-0.5 rounded-lg border border-slate-700/50">
-                <button onclick="setPricingMode('detail')" id="pricing-mode-detail" 
-                        class="px-3 py-1 rounded-md text-[10px] font-black uppercase transition-all cursor-pointer bg-indigo-600 text-white shadow shadow-indigo-600/10">
-                    Détail
-                </button>
-                <button onclick="setPricingMode('wholesale')" id="pricing-mode-wholesale" 
-                        class="px-3 py-1 rounded-md text-[10px] font-black uppercase text-slate-400 hover:text-white transition-all cursor-pointer">
-                    Gros
-                </button>
+        <!-- Pricing Mode Switcher & Cart Toggle -->
+        <div class="flex items-center space-x-3">
+            <!-- Pricing Mode Switcher -->
+            <div class="flex items-center space-x-2">
+                <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Type de Tarif :</span>
+                <div class="flex bg-slate-900/85 p-0.5 rounded-lg border border-slate-700/50">
+                    <button onclick="setPricingMode('detail')" id="pricing-mode-detail" 
+                            class="px-3 py-1 rounded-md text-[10px] font-black uppercase transition-all cursor-pointer bg-indigo-600 text-white shadow shadow-indigo-600/10">
+                        Détail
+                    </button>
+                    <button onclick="setPricingMode('wholesale')" id="pricing-mode-wholesale" 
+                            class="px-3 py-1 rounded-md text-[10px] font-black uppercase text-slate-400 hover:text-white transition-all cursor-pointer">
+                        Gros
+                    </button>
+                </div>
             </div>
+
+            <div class="h-5 w-px bg-slate-700/50"></div>
+
+            <!-- Cart Toggle Button in Context Bar -->
+            <button onclick="toggleCartPanel()" id="cart-toggle-header-btn" 
+                    class="bg-slate-800 hover:bg-slate-700 border border-slate-700 hover:border-slate-600 px-3 py-1.5 rounded-xl text-xs font-bold text-slate-200 flex items-center space-x-2 cursor-pointer transition-all shadow-sm active:scale-95" 
+                    title="Afficher / Réduire le panier (F4)">
+                <span class="text-sm">🛒</span>
+                <span id="cart-toggle-header-label">Panier</span>
+                <span id="cart-toggle-header-badge" class="text-[10px] bg-indigo-500/20 text-indigo-300 font-bold px-1.5 py-0.5 rounded-full font-mono">0</span>
+                <span id="cart-toggle-header-arrow" class="text-slate-400 text-xs">▶</span>
+            </button>
         </div>
     </div>
 
@@ -98,26 +159,78 @@
     </div>
 </div>
 
-<!-- Right Panel: Checkout / Cart (1/3 width) -->
-<div class="w-96 shrink-0 bg-slate-800/40 backdrop-blur-md flex flex-col overflow-hidden">
+<!-- Right Panel: Checkout / Cart (Dynamic: Expanded w-96 or Collapsed w-14) -->
+<div id="checkout-cart-panel" class="w-96 shrink-0 bg-slate-800/40 backdrop-blur-md flex flex-col overflow-hidden border-l border-slate-700/50 transition-all duration-300 ease-in-out relative">
 
-    <!-- Sticky Kilo Weight Banner (Visible when kilo items are in cart) -->
-    <div id="cart-kilo-summary-bar" class="hidden shrink-0 bg-slate-800/90 border-b border-amber-500/20 px-4 py-2.5 flex items-center justify-between shadow-sm">
-        <div class="flex items-center space-x-2">
-            <span class="text-base">⚖️</span>
-            <div>
-                <span class="text-[9px] uppercase font-black text-amber-400 tracking-wider block">Poids Total Commande</span>
-                <span id="cart-kilo-total-weight-text" class="text-xs font-mono font-bold text-white">0.00 kg (0 g)</span>
+    <!-- 1. Collapsed Side Rail (Visible when cart is reduced on the side) -->
+    <div id="cart-collapsed-rail" class="hidden flex-col items-center justify-between h-full py-4 px-1.5 select-none hover:bg-slate-800/60 transition-colors cursor-pointer w-full group" onclick="toggleCartPanel(event)" title="Cliquer pour afficher le panier (F4)">
+        <!-- Rail Top: Expand button -->
+        <div class="flex flex-col items-center space-y-1.5 w-full">
+            <button type="button" onclick="toggleCartPanel(event)" 
+                    class="w-10 h-10 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white flex items-center justify-center shadow-lg shadow-indigo-600/30 transition-all group-hover:scale-105 active:scale-95 cursor-pointer"
+                    title="Agrandir le panier">
+                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7" />
+                </svg>
+            </button>
+            <span class="text-[9px] font-bold text-slate-400 group-hover:text-indigo-400 transition-colors uppercase tracking-wider">Ouvrir</span>
+        </div>
+
+        <!-- Rail Center: Icon & Badge -->
+        <div class="flex flex-col items-center justify-center relative py-4">
+            <div class="relative p-2 rounded-2xl bg-slate-800/80 border border-slate-700/60 group-hover:border-indigo-500/50 group-hover:bg-slate-800 transition-all shadow-md">
+                <span class="text-2xl filter drop-shadow">🛒</span>
+                <span id="cart-rail-badge" class="absolute -top-1.5 -right-1.5 bg-indigo-500 text-white text-[10px] font-black font-mono px-1.5 py-0.2 rounded-full shadow-md min-w-[18px] text-center border border-slate-900">
+                    0
+                </span>
             </div>
         </div>
-        <span id="cart-kilo-items-count" class="text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30 px-2 py-0.5 rounded-full">0 pcs</span>
+
+        <!-- Rail Bottom: Net Total Badge & Direct Pay Button -->
+        <div class="flex flex-col items-center space-y-2 w-full">
+            <div class="bg-slate-900/90 border border-slate-700/80 group-hover:border-indigo-500/40 rounded-xl py-1.5 px-1 w-full text-center shadow-inner transition-colors">
+                <span class="text-[8px] font-bold text-slate-400 block uppercase leading-none mb-0.5">Total</span>
+                <span id="cart-rail-net-total" class="text-[10px] font-mono font-black text-indigo-400 block leading-tight truncate">0 DA</span>
+            </div>
+            <button type="button" onclick="openPaymentFromRail(event)" 
+                    id="cart-rail-pay-btn"
+                    class="w-10 h-10 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white flex items-center justify-center shadow-md shadow-emerald-600/25 transition-all hover:scale-105 active:scale-95 cursor-pointer"
+                    title="Accéder directement au règlement">
+                <span class="text-xs font-bold font-mono">➜</span>
+            </button>
+        </div>
     </div>
 
-    <!-- Cart Header with Article Count -->
-    <div class="px-4 py-2.5 bg-slate-800/60 border-b border-slate-700/50 flex items-center justify-between shrink-0">
-        <span class="text-xs font-bold text-slate-300 uppercase tracking-wider font-display">Panier</span>
-        <span id="cart-total-articles-count" class="text-[11px] font-mono font-bold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 px-2 py-0.5 rounded-full">0 article</span>
-    </div>
+    <!-- 2. Expanded Cart Content (Normal Full Cart) -->
+    <div id="cart-expanded-content" class="flex flex-col h-full w-full overflow-hidden">
+
+        <!-- Sticky Kilo Weight Banner (Visible when kilo items are in cart) -->
+        <div id="cart-kilo-summary-bar" class="hidden shrink-0 bg-slate-800/90 border-b border-amber-500/20 px-4 py-2.5 flex items-center justify-between shadow-sm">
+            <div class="flex items-center space-x-2">
+                <span class="text-base">⚖️</span>
+                <div>
+                    <span class="text-[9px] uppercase font-black text-amber-400 tracking-wider block">Poids Total Commande</span>
+                    <span id="cart-kilo-total-weight-text" class="text-xs font-mono font-bold text-white">0.00 kg (0 g)</span>
+                </div>
+            </div>
+            <span id="cart-kilo-items-count" class="text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30 px-2 py-0.5 rounded-full">0 pcs</span>
+        </div>
+
+        <!-- Cart Header with Article Count & Reduce Button -->
+        <div class="px-4 py-2.5 bg-slate-800/60 border-b border-slate-700/50 flex items-center justify-between shrink-0">
+            <div class="flex items-center space-x-2">
+                <h3 id="cart-header-title" class="text-xs font-bold text-slate-300 uppercase tracking-wider font-display">Panier</h3>
+                <span id="cart-total-articles-count" class="text-[11px] font-mono font-bold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 px-2 py-0.5 rounded-full">0 article</span>
+            </div>
+            <button type="button" onclick="toggleCartPanel()" 
+                    class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white rounded-lg border border-slate-700 hover:border-slate-600 text-xs font-semibold flex items-center space-x-1.5 transition-colors cursor-pointer shadow-sm active:scale-95"
+                    title="Réduire le panier sur le côté (F4)">
+                <span class="text-[11px]">Réduire</span>
+                <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7" />
+                </svg>
+            </button>
+        </div>
 
     <!-- Cart items list (Scrollable) -->
     <div class="flex-1 overflow-y-auto p-4 space-y-3" id="cart-items-container">
@@ -273,6 +386,7 @@
                 </button>
             </div>
         </div>
+    </div>
     </div>
 </div>
 
@@ -519,6 +633,7 @@
     // Global catalog state injected from PHP
     const allItems = @json($items);
     const allServices = @json($services);
+    const allSubcategories = @json($subcategories);
     const editingOrder = @json($editingOrder ?? null);
     const IS_ADMIN = {{ auth()->user()->role === 'admin' ? 'true' : 'false' }};
     
@@ -534,6 +649,7 @@
     // App state
     let selectedServiceId = {{ $services->first() ? $services->first()->id : 1 }};
     let selectedTargetId = {{ $targets->first() ? $targets->first()->id : 1 }};
+    let selectedSubcategoryId = null;
     let selectedClient = { ...defaultClient };
     let cart = [];
     let pricingMode = 'detail';
@@ -679,6 +795,7 @@
         renderSelectedClient();
         renderCart();
         updateCartCalculations();
+        setCartCollapsedState(isCartCollapsed);
     });
 
     // ================= CATALOG MANAGEMENT =================
@@ -696,8 +813,10 @@
         // Services 'blanchisserie' & 'au_kilo' don't have targets sub-bar, hide it if active
         const currentService = allServices.find(s => s.id === id);
         const targetsBar = document.getElementById('targets-bar');
+        const subcategoriesBar = document.getElementById('subcategories-bar');
         if (currentService && (currentService.code === 'blanchisserie' || currentService.code === 'au_kilo' || id === 2 || id === 4)) {
             if(targetsBar) targetsBar.classList.add('hidden');
+            if(subcategoriesBar) subcategoriesBar.classList.add('hidden');
             selectedTargetId = 5; // Target Linge de maison by default
         } else {
             if(targetsBar) targetsBar.classList.remove('hidden');
@@ -709,13 +828,18 @@
         // Highlight target pills
         updateTargetPillsStyles();
 
+        // Render subcategory pills
+        renderSubcategoryPills();
+
         // Render catalog grid
         renderCatalog();
     };
 
     window.selectTarget = function(id) {
         selectedTargetId = id;
+        selectedSubcategoryId = null;
         updateTargetPillsStyles();
+        renderSubcategoryPills();
         renderCatalog();
     };
 
@@ -725,6 +849,57 @@
         });
         const activePill = document.getElementById(`target-pill-${selectedTargetId}`);
         if(activePill) activePill.classList.add('target-pill-active');
+    };
+
+    window.renderSubcategoryPills = function() {
+        const subBar = document.getElementById('subcategories-bar');
+        if (!subBar) return;
+
+        const targetsBar = document.getElementById('targets-bar');
+        if (targetsBar && targetsBar.classList.contains('hidden')) {
+            subBar.classList.add('hidden');
+            return;
+        }
+
+        // Filter subcategories for selectedTargetId and sort by sort_order ASC, then name
+        const targetSubs = allSubcategories
+            .filter(sub => sub.garment_target_id === selectedTargetId)
+            .sort((a, b) => (parseInt(a.sort_order || 0) - parseInt(b.sort_order || 0)) || a.name.localeCompare(b.name));
+
+        if (targetSubs.length === 0) {
+            subBar.classList.add('hidden');
+            subBar.innerHTML = '';
+            return;
+        }
+
+        subBar.classList.remove('hidden');
+        subBar.innerHTML = '';
+
+        // "Tous" pill
+        const isAllActive = selectedSubcategoryId === null;
+        const allBtn = document.createElement('button');
+        allBtn.type = 'button';
+        allBtn.className = `subcat-pill shrink-0 px-3.5 py-1 rounded-full text-xs font-semibold transition-all duration-150 cursor-pointer border ${isAllActive ? 'subcat-pill-active bg-indigo-600 text-white border-indigo-500 shadow-sm' : 'bg-slate-800/90 text-slate-400 border-slate-700/60 hover:text-white hover:bg-slate-700/80'}`;
+        allBtn.innerHTML = `<span>Tous</span>`;
+        allBtn.onclick = () => selectSubcategory(null);
+        subBar.appendChild(allBtn);
+
+        // Subcategory pills
+        targetSubs.forEach(sub => {
+            const isActive = selectedSubcategoryId === sub.id;
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = `subcat-pill shrink-0 px-3.5 py-1 rounded-full text-xs font-semibold transition-all duration-150 cursor-pointer border ${isActive ? 'subcat-pill-active bg-indigo-600 text-white border-indigo-500 shadow-sm' : 'bg-slate-800/90 text-slate-400 border-slate-700/60 hover:text-white hover:bg-slate-700/80'}`;
+            btn.innerHTML = `<span>${sub.name}</span>`;
+            btn.onclick = () => selectSubcategory(sub.id);
+            subBar.appendChild(btn);
+        });
+    };
+
+    window.selectSubcategory = function(subcatId) {
+        selectedSubcategoryId = subcatId;
+        renderSubcategoryPills();
+        renderCatalog();
     };
 
     function renderCatalog() {
@@ -747,7 +922,11 @@
             if (selectedServiceId === 2 || selectedServiceId === 4) {
                 return true;
             } else {
-                return item.garment_target_id === selectedTargetId;
+                if (item.garment_target_id !== selectedTargetId) return false;
+                if (selectedSubcategoryId !== null && item.garment_subcategory_id !== selectedSubcategoryId) {
+                    return false;
+                }
+                return true;
             }
         });
 
@@ -1360,7 +1539,106 @@
         if (netExpanded) netExpanded.textContent = `${totalNet.toFixed(0)} DA`;
 
         document.getElementById('remaining-balance').textContent = `${remainingBalance.toFixed(0)} DA`;
+
+        // Update Rail Badge & Net Total
+        const railBadge = document.getElementById('cart-rail-badge');
+        if (railBadge) {
+            const oldCount = parseInt(railBadge.textContent) || 0;
+            railBadge.textContent = totalArticlesCount;
+            if (isCartCollapsed && totalArticlesCount > oldCount) {
+                railBadge.classList.remove('cart-badge-pulse');
+                void railBadge.offsetWidth; // trigger reflow
+                railBadge.classList.add('cart-badge-pulse');
+            }
+        }
+        const railNetTotal = document.getElementById('cart-rail-net-total');
+        if (railNetTotal) {
+            railNetTotal.textContent = `${totalNet.toFixed(0)} DA`;
+        }
+
+        // Update Context Bar Header Badge & Label
+        const headerBadge = document.getElementById('cart-toggle-header-badge');
+        if (headerBadge) {
+            headerBadge.textContent = totalArticlesCount;
+        }
+        const headerLabel = document.getElementById('cart-toggle-header-label');
+        if (headerLabel) {
+            headerLabel.textContent = isCartCollapsed && totalNet > 0 ? `${totalNet.toFixed(0)} DA` : 'Panier';
+        }
     }
+
+    // ================= DYNAMIC CART PANEL (COLLAPSE / EXPAND) =================
+    let isCartCollapsed = localStorage.getItem('cart_collapsed') === 'true';
+
+    window.toggleCartPanel = function(event = null) {
+        if (event) {
+            event.stopPropagation();
+        }
+        setCartCollapsedState(!isCartCollapsed);
+    };
+
+    window.openPaymentFromRail = function(event) {
+        if (event) {
+            event.stopPropagation();
+        }
+        if (isCartCollapsed) {
+            setCartCollapsedState(false);
+        }
+        if (cart.length > 0) {
+            openPaymentView();
+        }
+    };
+
+    window.setCartCollapsedState = function(collapsed) {
+        isCartCollapsed = !!collapsed;
+        localStorage.setItem('cart_collapsed', isCartCollapsed ? 'true' : 'false');
+
+        const panel = document.getElementById('checkout-cart-panel');
+        const expandedContent = document.getElementById('cart-expanded-content');
+        const collapsedRail = document.getElementById('cart-collapsed-rail');
+        const headerArrow = document.getElementById('cart-toggle-header-arrow');
+        const headerBtn = document.getElementById('cart-toggle-header-btn');
+        const headerLabel = document.getElementById('cart-toggle-header-label');
+
+        if (!panel || !expandedContent || !collapsedRail) return;
+
+        if (isCartCollapsed) {
+            // Collapse panel to sleek vertical rail (w-14)
+            panel.classList.remove('w-96');
+            panel.classList.add('w-14');
+            expandedContent.classList.add('hidden');
+            collapsedRail.classList.remove('hidden');
+            collapsedRail.classList.add('flex');
+
+            if (headerArrow) headerArrow.textContent = '◀';
+            if (headerBtn) headerBtn.setAttribute('title', 'Afficher le panier (F4)');
+        } else {
+            // Expand panel to full cart view (w-96)
+            panel.classList.remove('w-14');
+            panel.classList.add('w-96');
+            collapsedRail.classList.add('hidden');
+            collapsedRail.classList.remove('flex');
+            expandedContent.classList.remove('hidden');
+
+            if (headerArrow) headerArrow.textContent = '▶';
+            if (headerBtn) headerBtn.setAttribute('title', 'Réduire le panier sur le côté (F4)');
+        }
+
+        // Update header label text
+        if (headerLabel) {
+            const netCollapsed = document.getElementById('total-net-collapsed');
+            const totalNetText = netCollapsed ? netCollapsed.textContent : '0 DA';
+            headerLabel.textContent = isCartCollapsed && totalNetText !== '0 DA' ? totalNetText : 'Panier';
+        }
+    };
+
+    // Keyboard shortcut F4 for toggling cart
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'F4') {
+            e.preventDefault();
+            toggleCartPanel();
+        }
+    });
 
     window.openPaymentView = function() {
         updateCartCalculations();

@@ -21,7 +21,7 @@
 @php
     // Detect active main tab from request parameter, default to 'items'
     $activeMainTab = request()->query('tab', 'items');
-    if (!in_array($activeMainTab, ['items', 'targets', 'services'])) {
+    if (!in_array($activeMainTab, ['items', 'targets', 'subcategories', 'services'])) {
         $activeMainTab = 'items';
     }
 @endphp
@@ -31,7 +31,7 @@
     <div class="bg-slate-800/40 p-5 border-b border-slate-700/50 shrink-0 flex flex-col sm:flex-row gap-4 items-center justify-between">
         <div>
             <h2 class="text-xl font-bold font-display text-white">Gestion du Référentiel & Tarifs</h2>
-            <p class="text-xs text-slate-400">Gérer les articles du catalogue, les catégories d'habits et les services</p>
+            <p class="text-xs text-slate-400">Gérer les articles du catalogue, les catégories d'habits, les sous-catégories et les services</p>
         </div>
 
         <div class="flex items-center space-x-2">
@@ -45,6 +45,12 @@
             <button onclick="openAddTargetModal()" id="btn-add-target"
                     class="main-add-btn px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold font-display rounded-lg shadow-lg shadow-indigo-600/10 transition-colors flex items-center space-x-1.5 cursor-pointer {{ $activeMainTab === 'targets' ? '' : 'hidden' }}">
                 <span>+ Nouvelle Catégorie</span>
+            </button>
+
+            <!-- Add Subcategory button (shown in Subcategories tab) -->
+            <button onclick="openAddSubcategoryModal()" id="btn-add-subcategory"
+                    class="main-add-btn px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold font-display rounded-lg shadow-lg shadow-indigo-600/10 transition-colors flex items-center space-x-1.5 cursor-pointer {{ $activeMainTab === 'subcategories' ? '' : 'hidden' }}">
+                <span>+ Nouvelle Sous-Catégorie</span>
             </button>
 
             <!-- Add Service button (shown in Services tab) -->
@@ -64,6 +70,10 @@
         <button onclick="switchMainTab('targets')" id="main-tab-btn-targets"
                 class="main-tab-btn px-4 py-1.5 rounded-full text-xs font-semibold text-slate-300 hover:text-white bg-slate-800 border border-slate-700/50 transition-all cursor-pointer {{ $activeMainTab === 'targets' ? 'tab-btn-active' : '' }}">
             Catégories
+        </button>
+        <button onclick="switchMainTab('subcategories')" id="main-tab-btn-subcategories"
+                class="main-tab-btn px-4 py-1.5 rounded-full text-xs font-semibold text-slate-300 hover:text-white bg-slate-800 border border-slate-700/50 transition-all cursor-pointer {{ $activeMainTab === 'subcategories' ? 'tab-btn-active' : '' }}">
+            Sous-catégories
         </button>
         <button onclick="switchMainTab('services')" id="main-tab-btn-services"
                 class="main-tab-btn px-4 py-1.5 rounded-full text-xs font-semibold text-slate-300 hover:text-white bg-slate-800 border border-slate-700/50 transition-all cursor-pointer {{ $activeMainTab === 'services' ? 'tab-btn-active' : '' }}">
@@ -110,7 +120,8 @@
                         <thead>
                             <tr class="border-b border-slate-800 text-[10px] font-bold text-slate-400 uppercase tracking-wider bg-slate-800/20">
                                 <th class="py-3.5 px-6">Nom de l'article</th>
-                                <th class="py-3.5 px-4">Cible</th>
+                                <th class="py-3.5 px-4">Catégorie</th>
+                                <th class="py-3.5 px-4">Sous-Catégorie</th>
                                 <th class="py-3.5 px-3 text-center font-display font-medium text-amber-400">Poids std (g)</th>
                                 @foreach($services as $service)
                                     <th class="py-3.5 px-3 text-center font-display font-medium">{{ $service->name }}</th>
@@ -126,7 +137,7 @@
                                         $itemPrices[$sp->service_id] = $sp->price;
                                     }
                                 @endphp
-                                <tr class="hover:bg-slate-800/10 transition-colors catalog-row" data-target-id="{{ $item->garment_target_id }}">
+                                <tr class="hover:bg-slate-800/10 transition-colors catalog-row" data-target-id="{{ $item->garment_target_id }}" data-subcategory-id="{{ $item->garment_subcategory_id }}">
                                      <td class="py-3 px-6 font-bold text-slate-100 uppercase">
                                          <div class="flex items-center space-x-3">
                                              @if($item->image_path)
@@ -150,6 +161,15 @@
                                         <span class="px-2 py-0.5 rounded text-[9px] font-bold bg-slate-800 text-slate-300 border border-slate-700/60 uppercase">
                                             {{ $item->garmentTarget ? $item->garmentTarget->name : '-' }}
                                         </span>
+                                    </td>
+                                    <td class="py-3 px-4">
+                                        @if($item->garmentSubcategory)
+                                            <span class="px-2 py-0.5 rounded text-[9px] font-bold bg-indigo-500/15 text-indigo-300 border border-indigo-500/30 uppercase">
+                                                {{ $item->garmentSubcategory->name }}
+                                            </span>
+                                        @else
+                                            <span class="text-slate-600 font-mono text-[10px]">-</span>
+                                        @endif
                                     </td>
                                     <td class="py-3 px-3 text-center font-mono">
                                         @if($item->standard_weight)
@@ -207,6 +227,7 @@
                 <table class="w-full text-left border-collapse">
                     <thead>
                         <tr class="border-b border-slate-800 text-[10px] font-bold text-slate-400 uppercase tracking-wider bg-slate-800/20">
+                            <th class="py-3.5 px-6 w-28 text-center">Ordre Caisse</th>
                             <th class="py-3.5 px-6">ID</th>
                             <th class="py-3.5 px-6">Nom de la catégorie cible</th>
                             <th class="py-3.5 px-6 text-right">Actions</th>
@@ -215,12 +236,36 @@
                     <tbody class="divide-y divide-slate-800/50 text-xs text-slate-300">
                         @foreach($targets as $target)
                             <tr class="hover:bg-slate-800/10 transition-colors">
+                                <td class="py-3 px-6 text-center">
+                                    <div class="inline-flex items-center space-x-1.5">
+                                        <span class="inline-flex items-center justify-center px-2.5 py-1 rounded-lg text-xs font-black font-mono bg-indigo-500/15 text-indigo-300 border border-indigo-500/30">
+                                            #{{ $target->sort_order }}
+                                        </span>
+                                        <div class="flex flex-col space-y-0.5">
+                                            <form action="{{ route('admin.catalog.reorder') }}" method="POST" class="inline">
+                                                @csrf
+                                                <input type="hidden" name="type" value="target">
+                                                <input type="hidden" name="id" value="{{ $target->id }}">
+                                                <input type="hidden" name="direction" value="up">
+                                                <button type="submit" class="text-slate-400 hover:text-indigo-400 leading-none cursor-pointer text-[10px] p-0.5" title="Monter d'un rang">▲</button>
+                                            </form>
+                                            <form action="{{ route('admin.catalog.reorder') }}" method="POST" class="inline">
+                                                @csrf
+                                                <input type="hidden" name="type" value="target">
+                                                <input type="hidden" name="id" value="{{ $target->id }}">
+                                                <input type="hidden" name="direction" value="down">
+                                                <button type="submit" class="text-slate-400 hover:text-indigo-400 leading-none cursor-pointer text-[10px] p-0.5" title="Descendre d'un rang">▼</button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </td>
                                 <td class="py-3 px-6 font-mono text-slate-400">{{ $target->id }}</td>
                                 <td class="py-3 px-6 font-bold text-slate-100 uppercase">{{ $target->name }}</td>
                                 <td class="py-3 px-6 text-right">
                                     <div class="flex items-center justify-end space-x-2">
                                         <button onclick='openEditTargetModal(@json($target))' 
-                                                class="bg-slate-800 hover:bg-slate-700 text-indigo-400 p-1.5 rounded-lg border border-slate-700 cursor-pointer transition-colors">
+                                                class="bg-slate-800 hover:bg-slate-700 text-indigo-400 p-1.5 rounded-lg border border-slate-700 cursor-pointer transition-colors"
+                                                title="Modifier">
                                             <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                                             </svg>
@@ -245,12 +290,115 @@
             </div>
         </div>
 
-        <!-- Tab 3: Services -->
+        <!-- Tab 3: Subcategories (Sous-catégories) -->
+        <div id="main-tab-content-subcategories" class="main-tab-content space-y-4 {{ $activeMainTab === 'subcategories' ? '' : 'hidden' }}">
+            <!-- Filter by Target pills -->
+            <div class="flex items-center space-x-2 overflow-x-auto pb-2 border-b border-slate-800">
+                <button onclick="filterSubcategoryTarget('all')" id="subcat-filter-all"
+                        class="subcat-filter-tab px-3 py-1 rounded-lg text-xs font-semibold text-slate-300 hover:text-white bg-slate-800 border border-slate-700/50 transition-all cursor-pointer tab-btn-active">
+                    Toutes les catégories
+                </button>
+                @foreach($targets as $target)
+                    <button onclick="filterSubcategoryTarget('{{ $target->id }}')" id="subcat-filter-{{ $target->id }}"
+                            class="subcat-filter-tab px-3 py-1 rounded-lg text-xs font-semibold text-slate-300 hover:text-white bg-slate-800 border border-slate-700/50 transition-all cursor-pointer">
+                        {{ $target->name }}
+                    </button>
+                @endforeach
+            </div>
+
+            <div class="catalog-card rounded-2xl overflow-hidden shadow-xl">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="border-b border-slate-800 text-[10px] font-bold text-slate-400 uppercase tracking-wider bg-slate-800/20">
+                            <th class="py-3.5 px-6 w-28 text-center">Ordre Caisse</th>
+                            <th class="py-3.5 px-6">Nom de la sous-catégorie</th>
+                            <th class="py-3.5 px-6">Catégorie parente</th>
+                            <th class="py-3.5 px-6 text-center">Articles liés</th>
+                            <th class="py-3.5 px-6 text-right">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-800/50 text-xs text-slate-300">
+                        @forelse($subcategories as $sub)
+                            <tr class="hover:bg-slate-800/10 transition-colors subcat-row" data-target-id="{{ $sub->garment_target_id }}">
+                                <td class="py-3 px-6 text-center">
+                                    <div class="inline-flex items-center space-x-1.5">
+                                        <span class="inline-flex items-center justify-center px-2.5 py-1 rounded-lg text-xs font-black font-mono bg-indigo-500/15 text-indigo-300 border border-indigo-500/30">
+                                            #{{ $sub->sort_order }}
+                                        </span>
+                                        <div class="flex flex-col space-y-0.5">
+                                            <form action="{{ route('admin.catalog.reorder') }}" method="POST" class="inline">
+                                                @csrf
+                                                <input type="hidden" name="type" value="subcategory">
+                                                <input type="hidden" name="id" value="{{ $sub->id }}">
+                                                <input type="hidden" name="direction" value="up">
+                                                <button type="submit" class="text-slate-400 hover:text-indigo-400 leading-none cursor-pointer text-[10px] p-0.5" title="Monter d'un rang">▲</button>
+                                            </form>
+                                            <form action="{{ route('admin.catalog.reorder') }}" method="POST" class="inline">
+                                                @csrf
+                                                <input type="hidden" name="type" value="subcategory">
+                                                <input type="hidden" name="id" value="{{ $sub->id }}">
+                                                <input type="hidden" name="direction" value="down">
+                                                <button type="submit" class="text-slate-400 hover:text-indigo-400 leading-none cursor-pointer text-[10px] p-0.5" title="Descendre d'un rang">▼</button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="py-3 px-6 font-bold text-slate-100 uppercase">
+                                    {{ $sub->name }}
+                                </td>
+                                <td class="py-3 px-6">
+                                    <span class="px-2.5 py-1 rounded-md text-[10px] font-bold bg-slate-800 text-slate-300 border border-slate-700/60 uppercase">
+                                        {{ $sub->garmentTarget ? $sub->garmentTarget->name : '-' }}
+                                    </span>
+                                </td>
+                                <td class="py-3 px-6 text-center font-mono text-slate-400">
+                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-800 border border-slate-700">
+                                        {{ $sub->garment_items_count }} {{ $sub->garment_items_count > 1 ? 'articles' : 'article' }}
+                                    </span>
+                                </td>
+                                <td class="py-3 px-6 text-right">
+                                    <div class="flex items-center justify-end space-x-2">
+                                        <button onclick='openEditSubcategoryModal(@json($sub))' 
+                                                class="bg-slate-800 hover:bg-slate-700 text-indigo-400 p-1.5 rounded-lg border border-slate-700 cursor-pointer transition-colors"
+                                                title="Modifier">
+                                            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                            </svg>
+                                        </button>
+
+                                        <form action="{{ route('admin.catalog.subcategory.destroy', $sub->id) }}" method="POST" class="inline" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cette sous-catégorie ? Les articles resteront dans le catalogue sans sous-catégorie.')">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" 
+                                                    class="bg-slate-800 hover:bg-rose-500/10 text-slate-400 hover:text-rose-400 p-1.5 rounded-lg border border-slate-700 hover:border-rose-500/20 cursor-pointer transition-colors"
+                                                    title="Supprimer">
+                                                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                </svg>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="5" class="py-8 text-center text-slate-500 text-xs">
+                                    Aucune sous-catégorie créée pour le moment. Cliquez sur "+ Nouvelle Sous-Catégorie" pour en ajouter.
+                                </td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Tab 4: Services -->
         <div id="main-tab-content-services" class="main-tab-content space-y-4 {{ $activeMainTab === 'services' ? '' : 'hidden' }}">
             <div class="catalog-card rounded-2xl overflow-hidden shadow-xl">
                 <table class="w-full text-left border-collapse">
                     <thead>
                         <tr class="border-b border-slate-800 text-[10px] font-bold text-slate-400 uppercase tracking-wider bg-slate-800/20">
+                            <th class="py-3.5 px-6 w-28 text-center">Ordre Caisse</th>
                             <th class="py-3.5 px-6">ID</th>
                             <th class="py-3.5 px-6">Nom du Service</th>
                             <th class="py-3.5 px-6">Code Unique</th>
@@ -260,13 +408,37 @@
                     <tbody class="divide-y divide-slate-800/50 text-xs text-slate-300">
                         @foreach($services as $service)
                             <tr class="hover:bg-slate-800/10 transition-colors">
+                                <td class="py-3 px-6 text-center">
+                                    <div class="inline-flex items-center space-x-1.5">
+                                        <span class="inline-flex items-center justify-center px-2.5 py-1 rounded-lg text-xs font-black font-mono bg-indigo-500/15 text-indigo-300 border border-indigo-500/30">
+                                            #{{ $service->sort_order }}
+                                        </span>
+                                        <div class="flex flex-col space-y-0.5">
+                                            <form action="{{ route('admin.catalog.reorder') }}" method="POST" class="inline">
+                                                @csrf
+                                                <input type="hidden" name="type" value="service">
+                                                <input type="hidden" name="id" value="{{ $service->id }}">
+                                                <input type="hidden" name="direction" value="up">
+                                                <button type="submit" class="text-slate-400 hover:text-indigo-400 leading-none cursor-pointer text-[10px] p-0.5" title="Monter d'un rang">▲</button>
+                                            </form>
+                                            <form action="{{ route('admin.catalog.reorder') }}" method="POST" class="inline">
+                                                @csrf
+                                                <input type="hidden" name="type" value="service">
+                                                <input type="hidden" name="id" value="{{ $service->id }}">
+                                                <input type="hidden" name="direction" value="down">
+                                                <button type="submit" class="text-slate-400 hover:text-indigo-400 leading-none cursor-pointer text-[10px] p-0.5" title="Descendre d'un rang">▼</button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </td>
                                 <td class="py-3 px-6 font-mono text-slate-400">{{ $service->id }}</td>
                                 <td class="py-3 px-6 font-bold text-slate-100 uppercase">{{ $service->name }}</td>
                                 <td class="py-3 px-6 font-mono text-slate-400">{{ $service->code }}</td>
                                 <td class="py-3 px-6 text-right">
                                     <div class="flex items-center justify-end space-x-2">
                                         <button onclick='openEditServiceModal(@json($service))' 
-                                                class="bg-slate-800 hover:bg-slate-700 text-indigo-400 p-1.5 rounded-lg border border-slate-700 cursor-pointer transition-colors">
+                                                class="bg-slate-800 hover:bg-slate-700 text-indigo-400 p-1.5 rounded-lg border border-slate-700 cursor-pointer transition-colors"
+                                                title="Modifier">
                                             <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                                             </svg>
@@ -319,13 +491,25 @@
 
             <div>
                 <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Public Cible (Catégorie cible) *</label>
-                <select id="catalog-item-target" name="garment_target_id" required
+                <select id="catalog-item-target" name="garment_target_id" required onchange="onCatalogTargetChange()"
                         class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-indigo-500">
                     <option value="">Sélectionner la cible...</option>
                     @foreach($targets as $target)
                         <option value="{{ $target->id }}">{{ $target->name }}</option>
                     @endforeach
                 </select>
+            </div>
+
+            <div>
+                <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Sous-Catégorie</label>
+                <select id="catalog-item-subcategory" name="garment_subcategory_id"
+                        class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-indigo-500">
+                    <option value="">-- Aucune sous-catégorie --</option>
+                    @foreach($subcategories as $sub)
+                        <option value="{{ $sub->id }}" data-target-id="{{ $sub->garment_target_id }}">{{ $sub->name }} ({{ $sub->garmentTarget ? $sub->garmentTarget->name : '' }})</option>
+                    @endforeach
+                </select>
+                <p class="text-[10px] text-slate-500 mt-1">Filtrée selon la catégorie choisie (Optionnel).</p>
             </div>
 
             <div>
@@ -401,6 +585,15 @@
                        class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-indigo-500">
             </div>
 
+            <div>
+                <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Classement / Ordre en Caisse (Position)</label>
+                <input type="number" id="target-sort-order" name="sort_order" min="1" step="1" placeholder="Ex: 1 (premier), 2, 3..." 
+                       class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-amber-400 font-mono focus:outline-none focus:border-indigo-500">
+                <p class="text-[10px] text-slate-400 mt-1">
+                    🔄 Si une autre catégorie possède déjà cet ordre, leurs places seront <strong>automatiquement échangées (permutées)</strong>.
+                </p>
+            </div>
+
             <div class="pt-4 flex justify-end space-x-3 border-t border-slate-700/50">
                 <button type="button" onclick="closeTargetModal()" class="px-4 py-2 text-xs font-bold text-slate-400 hover:text-white transition-colors cursor-pointer">Annuler</button>
                 <button type="submit" class="px-5 py-2 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-500 rounded-lg transition-colors cursor-pointer">Enregistrer</button>
@@ -437,8 +630,67 @@
                        class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-indigo-500 font-mono">
             </div>
 
+            <div>
+                <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Classement / Ordre en Caisse (Position)</label>
+                <input type="number" id="service-sort-order" name="sort_order" min="1" step="1" placeholder="Ex: 1 (premier), 2, 3..." 
+                       class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-amber-400 font-mono focus:outline-none focus:border-indigo-500">
+                <p class="text-[10px] text-slate-400 mt-1">
+                    🔄 Si un autre service possède déjà cet ordre, leurs places seront <strong>automatiquement échangées (permutées)</strong>.
+                </p>
+            </div>
+
             <div class="pt-4 flex justify-end space-x-3 border-t border-slate-700/50">
                 <button type="button" onclick="closeServiceModal()" class="px-4 py-2 text-xs font-bold text-slate-400 hover:text-white transition-colors cursor-pointer">Annuler</button>
+                <button type="submit" class="px-5 py-2 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-500 rounded-lg transition-colors cursor-pointer">Enregistrer</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- 4. Subcategory Modal (Add & Edit Subcategory) -->
+<div id="subcategory-modal" class="hidden fixed inset-0 bg-slate-950/70 z-50 flex items-center justify-center p-4" style="backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);">
+    <div class="bg-slate-800 border border-slate-700 rounded-2xl w-full max-w-md flex flex-col shadow-2xl overflow-hidden transform scale-100 transition-all">
+        <div class="px-6 py-4 bg-slate-800 border-b border-slate-700 flex justify-between items-center">
+            <h3 id="subcategory-modal-title" class="text-base font-bold text-white font-display">Nouvelle Sous-Catégorie</h3>
+            <button onclick="closeSubcategoryModal()" class="text-slate-400 hover:text-white cursor-pointer">
+                <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+        </div>
+
+        <form id="subcategory-form" method="POST" class="p-6 space-y-4">
+            @csrf
+            <div id="subcategory-form-method-container"></div>
+
+            <div>
+                <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Catégorie Parente *</label>
+                <select id="subcategory-target" name="garment_target_id" required
+                        class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-indigo-500">
+                    <option value="">Sélectionner la catégorie...</option>
+                    @foreach($targets as $target)
+                        <option value="{{ $target->id }}">{{ $target->name }}</option>
+                    @endforeach
+                </select>
+            </div>
+
+            <div>
+                <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Nom de la sous-catégorie *</label>
+                <input type="text" id="subcategory-name" name="name" required placeholder="Ex: Pantalon, Chemise, Veste, Jupe..." 
+                       class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-indigo-500">
+            </div>
+
+            <div>
+                <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Classement / Ordre en Caisse (Position)</label>
+                <input type="number" id="subcategory-sort-order" name="sort_order" min="1" step="1" placeholder="Ex: 1 (premier), 2, 3..." 
+                       class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-amber-400 font-mono focus:outline-none focus:border-indigo-500">
+                <p class="text-[10px] text-slate-400 mt-1">
+                    🔄 Si une autre sous-catégorie de la même catégorie possède déjà cet ordre, leurs places seront <strong>automatiquement échangées (permutées)</strong>.
+                </p>
+            </div>
+
+            <div class="pt-4 flex justify-end space-x-3 border-t border-slate-700/50">
+                <button type="button" onclick="closeSubcategoryModal()" class="px-4 py-2 text-xs font-bold text-slate-400 hover:text-white transition-colors cursor-pointer">Annuler</button>
                 <button type="submit" class="px-5 py-2 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-500 rounded-lg transition-colors cursor-pointer">Enregistrer</button>
             </div>
         </form>
@@ -472,6 +724,7 @@
         });
         if (tabId === 'items') document.getElementById('btn-add-item').classList.remove('hidden');
         else if (tabId === 'targets') document.getElementById('btn-add-target').classList.remove('hidden');
+        else if (tabId === 'subcategories') document.getElementById('btn-add-subcategory').classList.remove('hidden');
         else if (tabId === 'services') document.getElementById('btn-add-service').classList.remove('hidden');
 
         // Update URL query parameter
@@ -501,6 +754,54 @@
         });
     };
 
+    // 3. Subcategories Filter by Target
+    window.filterSubcategoryTarget = function(targetId) {
+        document.querySelectorAll('.subcat-filter-tab').forEach(btn => {
+            btn.classList.remove('tab-btn-active');
+        });
+        const activeTab = document.getElementById(`subcat-filter-${targetId}`);
+        if(activeTab) activeTab.classList.add('tab-btn-active');
+
+        document.querySelectorAll('.subcat-row').forEach(row => {
+            const rowTargetId = row.getAttribute('data-target-id');
+            if (targetId === 'all' || rowTargetId === targetId) {
+                row.classList.remove('hidden');
+            } else {
+                row.classList.add('hidden');
+            }
+        });
+    };
+
+    // Subcategory Dynamic Filter in Item Modal
+    window.onCatalogTargetChange = function(selectedSubcategoryId = null) {
+        const targetSelect = document.getElementById('catalog-item-target');
+        const subcatSelect = document.getElementById('catalog-item-subcategory');
+        if (!targetSelect || !subcatSelect) return;
+        const targetId = targetSelect.value;
+
+        Array.from(subcatSelect.options).forEach((opt, idx) => {
+            if (idx === 0) {
+                opt.hidden = false;
+                return;
+            }
+            const optTargetId = opt.getAttribute('data-target-id');
+            if (!targetId || optTargetId === targetId) {
+                opt.hidden = false;
+            } else {
+                opt.hidden = true;
+            }
+        });
+
+        if (selectedSubcategoryId) {
+            subcatSelect.value = selectedSubcategoryId;
+        } else {
+            const currentOption = subcatSelect.options[subcatSelect.selectedIndex];
+            if (currentOption && currentOption.hidden) {
+                subcatSelect.value = "";
+            }
+        }
+    };
+
     // ================= ARTICLES MODAL =================
     window.openAddCatalogModal = function() {
         document.getElementById('modal-title').textContent = "Nouvel Article";
@@ -509,6 +810,8 @@
         
         document.getElementById('catalog-item-name').value = "";
         document.getElementById('catalog-item-target').value = "";
+        document.getElementById('catalog-item-subcategory').value = "";
+        onCatalogTargetChange();
         document.getElementById('catalog-item-weight').value = "";
         document.getElementById('catalog-item-image').value = "";
         document.getElementById('catalog-item-is-carpet').checked = false;
@@ -527,6 +830,7 @@
 
         document.getElementById('catalog-item-name').value = item.name;
         document.getElementById('catalog-item-target').value = item.garment_target_id || "";
+        onCatalogTargetChange(item.garment_subcategory_id || "");
         document.getElementById('catalog-item-weight').value = item.standard_weight ? parseFloat(item.standard_weight) : "";
         document.getElementById('catalog-item-image').value = "";
 
@@ -550,6 +854,7 @@
         document.getElementById('target-form').action = "{{ route('admin.catalog.target.store', [], false) }}";
         document.getElementById('target-form-method-container').innerHTML = "";
         document.getElementById('target-name').value = "";
+        document.getElementById('target-sort-order').value = "";
         document.getElementById('target-modal').classList.remove('hidden');
     };
 
@@ -558,11 +863,37 @@
         document.getElementById('target-form').action = `/admin/catalog/target/${target.id}`;
         document.getElementById('target-form-method-container').innerHTML = `@method('PUT')`;
         document.getElementById('target-name').value = target.name;
+        document.getElementById('target-sort-order').value = target.sort_order !== null ? target.sort_order : "";
         document.getElementById('target-modal').classList.remove('hidden');
     };
 
     window.closeTargetModal = function() {
         document.getElementById('target-modal').classList.add('hidden');
+    };
+
+    // ================= SUBCATEGORIES MODAL =================
+    window.openAddSubcategoryModal = function() {
+        document.getElementById('subcategory-modal-title').textContent = "Nouvelle Sous-Catégorie";
+        document.getElementById('subcategory-form').action = "{{ route('admin.catalog.subcategory.store', [], false) }}";
+        document.getElementById('subcategory-form-method-container').innerHTML = "";
+        document.getElementById('subcategory-name').value = "";
+        document.getElementById('subcategory-target').value = "";
+        document.getElementById('subcategory-sort-order').value = "";
+        document.getElementById('subcategory-modal').classList.remove('hidden');
+    };
+
+    window.openEditSubcategoryModal = function(sub) {
+        document.getElementById('subcategory-modal-title').textContent = "Modifier la Sous-Catégorie";
+        document.getElementById('subcategory-form').action = `/admin/catalog/subcategory/${sub.id}`;
+        document.getElementById('subcategory-form-method-container').innerHTML = `@method('PUT')`;
+        document.getElementById('subcategory-name').value = sub.name;
+        document.getElementById('subcategory-target').value = sub.garment_target_id || "";
+        document.getElementById('subcategory-sort-order').value = sub.sort_order !== null ? sub.sort_order : "";
+        document.getElementById('subcategory-modal').classList.remove('hidden');
+    };
+
+    window.closeSubcategoryModal = function() {
+        document.getElementById('subcategory-modal').classList.add('hidden');
     };
 
     // ================= SERVICES MODAL =================
@@ -572,6 +903,7 @@
         document.getElementById('service-form-method-container').innerHTML = "";
         document.getElementById('service-name').value = "";
         document.getElementById('service-code').value = "";
+        document.getElementById('service-sort-order').value = "";
         document.getElementById('service-modal').classList.remove('hidden');
     };
 
@@ -581,6 +913,7 @@
         document.getElementById('service-form-method-container').innerHTML = `@method('PUT')`;
         document.getElementById('service-name').value = service.name;
         document.getElementById('service-code').value = service.code;
+        document.getElementById('service-sort-order').value = service.sort_order !== null ? service.sort_order : "";
         document.getElementById('service-modal').classList.remove('hidden');
     };
 

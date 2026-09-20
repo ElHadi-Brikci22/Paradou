@@ -11,6 +11,7 @@ class GarmentItem extends Model
 
     protected $fillable = [
         'garment_target_id',
+        'garment_subcategory_id',
         'name',
         'image_path',
         'standard_weight',
@@ -39,6 +40,11 @@ class GarmentItem extends Model
     public function garmentTarget()
     {
         return $this->belongsTo(GarmentTarget::class);
+    }
+
+    public function garmentSubcategory()
+    {
+        return $this->belongsTo(GarmentSubcategory::class);
     }
 
     public function servicePrices()

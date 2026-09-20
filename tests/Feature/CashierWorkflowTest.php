@@ -172,10 +172,19 @@ class CashierWorkflowTest extends TestCase
         $this->assertEquals(3, $order->orderItems()->count());
         $this->assertEquals(500, $order->paid_amount);
 
-        // Verify print views work without error
-        $this->actingAs($this->cashier)->get(route('orders.print-ticket', $order->id))->assertStatus(200);
+        // Verify print views work without error and ticket contains QR code & ticket number
+        $ticketResponse = $this->actingAs($this->cashier)->get(route('orders.print-ticket', $order->id));
+        $ticketResponse->assertStatus(200);
+        $ticketResponse->assertSee('*' . $order->ticket_number . '*');
+        $ticketResponse->assertSee('qrcode-container');
+        $ticketResponse->assertSee('<svg', false);
+
         $this->actingAs($this->cashier)->get(route('orders.print-tags', $order->id))->assertStatus(200);
-        $this->actingAs($this->cashier)->get(route('orders.print-all', $order->id))->assertStatus(200);
+        
+        $allResponse = $this->actingAs($this->cashier)->get(route('orders.print-all', $order->id));
+        $allResponse->assertStatus(200);
+        $allResponse->assertSee('qrcode-container');
+        $allResponse->assertSee('<svg', false);
     }
 
     public function test_cashier_cannot_apply_percentage_discount(): void

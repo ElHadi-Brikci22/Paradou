@@ -12,11 +12,13 @@ class Service extends Model
     protected $fillable = [
         'name',
         'code',
+        'sort_order',
         'price',
         'wholesale_price'
     ];
 
     protected $casts = [
+        'sort_order' => 'integer',
         'price' => 'decimal:2',
         'wholesale_price' => 'decimal:2',
     ];

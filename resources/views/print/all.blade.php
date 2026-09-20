@@ -119,6 +119,17 @@
             margin: 4mm 0 2mm 0;
         }
 
+        .qrcode-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 2mm 0 3mm 0;
+        }
+        .qrcode-container svg {
+            display: block;
+            margin: 0 auto;
+        }
+
         /* Tags specifics */
         .tag-block {
             text-align: center;
@@ -392,6 +403,11 @@
             
             <!-- Simulated barcode text -->
             <div class="barcode-text text-center font-mono">*{{ $order->ticket_number }}*</div>
+
+            <!-- Code QR du numéro de commande / ticket -->
+            <div class="qrcode-container text-center">
+                {!! QrCode::size(110)->margin(1)->generate($order->ticket_number) !!}
+            </div>
         </div>
     </div>
 

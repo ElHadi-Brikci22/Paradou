@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Service;
 use App\Models\GarmentTarget;
+use App\Models\GarmentSubcategory;
 use App\Models\GarmentItem;
 use App\Models\ServicePrice;
 use Illuminate\Support\Facades\File;
@@ -17,8 +18,9 @@ class CheckoutController extends Controller
      */
     public function index(Request $request)
     {
-        $services = Service::all();
-        $targets = GarmentTarget::all();
+        $services = Service::orderBy('sort_order', 'asc')->orderBy('id', 'asc')->get();
+        $targets = GarmentTarget::orderBy('sort_order', 'asc')->orderBy('id', 'asc')->get();
+        $subcategories = GarmentSubcategory::orderBy('sort_order', 'asc')->orderBy('name', 'asc')->get();
         
         $editingOrder = null;
         if ($request->has('order_id')) {
@@ -35,8 +37,8 @@ class CheckoutController extends Controller
             }
         }
         
-        // Load items with their pricing
-        $items = GarmentItem::with('servicePrices')->get();
+        // Load items with their pricing and subcategory
+        $items = GarmentItem::with(['servicePrices', 'garmentSubcategory'])->get();
 
         // Retrieve choice dictionaries (with fallbacks)
         $colors = $this->getDictionary('Couleur.db', [
@@ -79,6 +81,7 @@ class CheckoutController extends Controller
         return view('checkout.index', compact(
             'services',
             'targets',
+            'subcategories',
             'items',
             'colors',
             'patterns',

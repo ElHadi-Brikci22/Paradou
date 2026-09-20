@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\GarmentItem;
 use App\Models\GarmentTarget;
+use App\Models\GarmentSubcategory;
 use App\Models\Service;
 use App\Models\ServicePrice;
 use Illuminate\Support\Facades\DB;
@@ -17,12 +18,18 @@ class CatalogController extends Controller
      */
     public function index()
     {
-        $targets = GarmentTarget::all();
-        $services = Service::all();
-        // Load items with target and servicePrices
-        $items = GarmentItem::with(['garmentTarget', 'servicePrices'])->get();
+        $targets = GarmentTarget::with('subcategories')->orderBy('sort_order', 'asc')->orderBy('id', 'asc')->get();
+        $services = Service::orderBy('sort_order', 'asc')->orderBy('id', 'asc')->get();
+        $subcategories = GarmentSubcategory::with('garmentTarget')
+            ->withCount('garmentItems')
+            ->orderBy('garment_target_id')
+            ->orderBy('sort_order', 'asc')
+            ->orderBy('name', 'asc')
+            ->get();
+        // Load items with target, subcategory and servicePrices
+        $items = GarmentItem::with(['garmentTarget', 'garmentSubcategory', 'servicePrices'])->get();
 
-        return view('admin.catalog.index', compact('targets', 'services', 'items'));
+        return view('admin.catalog.index', compact('targets', 'services', 'items', 'subcategories'));
     }
 
     /**
@@ -33,6 +40,7 @@ class CatalogController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'garment_target_id' => 'required|exists:garment_targets,id',
+            'garment_subcategory_id' => 'nullable|exists:garment_subcategories,id',
             'standard_weight' => 'nullable|numeric|min:0',
             'is_carpet' => 'nullable|boolean',
             'prices' => 'nullable|array',
@@ -54,6 +62,7 @@ class CatalogController extends Controller
             $item = GarmentItem::create([
                 'name' => $validated['name'],
                 'garment_target_id' => $validated['garment_target_id'],
+                'garment_subcategory_id' => $validated['garment_subcategory_id'] ?? null,
                 'image_path' => $imagePath,
                 'standard_weight' => isset($validated['standard_weight']) && $validated['standard_weight'] !== '' ? floatval($validated['standard_weight']) : null,
                 'is_carpet' => $isCarpet,
@@ -86,6 +95,7 @@ class CatalogController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'garment_target_id' => 'required|exists:garment_targets,id',
+            'garment_subcategory_id' => 'nullable|exists:garment_subcategories,id',
             'standard_weight' => 'nullable|numeric|min:0',
             'is_carpet' => 'nullable|boolean',
             'prices' => 'nullable|array',
@@ -99,6 +109,7 @@ class CatalogController extends Controller
             $item->update([
                 'name' => $validated['name'],
                 'garment_target_id' => $validated['garment_target_id'],
+                'garment_subcategory_id' => $validated['garment_subcategory_id'] ?? null,
                 'standard_weight' => isset($validated['standard_weight']) && $validated['standard_weight'] !== '' ? floatval($validated['standard_weight']) : null,
                 'is_carpet' => $isCarpet,
                 'unit_type' => $isCarpet ? 'm2' : 'piece',
@@ -148,15 +159,62 @@ class CatalogController extends Controller
     }
 
     /**
+     * Helper to perform clean swap of sort_order between an item and conflicting item.
+     */
+    protected function performSortOrderSwap($model, int $newOrder, $queryScope = null)
+    {
+        $oldOrder = $model->sort_order;
+        if ($oldOrder === $newOrder) {
+            return;
+        }
+
+        $query = $queryScope ? clone $queryScope : $model->newQuery();
+        $conflict = $query->where('id', '!=', $model->id)->where('sort_order', $newOrder)->first();
+
+        if ($conflict) {
+            // Direct swap: conflicting item takes the old order of the item being modified
+            $conflict->update(['sort_order' => $oldOrder ?? 0]);
+        }
+
+        $model->update(['sort_order' => $newOrder]);
+    }
+
+    /**
+     * Helper to assign sort_order on store.
+     */
+    protected function assignNewSortOrder($queryScope, ?int $requestedOrder)
+    {
+        $query = clone $queryScope;
+        $maxOrder = $query->max('sort_order') ?? 0;
+
+        if ($requestedOrder === null || $requestedOrder <= 0) {
+            return $maxOrder + 1;
+        }
+
+        $conflict = $query->where('sort_order', $requestedOrder)->first();
+        if ($conflict) {
+            $conflict->update(['sort_order' => $maxOrder + 1]);
+        }
+
+        return $requestedOrder;
+    }
+
+    /**
      * Store a new garment target (category).
      */
     public function storeGarmentTarget(Request $request)
     {
         $validated = $request->validate([
-            'name' => 'required|string|max:255|unique:garment_targets,name'
+            'name' => 'required|string|max:255|unique:garment_targets,name',
+            'sort_order' => 'nullable|integer|min:1'
         ]);
 
-        GarmentTarget::create($validated);
+        $sortOrder = $this->assignNewSortOrder(GarmentTarget::query(), isset($validated['sort_order']) ? intval($validated['sort_order']) : null);
+
+        GarmentTarget::create([
+            'name' => $validated['name'],
+            'sort_order' => $sortOrder,
+        ]);
 
         return redirect()->route('admin.catalog.index', ['tab' => 'targets'])->with('success', 'La catégorie a été créée avec succès.');
     }
@@ -169,12 +227,17 @@ class CatalogController extends Controller
         $target = GarmentTarget::findOrFail($id);
 
         $validated = $request->validate([
-            'name' => 'required|string|max:255|unique:garment_targets,name,' . $target->id
+            'name' => 'required|string|max:255|unique:garment_targets,name,' . $target->id,
+            'sort_order' => 'nullable|integer|min:1'
         ]);
 
-        $target->update($validated);
+        $target->update(['name' => $validated['name']]);
 
-        return redirect()->route('admin.catalog.index', ['tab' => 'targets'])->with('success', 'La catégorie a été mise à jour avec succès.');
+        if (isset($validated['sort_order']) && intval($validated['sort_order']) > 0) {
+            $this->performSortOrderSwap($target, intval($validated['sort_order']));
+        }
+
+        return redirect()->route('admin.catalog.index', ['tab' => 'targets'])->with('success', 'La catégorie et son ordre d\'affichage ont été mis à jour.');
     }
 
     /**
@@ -189,16 +252,83 @@ class CatalogController extends Controller
     }
 
     /**
+     * Store a new garment subcategory.
+     */
+    public function storeGarmentSubcategory(Request $request)
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'garment_target_id' => 'required|exists:garment_targets,id',
+            'sort_order' => 'nullable|integer|min:1'
+        ]);
+
+        $scope = GarmentSubcategory::where('garment_target_id', $validated['garment_target_id']);
+        $sortOrder = $this->assignNewSortOrder($scope, isset($validated['sort_order']) ? intval($validated['sort_order']) : null);
+
+        GarmentSubcategory::create([
+            'name' => $validated['name'],
+            'garment_target_id' => $validated['garment_target_id'],
+            'sort_order' => $sortOrder,
+        ]);
+
+        return redirect()->route('admin.catalog.index', ['tab' => 'subcategories'])->with('success', 'La sous-catégorie a été créée avec succès.');
+    }
+
+    /**
+     * Update an existing garment subcategory.
+     */
+    public function updateGarmentSubcategory(Request $request, $id)
+    {
+        $subcategory = GarmentSubcategory::findOrFail($id);
+
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'garment_target_id' => 'required|exists:garment_targets,id',
+            'sort_order' => 'nullable|integer|min:1'
+        ]);
+
+        $subcategory->update([
+            'name' => $validated['name'],
+            'garment_target_id' => $validated['garment_target_id'],
+        ]);
+
+        if (isset($validated['sort_order']) && intval($validated['sort_order']) > 0) {
+            $scope = GarmentSubcategory::where('garment_target_id', $validated['garment_target_id']);
+            $this->performSortOrderSwap($subcategory, intval($validated['sort_order']), $scope);
+        }
+
+        return redirect()->route('admin.catalog.index', ['tab' => 'subcategories'])->with('success', 'La sous-catégorie et son ordre d\'affichage ont été mis à jour.');
+    }
+
+    /**
+     * Delete a garment subcategory.
+     */
+    public function destroyGarmentSubcategory($id)
+    {
+        $subcategory = GarmentSubcategory::findOrFail($id);
+        $subcategory->delete();
+
+        return redirect()->route('admin.catalog.index', ['tab' => 'subcategories'])->with('success', 'La sous-catégorie a été supprimée avec succès.');
+    }
+
+    /**
      * Store a new service.
      */
     public function storeService(Request $request)
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255|unique:services,name',
-            'code' => 'required|string|max:255|unique:services,code'
+            'code' => 'required|string|max:255|unique:services,code',
+            'sort_order' => 'nullable|integer|min:1'
         ]);
 
-        Service::create($validated);
+        $sortOrder = $this->assignNewSortOrder(Service::query(), isset($validated['sort_order']) ? intval($validated['sort_order']) : null);
+
+        Service::create([
+            'name' => $validated['name'],
+            'code' => $validated['code'],
+            'sort_order' => $sortOrder,
+        ]);
 
         return redirect()->route('admin.catalog.index', ['tab' => 'services'])->with('success', 'Le service a été créé avec succès.');
     }
@@ -212,12 +342,20 @@ class CatalogController extends Controller
 
         $validated = $request->validate([
             'name' => 'required|string|max:255|unique:services,name,' . $service->id,
-            'code' => 'required|string|max:255|unique:services,code,' . $service->id
+            'code' => 'required|string|max:255|unique:services,code,' . $service->id,
+            'sort_order' => 'nullable|integer|min:1'
         ]);
 
-        $service->update($validated);
+        $service->update([
+            'name' => $validated['name'],
+            'code' => $validated['code'],
+        ]);
 
-        return redirect()->route('admin.catalog.index', ['tab' => 'services'])->with('success', 'Le service a été mis à jour avec succès.');
+        if (isset($validated['sort_order']) && intval($validated['sort_order']) > 0) {
+            $this->performSortOrderSwap($service, intval($validated['sort_order']));
+        }
+
+        return redirect()->route('admin.catalog.index', ['tab' => 'services'])->with('success', 'Le service et son ordre d\'affichage ont été mis à jour.');
     }
 
     /**
@@ -229,5 +367,60 @@ class CatalogController extends Controller
         $service->delete();
 
         return redirect()->route('admin.catalog.index', ['tab' => 'services'])->with('success', 'Le service a été supprimé avec succès.');
+    }
+
+    /**
+     * Reorder (swap with previous or next neighbor) for targets, subcategories, or services.
+     */
+    public function reorder(Request $request)
+    {
+        $validated = $request->validate([
+            'type' => 'required|in:target,subcategory,service',
+            'id' => 'required|integer',
+            'direction' => 'required|in:up,down',
+        ]);
+
+        $type = $validated['type'];
+        $id = $validated['id'];
+        $direction = $validated['direction'];
+
+        $tab = 'items';
+        if ($type === 'target') {
+            $model = GarmentTarget::findOrFail($id);
+            $query = GarmentTarget::query();
+            $tab = 'targets';
+        } elseif ($type === 'subcategory') {
+            $model = GarmentSubcategory::findOrFail($id);
+            $query = GarmentSubcategory::where('garment_target_id', $model->garment_target_id);
+            $tab = 'subcategories';
+        } else {
+            $model = Service::findOrFail($id);
+            $query = Service::query();
+            $tab = 'services';
+        }
+
+        // Get all items in this scope sorted by sort_order asc, id asc
+        $items = $query->orderBy('sort_order', 'asc')->orderBy('id', 'asc')->get();
+        $currentIndex = $items->search(fn($item) => $item->id === $model->id);
+
+        if ($currentIndex !== false) {
+            $swapIndex = $direction === 'up' ? $currentIndex - 1 : $currentIndex + 1;
+            if (isset($items[$swapIndex])) {
+                $neighbor = $items[$swapIndex];
+                $currentOrder = $model->sort_order;
+                $neighborOrder = $neighbor->sort_order;
+
+                // If identical, assign distinct sequential numbers
+                if ($currentOrder === $neighborOrder) {
+                    $currentOrder = $currentIndex + 1;
+                    $neighborOrder = $swapIndex + 1;
+                }
+
+                $model->update(['sort_order' => $neighborOrder]);
+                $neighbor->update(['sort_order' => $currentOrder]);
+            }
+        }
+
+        return redirect()->route('admin.catalog.index', ['tab' => $tab])->with('success', 'L\'ordre d\'affichage a été mis à jour.');
     }
 }

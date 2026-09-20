@@ -5,11 +5,12 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
-class GarmentTarget extends Model
+class GarmentSubcategory extends Model
 {
     use HasFactory;
 
     protected $fillable = [
+        'garment_target_id',
         'name',
         'sort_order'
     ];
@@ -18,13 +19,13 @@ class GarmentTarget extends Model
         'sort_order' => 'integer',
     ];
 
+    public function garmentTarget()
+    {
+        return $this->belongsTo(GarmentTarget::class);
+    }
+
     public function garmentItems()
     {
         return $this->hasMany(GarmentItem::class);
-    }
-
-    public function subcategories()
-    {
-        return $this->hasMany(GarmentSubcategory::class)->orderBy('sort_order', 'asc')->orderBy('name', 'asc');
     }
 }

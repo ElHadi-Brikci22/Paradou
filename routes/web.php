@@ -53,10 +53,18 @@ Route::middleware('auth')->group(function () {
         Route::put('/admin/catalog/target/{id}', [CatalogController::class, 'updateGarmentTarget'])->name('admin.catalog.target.update');
         Route::delete('/admin/catalog/target/{id}', [CatalogController::class, 'destroyGarmentTarget'])->name('admin.catalog.target.destroy');
 
+        // Subcategories CRUD
+        Route::post('/admin/catalog/subcategory', [CatalogController::class, 'storeGarmentSubcategory'])->name('admin.catalog.subcategory.store');
+        Route::put('/admin/catalog/subcategory/{id}', [CatalogController::class, 'updateGarmentSubcategory'])->name('admin.catalog.subcategory.update');
+        Route::delete('/admin/catalog/subcategory/{id}', [CatalogController::class, 'destroyGarmentSubcategory'])->name('admin.catalog.subcategory.destroy');
+
         // Services CRUD
         Route::post('/admin/catalog/service', [CatalogController::class, 'storeService'])->name('admin.catalog.service.store');
         Route::put('/admin/catalog/service/{id}', [CatalogController::class, 'updateService'])->name('admin.catalog.service.update');
         Route::delete('/admin/catalog/service/{id}', [CatalogController::class, 'destroyService'])->name('admin.catalog.service.destroy');
+
+        // Quick Reorder (swap orders)
+        Route::post('/admin/catalog/reorder', [CatalogController::class, 'reorder'])->name('admin.catalog.reorder');
 
         // Flat file dictionaries & patterns management
         Route::get('/admin/rubrics', [RubricsController::class, 'index'])->name('admin.rubrics.index');

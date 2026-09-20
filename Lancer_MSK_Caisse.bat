@@ -38,25 +38,27 @@ if "%ERRORLEVEL%"=="1" (
 )
 
 :: 3. Lancer l'application en mode Kiosque / App avec impression directe automatique
-if exist "%ProgramFiles(x86)%\Microsoft\Edge\Application\msedge.exe" (
-    start "" "%ProgramFiles(x86)%\Microsoft\Edge\Application\msedge.exe" --app=http://127.0.0.1:8000 --start-maximized --kiosk-printing
-    exit /b 0
-)
-
-if exist "%ProgramFiles%\Microsoft\Edge\Application\msedge.exe" (
-    start "" "%ProgramFiles%\Microsoft\Edge\Application\msedge.exe" --app=http://127.0.0.1:8000 --start-maximized --kiosk-printing
-    exit /b 0
-)
-
+:: Priorite a Google Chrome s'il est installe
 if exist "%ProgramFiles%\Google\Chrome\Application\chrome.exe" (
-    start "" "%ProgramFiles%\Google\Chrome\Application\chrome.exe" --app=http://127.0.0.1:8000 --start-maximized --kiosk-printing
+    start "" "%ProgramFiles%\Google\Chrome\Application\chrome.exe" --app=http://localhost:8000 --start-maximized --kiosk-printing
     exit /b 0
 )
 
 if exist "%ProgramFiles(x86)%\Google\Chrome\Application\chrome.exe" (
-    start "" "%ProgramFiles(x86)%\Google\Chrome\Application\chrome.exe" --app=http://127.0.0.1:8000 --start-maximized --kiosk-printing
+    start "" "%ProgramFiles(x86)%\Google\Chrome\Application\chrome.exe" --app=http://localhost:8000 --start-maximized --kiosk-printing
     exit /b 0
 )
 
-start http://127.0.0.1:8000
+:: Sinon Microsoft Edge
+if exist "%ProgramFiles(x86)%\Microsoft\Edge\Application\msedge.exe" (
+    start "" "%ProgramFiles(x86)%\Microsoft\Edge\Application\msedge.exe" --app=http://localhost:8000 --start-maximized --kiosk-printing
+    exit /b 0
+)
+
+if exist "%ProgramFiles%\Microsoft\Edge\Application\msedge.exe" (
+    start "" "%ProgramFiles%\Microsoft\Edge\Application\msedge.exe" --app=http://localhost:8000 --start-maximized --kiosk-printing
+    exit /b 0
+)
+
+start http://localhost:8000
 exit /b 0
