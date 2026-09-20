@@ -37,26 +37,26 @@ if "%ERRORLEVEL%"=="1" (
     timeout /t 2 /nobreak >nul
 )
 
-:: 3. Lancer l'application en mode Kiosque / App avec impression directe automatique
+:: 3. Lancer l'application en mode Kiosque / App (Interface caisse tactile dédiée)
 :: Priorite a Google Chrome s'il est installe
 if exist "%ProgramFiles%\Google\Chrome\Application\chrome.exe" (
-    start "" "%ProgramFiles%\Google\Chrome\Application\chrome.exe" --app=http://localhost:8000 --start-maximized --kiosk-printing
+    start "" "%ProgramFiles%\Google\Chrome\Application\chrome.exe" --app=http://localhost:8000 --start-maximized
     exit /b 0
 )
 
 if exist "%ProgramFiles(x86)%\Google\Chrome\Application\chrome.exe" (
-    start "" "%ProgramFiles(x86)%\Google\Chrome\Application\chrome.exe" --app=http://localhost:8000 --start-maximized --kiosk-printing
+    start "" "%ProgramFiles(x86)%\Google\Chrome\Application\chrome.exe" --app=http://localhost:8000 --start-maximized
     exit /b 0
 )
 
 :: Sinon Microsoft Edge
 if exist "%ProgramFiles(x86)%\Microsoft\Edge\Application\msedge.exe" (
-    start "" "%ProgramFiles(x86)%\Microsoft\Edge\Application\msedge.exe" --app=http://localhost:8000 --start-maximized --kiosk-printing
+    start "" "%ProgramFiles(x86)%\Microsoft\Edge\Application\msedge.exe" --app=http://localhost:8000 --start-maximized
     exit /b 0
 )
 
 if exist "%ProgramFiles%\Microsoft\Edge\Application\msedge.exe" (
-    start "" "%ProgramFiles%\Microsoft\Edge\Application\msedge.exe" --app=http://localhost:8000 --start-maximized --kiosk-printing
+    start "" "%ProgramFiles%\Microsoft\Edge\Application\msedge.exe" --app=http://localhost:8000 --start-maximized
     exit /b 0
 )
 

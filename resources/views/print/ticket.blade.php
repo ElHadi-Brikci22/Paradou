@@ -413,16 +413,19 @@
     <!-- Auto Print Script -->
     <script>
         if (window.self === window.top) {
-            window.addEventListener('DOMContentLoaded', () => {
-                // Delay slightly to ensure page assets load
+            // Close window ONLY after user finishes interacting with print dialog (print or cancel)
+            window.addEventListener('afterprint', () => {
                 setTimeout(() => {
-                    window.print();
-                    
-                    // If it was opened in a new tab/window via JS, automatically close it after printing dialog closes
-                    // Check if history length is 1 (meaning it's likely a new window/tab)
                     if (window.history.length === 1) {
                         window.close();
                     }
+                }, 500);
+            });
+
+            window.addEventListener('DOMContentLoaded', () => {
+                setTimeout(() => {
+                    window.focus();
+                    window.print();
                 }, 500);
             });
         }

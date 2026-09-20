@@ -490,7 +490,7 @@
             initAppLayout();
         }
 
-        // Global function for printing without opening new windows (via hidden iframe)
+        // Global function for printing without opening new windows (via offscreen iframe)
         function printOrder(orderId, type = 'all') {
             const oldIframe = document.getElementById('global-print-iframe');
             if (oldIframe) {
@@ -499,19 +499,24 @@
             const iframe = document.createElement('iframe');
             iframe.id = 'global-print-iframe';
             iframe.style.position = 'fixed';
-            iframe.style.width = '0px';
-            iframe.style.height = '0px';
+            iframe.style.left = '-9999px';
+            iframe.style.top = '-9999px';
+            iframe.style.width = '80mm';
+            iframe.style.height = '1000px';
             iframe.style.border = 'none';
-            iframe.style.top = '0';
-            iframe.style.left = '0';
-            iframe.style.opacity = '0';
+            iframe.style.zIndex = '-9999';
             iframe.src = `/orders/${orderId}/print-${type}`;
             
             iframe.onload = function() {
                 setTimeout(() => {
-                    iframe.contentWindow.focus();
-                    iframe.contentWindow.print();
-                }, 300);
+                    try {
+                        iframe.contentWindow.focus();
+                        iframe.contentWindow.print();
+                    } catch (e) {
+                        console.error('Erreur impression iframe, ouverture fenetre secours:', e);
+                        window.open(`/orders/${orderId}/print-${type}`, '_blank', 'width=450,height=750');
+                    }
+                }, 400);
             };
             
             document.body.appendChild(iframe);

@@ -45,6 +45,10 @@
                 page-break-after: avoid;
                 border-bottom: none;
             }
+            .tag-block {
+                border-bottom: none !important;
+                padding: 4mm 2mm !important;
+            }
         }
 
         /* Ticket & tags styling */
@@ -133,16 +137,23 @@
         /* Tags specifics */
         .tag-block {
             text-align: center;
-            padding: 6mm 2mm;
+            padding: 4mm 2mm;
+            border-bottom: none !important;
         }
         .ticket-no {
-            font-size: 28px;
-            font-weight: 900;
-            letter-spacing: 1px;
-            margin-bottom: 1mm;
-            border: 2px solid #000;
-            display: inline-block;
-            padding: 1mm 4mm;
+            font-size: 50px;
+            font-weight: 800;
+            letter-spacing: 5px;
+            margin: 2mm 0 4mm 0;
+            border: 3px solid #000;
+            display: block;
+            width: 100%;
+            padding: 8mm 1mm;
+            text-align: center;
+            font-family: Arial, 'Segoe UI', Helvetica, sans-serif;
+            box-sizing: border-box;
+            line-height: 1;
+            white-space: nowrap;
         }
         .garment-title {
             font-size: 16px;
@@ -157,13 +168,13 @@
             line-height: 1.3;
         }
         .tag-options {
-            font-size: 10px;
+            font-size: 11px;
             font-weight: bold;
             margin-top: 2mm;
-            border: 1px solid #000;
-            padding: 1.5mm;
+            border: none;
+            padding: 1mm 0;
             text-align: left;
-            background: #f0f0f0;
+            background: transparent;
         }
 
         /* Browser Floating button */
@@ -414,16 +425,14 @@
     <!-- PART 2: Hanger Tags -->
     @foreach($tags as $index => $tag)
         <div class="page-block tag-block">
-            <div class="ticket-no">#{{ $order->ticket_number }}</div>
+            <div class="ticket-no"><strong>{{ $order->ticket_number }}</strong></div>
             
             @if($order->is_express)
                 <div style="background-color: #000000; color: #ffffff; text-align: center; padding: 2px 0; font-weight: 900; font-size: 11px; margin: 1mm 0; text-transform: uppercase; letter-spacing: 1px;">
                     !!! EXPRESS !!!
                 </div>
             @endif
-            <p class="font-bold" style="font-size: 14px; margin-top: 1mm;">
-                Vêtement {{ $tag['index'] }} sur {{ $tag['total_qty'] }}
-            </p>
+
             <div class="garment-title">{{ $tag['garment_name'] }}</div>
             <p class="font-bold" style="text-transform: uppercase; font-size: 11px;">
                 SERVICE: {{ $tag['service_name'] }}
@@ -435,16 +444,8 @@
                     <span class="font-bold">{{ $order->client->name }}</span>
                 </div>
                 <div class="info-row">
-                    <span>Code Client:</span>
-                    <span>{{ $order->client->code }}</span>
-                </div>
-                <div class="info-row">
                     <span>Dépôt:</span>
                     <span>{{ $order->order_date->format('d/m/Y') }}</span>
-                </div>
-                <div class="info-row" style="margin-top: 0.5mm;">
-                    <span class="font-bold">LIVRAISON:</span>
-                    <span class="font-bold">{{ $order->target_delivery_date->format('d/m/Y') }}</span>
                 </div>
             </div>
 
@@ -469,12 +470,19 @@
     <!-- Auto Print Script -->
     <script>
         if (window.self === window.top) {
-            window.addEventListener('DOMContentLoaded', () => {
+            // Close window ONLY after user finishes interacting with print dialog (print or cancel)
+            window.addEventListener('afterprint', () => {
                 setTimeout(() => {
-                    window.print();
                     if (window.history.length === 1) {
                         window.close();
                     }
+                }, 500);
+            });
+
+            window.addEventListener('DOMContentLoaded', () => {
+                setTimeout(() => {
+                    window.focus();
+                    window.print();
                 }, 500);
             });
         }
