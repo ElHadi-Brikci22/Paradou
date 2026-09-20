@@ -137,7 +137,7 @@
                                         $itemPrices[$sp->service_id] = $sp->price;
                                     }
                                 @endphp
-                                <tr class="hover:bg-slate-800/10 transition-colors catalog-row" data-target-id="{{ $item->garment_target_id }}" data-subcategory-id="{{ $item->garment_subcategory_id }}">
+                                <tr onclick="handleItemRowClick(event, {{ $item->id }})" class="hover:bg-slate-800/40 transition-colors cursor-pointer group catalog-row" data-target-id="{{ $item->garment_target_id }}" data-subcategory-id="{{ $item->garment_subcategory_id }}">
                                      <td class="py-3 px-6 font-bold text-slate-100 uppercase">
                                          <div class="flex items-center space-x-3">
                                              @if($item->image_path)
@@ -148,7 +148,7 @@
                                                  </div>
                                              @endif
                                              <div class="flex items-center space-x-2">
-                                                 <span>{{ $item->name }}</span>
+                                                 <span class="group-hover:text-indigo-300 transition-colors">{{ $item->name }}</span>
                                                  @if($item->isCarpet())
                                                      <span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-amber-500/15 text-amber-300 border border-amber-500/30 uppercase tracking-wide">
                                                          📐 Tapis (m²)
@@ -192,14 +192,6 @@
                                     @endforeach
                                     <td class="py-3 px-6 text-right">
                                         <div class="flex items-center justify-end space-x-2">
-                                            <button onclick='openEditCatalogModal(@json($item), @json($itemPrices))' 
-                                                    class="bg-slate-800 hover:bg-slate-700 text-indigo-400 p-1.5 rounded-lg border border-slate-700 cursor-pointer transition-colors" 
-                                                    title="Modifier">
-                                                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                                </svg>
-                                            </button>
-
                                             <form action="{{ route('admin.catalog.item.destroy', $item->id) }}" method="POST" class="inline" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cet article du catalogue ?')">
                                                 @csrf
                                                 @method('DELETE')
@@ -235,7 +227,7 @@
                     </thead>
                     <tbody class="divide-y divide-slate-800/50 text-xs text-slate-300">
                         @foreach($targets as $target)
-                            <tr class="hover:bg-slate-800/10 transition-colors">
+                            <tr onclick="handleTargetRowClick(event, {{ $target->id }})" class="hover:bg-slate-800/40 transition-colors cursor-pointer group">
                                 <td class="py-3 px-6 text-center">
                                     <div class="inline-flex items-center space-x-1.5">
                                         <span class="inline-flex items-center justify-center px-2.5 py-1 rounded-lg text-xs font-black font-mono bg-indigo-500/15 text-indigo-300 border border-indigo-500/30">
@@ -260,17 +252,9 @@
                                     </div>
                                 </td>
                                 <td class="py-3 px-6 font-mono text-slate-400">{{ $target->id }}</td>
-                                <td class="py-3 px-6 font-bold text-slate-100 uppercase">{{ $target->name }}</td>
+                                <td class="py-3 px-6 font-bold text-slate-100 uppercase group-hover:text-indigo-300 transition-colors">{{ $target->name }}</td>
                                 <td class="py-3 px-6 text-right">
                                     <div class="flex items-center justify-end space-x-2">
-                                        <button onclick='openEditTargetModal(@json($target))' 
-                                                class="bg-slate-800 hover:bg-slate-700 text-indigo-400 p-1.5 rounded-lg border border-slate-700 cursor-pointer transition-colors"
-                                                title="Modifier">
-                                            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                            </svg>
-                                        </button>
-
                                         <form action="{{ route('admin.catalog.target.destroy', $target->id) }}" method="POST" class="inline" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cette catégorie ? Les articles associés resteront dans le catalogue sans catégorie.')">
                                             @csrf
                                             @method('DELETE')
@@ -319,7 +303,7 @@
                     </thead>
                     <tbody class="divide-y divide-slate-800/50 text-xs text-slate-300">
                         @forelse($subcategories as $sub)
-                            <tr class="hover:bg-slate-800/10 transition-colors subcat-row" data-target-id="{{ $sub->garment_target_id }}">
+                            <tr onclick="handleSubcategoryRowClick(event, {{ $sub->id }})" class="hover:bg-slate-800/40 transition-colors cursor-pointer group subcat-row" data-target-id="{{ $sub->garment_target_id }}">
                                 <td class="py-3 px-6 text-center">
                                     <div class="inline-flex items-center space-x-1.5">
                                         <span class="inline-flex items-center justify-center px-2.5 py-1 rounded-lg text-xs font-black font-mono bg-indigo-500/15 text-indigo-300 border border-indigo-500/30">
@@ -343,7 +327,7 @@
                                         </div>
                                     </div>
                                 </td>
-                                <td class="py-3 px-6 font-bold text-slate-100 uppercase">
+                                <td class="py-3 px-6 font-bold text-slate-100 uppercase group-hover:text-indigo-300 transition-colors">
                                     {{ $sub->name }}
                                 </td>
                                 <td class="py-3 px-6">
@@ -358,14 +342,6 @@
                                 </td>
                                 <td class="py-3 px-6 text-right">
                                     <div class="flex items-center justify-end space-x-2">
-                                        <button onclick='openEditSubcategoryModal(@json($sub))' 
-                                                class="bg-slate-800 hover:bg-slate-700 text-indigo-400 p-1.5 rounded-lg border border-slate-700 cursor-pointer transition-colors"
-                                                title="Modifier">
-                                            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                            </svg>
-                                        </button>
-
                                         <form action="{{ route('admin.catalog.subcategory.destroy', $sub->id) }}" method="POST" class="inline" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cette sous-catégorie ? Les articles resteront dans le catalogue sans sous-catégorie.')">
                                             @csrf
                                             @method('DELETE')
@@ -407,7 +383,7 @@
                     </thead>
                     <tbody class="divide-y divide-slate-800/50 text-xs text-slate-300">
                         @foreach($services as $service)
-                            <tr class="hover:bg-slate-800/10 transition-colors">
+                            <tr onclick="handleServiceRowClick(event, {{ $service->id }})" class="hover:bg-slate-800/40 transition-colors cursor-pointer group">
                                 <td class="py-3 px-6 text-center">
                                     <div class="inline-flex items-center space-x-1.5">
                                         <span class="inline-flex items-center justify-center px-2.5 py-1 rounded-lg text-xs font-black font-mono bg-indigo-500/15 text-indigo-300 border border-indigo-500/30">
@@ -432,18 +408,10 @@
                                     </div>
                                 </td>
                                 <td class="py-3 px-6 font-mono text-slate-400">{{ $service->id }}</td>
-                                <td class="py-3 px-6 font-bold text-slate-100 uppercase">{{ $service->name }}</td>
+                                <td class="py-3 px-6 font-bold text-slate-100 uppercase group-hover:text-indigo-300 transition-colors">{{ $service->name }}</td>
                                 <td class="py-3 px-6 font-mono text-slate-400">{{ $service->code }}</td>
                                 <td class="py-3 px-6 text-right">
                                     <div class="flex items-center justify-end space-x-2">
-                                        <button onclick='openEditServiceModal(@json($service))' 
-                                                class="bg-slate-800 hover:bg-slate-700 text-indigo-400 p-1.5 rounded-lg border border-slate-700 cursor-pointer transition-colors"
-                                                title="Modifier">
-                                            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                            </svg>
-                                        </button>
-
                                         <form action="{{ route('admin.catalog.service.destroy', $service->id) }}" method="POST" class="inline" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer ce service ? Tous les tarifs associés dans la base de données seront effacés.')">
                                             @csrf
                                             @method('DELETE')
@@ -919,6 +887,60 @@
 
     window.closeServiceModal = function() {
         document.getElementById('service-modal').classList.add('hidden');
+    };
+
+    // ================= TOUCH-SCREEN ROW CLICK REDIRECTION =================
+    const targetsMap = @json($targets->keyBy('id'));
+    const subcategoriesMap = @json($subcategories->keyBy('id'));
+    const servicesMap = @json($services->keyBy('id'));
+    const itemsMap = @json($items->keyBy('id'));
+    const itemPricesMap = {};
+    @foreach($items as $it)
+        itemPricesMap[{{ $it->id }}] = {};
+        @foreach($it->servicePrices as $sp)
+            itemPricesMap[{{ $it->id }}]['{{ $sp->service_id }}'] = {{ $sp->price }};
+        @endforeach
+    @endforeach
+
+    window.handleItemRowClick = function(event, itemId) {
+        if (event.target.closest('button, a, input, select, form')) {
+            return;
+        }
+        const item = itemsMap[itemId];
+        const prices = itemPricesMap[itemId] || {};
+        if (item) {
+            openEditCatalogModal(item, prices);
+        }
+    };
+
+    window.handleTargetRowClick = function(event, targetId) {
+        if (event.target.closest('button, a, input, select, form')) {
+            return;
+        }
+        const target = targetsMap[targetId];
+        if (target) {
+            openEditTargetModal(target);
+        }
+    };
+
+    window.handleSubcategoryRowClick = function(event, subId) {
+        if (event.target.closest('button, a, input, select, form')) {
+            return;
+        }
+        const sub = subcategoriesMap[subId];
+        if (sub) {
+            openEditSubcategoryModal(sub);
+        }
+    };
+
+    window.handleServiceRowClick = function(event, serviceId) {
+        if (event.target.closest('button, a, input, select, form')) {
+            return;
+        }
+        const service = servicesMap[serviceId];
+        if (service) {
+            openEditServiceModal(service);
+        }
     };
 </script>
 @endsection

@@ -83,13 +83,13 @@
                     </thead>
                     <tbody class="divide-y divide-slate-800/50 text-xs text-slate-300">
                         @forelse($clients as $client)
-                            <tr class="hover:bg-slate-800/10 transition-colors">
+                            <tr @if($client->code !== 'GUEST') onclick="handleClientRowClick(event, {{ $client->id }})" class="hover:bg-slate-800/40 transition-colors cursor-pointer group" @else class="hover:bg-slate-800/10 transition-colors" @endif>
                                 <td class="py-3.5 px-6 font-mono text-slate-400 font-bold">
                                     {{ $client->code }}
                                 </td>
                                 <td class="py-3.5 px-6">
                                     <div class="flex flex-col">
-                                        <span class="font-bold text-slate-100 uppercase">{{ $client->name }}</span>
+                                        <span class="font-bold text-slate-100 uppercase group-hover:text-indigo-300 transition-colors">{{ $client->name }}</span>
                                         @if($client->email)
                                             <span class="text-[10px] text-slate-500 mt-0.5">{{ $client->email }}</span>
                                         @endif
@@ -121,14 +121,6 @@
                                     <div class="flex items-center justify-end space-x-2">
                                         <!-- Do not allow modifications of GUEST client -->
                                         @if($client->code !== 'GUEST')
-                                            <button onclick="openEditClientModal({{ $client->id }}, '{{ addslashes($client->code) }}', '{{ addslashes($client->name) }}', '{{ addslashes($client->phone) }}', '{{ addslashes($client->email) }}', '{{ addslashes($client->address) }}', {{ $client->discount_percent }}, {{ $client->credit }}, '{{ addslashes($client->remarks) }}')" 
-                                                    class="bg-slate-800 hover:bg-slate-700 text-indigo-400 p-1.5 rounded-lg border border-slate-700 cursor-pointer transition-colors" 
-                                                    title="Modifier">
-                                                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                                </svg>
-                                            </button>
-
                                             <form action="{{ route('admin.clients.destroy', $client->id) }}" method="POST" class="inline" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer ce client ?')">
                                                 @csrf
                                                 @method('DELETE')
@@ -276,6 +268,28 @@
 
     window.closeClientModal = function() {
         document.getElementById('client-modal').classList.add('hidden');
+    };
+
+    // ================= TOUCH-SCREEN ROW CLICK REDIRECTION =================
+    const clientsMap = @json($clients->keyBy('id'));
+
+    window.handleClientRowClick = function(event, clientId) {
+        if (event.target.closest('button, a, input, select, form')) {
+            return;
+        }
+        const client = clientsMap[clientId];
+        if (!client || client.code === 'GUEST') return;
+        openEditClientModal(
+            client.id, 
+            client.code || '', 
+            client.name || '', 
+            client.phone || '', 
+            client.email || '', 
+            client.address || '', 
+            client.discount_percent || 0, 
+            client.credit || 0, 
+            client.remarks || ''
+        );
     };
 </script>
 @endsection

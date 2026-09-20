@@ -46,12 +46,12 @@
                 </thead>
                 <tbody class="divide-y divide-slate-800/50 text-xs text-slate-300">
                     @foreach($users as $user)
-                        <tr class="hover:bg-slate-800/10 transition-colors">
+                        <tr onclick="handleUserRowClick(event, {{ $user->id }})" class="hover:bg-slate-800/40 transition-colors cursor-pointer group">
                             <td class="py-3.5 px-6 font-bold text-slate-100 flex items-center space-x-3">
                                 <div class="h-7 w-7 rounded-full bg-slate-700 flex items-center justify-center font-bold text-indigo-400 uppercase">
                                     {{ substr($user->name, 0, 1) }}
                                 </div>
-                                <span>{{ $user->name }}</span>
+                                <span class="group-hover:text-indigo-300 transition-colors">{{ $user->name }}</span>
                             </td>
                             <td class="py-3.5 px-6 font-mono">{{ $user->email }}</td>
                             <td class="py-3.5 px-6 text-center">
@@ -61,13 +61,6 @@
                             </td>
                             <td class="py-3.5 px-6 text-right">
                                 <div class="flex items-center justify-end space-x-2">
-                                    <button onclick='openEditUserModal({{ json_encode($user) }})' 
-                                            class="bg-slate-800 hover:bg-slate-700 text-indigo-400 p-1.5 rounded-lg border border-slate-700 cursor-pointer" title="Modifier">
-                                        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                        </svg>
-                                    </button>
-
                                     <!-- Delete form -->
                                     <form action="{{ route('admin.users.destroy', $user->id) }}" method="POST" class="inline" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cet utilisateur ?')">
                                         @csrf
@@ -200,6 +193,18 @@
     }
     function closeAddUserModal() {
         document.getElementById('add-user-modal').classList.add('hidden');
+    }
+
+    const usersMap = @json($users->keyBy('id'));
+
+    function handleUserRowClick(event, userId) {
+        if (event.target.closest('button, a, input, select, form')) {
+            return;
+        }
+        const user = usersMap[userId];
+        if (user) {
+            openEditUserModal(user);
+        }
     }
 
     function openEditUserModal(user) {
