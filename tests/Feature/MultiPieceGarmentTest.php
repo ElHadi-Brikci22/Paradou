@@ -190,12 +190,12 @@ class MultiPieceGarmentTest extends TestCase
         $response = $this->actingAs($this->cashier)->get("/orders/{$order->id}/print-tags");
         $response->assertStatus(200);
 
-        // Should have 3 tags for the 3 pieces
-        $response->assertSee('PIÈCE 1 / 3');
-        $response->assertSee('PIÈCE 2 / 3');
-        $response->assertSee('PIÈCE 3 / 3');
-        $response->assertSee('Nombre de pièces = 3 (Article composé)');
-        // Does NOT mention piece names
+        // Should show service and Nbr Pieces=3 next to it
+        $response->assertSee('SERVICE: Nettoyage à sec');
+        $response->assertSee('Nbr Pieces=3');
+        // Ensure old banners are removed
+        $response->assertDontSee('PIÈCE 1 / 3');
+        $response->assertDontSee('Nombre de pièces = 3');
         $response->assertDontSee('Veste');
         $response->assertDontSee('Pantalon');
     }
