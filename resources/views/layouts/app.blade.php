@@ -341,19 +341,12 @@
             @endif
         </nav>
 
-        <div class="flex items-center space-x-4 sm:space-x-5">
-            <!-- Network Watchdog & Dual-Mode Status Badge (Online / Offline Secours) -->
-            <div id="dual-mode-badge" onclick="triggerManualSync()" class="cursor-pointer flex items-center space-x-2 px-3 py-1.5 rounded-full text-xs font-bold tracking-wide transition-all select-none bg-emerald-500/10 text-emerald-400 border border-emerald-500/25 hover:bg-emerald-500/20" title="État de la connexion Cloud - Cliquer pour synchroniser">
-                <span id="dual-mode-dot" class="h-2.5 w-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
-                <span id="dual-mode-label" class="font-display">EN LIGNE (CLOUD)</span>
-                <span id="dual-mode-queue" class="hidden bg-amber-500/30 text-amber-300 text-[10px] px-1.5 py-0.5 rounded-full border border-amber-500/40">0</span>
-            </div>
-
-            <!-- Clock -->
-            <div class="text-right hidden sm:block">
-                <p id="clock-date" class="text-xs text-slate-400 font-medium"></p>
-                <p id="clock-time" class="text-sm font-bold text-slate-200 font-display"></p>
-            </div>
+        <div class="flex items-center space-x-3 sm:space-x-4">
+            <!-- Network Status Indicator Dot (Vert: En Ligne / Rouge: Offline / Orange: Synchro) -->
+            <button id="dual-mode-indicator" onclick="triggerManualSync()" class="relative p-2 rounded-lg bg-slate-800 border border-slate-700 hover:border-slate-600 transition-colors flex items-center justify-center cursor-pointer" title="En Ligne (Cloud) - Cliquer pour vérifier la synchronisation">
+                <span id="dual-mode-dot" class="h-3.5 w-3.5 rounded-full bg-emerald-500 shadow-sm shadow-emerald-500/60"></span>
+                <span id="dual-mode-queue" class="hidden absolute -top-1.5 -right-1.5 bg-rose-600 text-white text-[9px] font-bold h-4 min-w-[16px] px-1 rounded-full flex items-center justify-center border border-slate-900 shadow">0</span>
+            </button>
 
             <div class="h-8 w-px bg-slate-700/50"></div>
 
@@ -664,34 +657,31 @@
         window.isAppSyncing = false;
 
         function updateDualModeStatus() {
-            const badge = document.getElementById('dual-mode-badge');
+            const btn = document.getElementById('dual-mode-indicator');
             const dot = document.getElementById('dual-mode-dot');
-            const label = document.getElementById('dual-mode-label');
             const queueBadge = document.getElementById('dual-mode-queue');
-            if (!badge || !dot || !label) return;
+            if (!btn || !dot) return;
 
             const queue = JSON.parse(localStorage.getItem('pos_pending_offline_orders') || '[]');
             const isOnline = navigator.onLine;
 
-            if (queue.length > 0) {
+            if (queue.length > 0 && queueBadge) {
                 queueBadge.classList.remove('hidden');
-                queueBadge.textContent = `${queue.length} en attente`;
-            } else {
+                queueBadge.textContent = queue.length;
+            } else if (queueBadge) {
                 queueBadge.classList.add('hidden');
             }
 
+            // Vert: En Ligne | Rouge: Offline | Orange: Synchronisation
             if (!isOnline) {
-                badge.className = "cursor-pointer flex items-center space-x-2 px-3 py-1.5 rounded-full text-xs font-bold tracking-wide transition-all select-none bg-amber-500/15 text-amber-300 border border-amber-500/35 shadow-sm shadow-amber-500/10";
-                dot.className = "h-2.5 w-2.5 rounded-full bg-amber-400 animate-ping";
-                label.textContent = "MODE SECOURS (HORS-LIGNE)";
+                dot.className = "h-3.5 w-3.5 rounded-full bg-rose-500 shadow-md shadow-rose-500/60 animate-pulse";
+                btn.title = "Hors-Ligne (Mode Secours) - " + (queue.length ? queue.length + " commande(s) locale(s) en attente" : "Connexion coupée");
             } else if (window.isAppSyncing) {
-                badge.className = "cursor-pointer flex items-center space-x-2 px-3 py-1.5 rounded-full text-xs font-bold tracking-wide transition-all select-none bg-indigo-500/20 text-indigo-300 border border-indigo-500/35";
-                dot.className = "h-2.5 w-2.5 rounded-full bg-indigo-400 animate-spin";
-                label.textContent = "SYNCHRONISATION...";
+                dot.className = "h-3.5 w-3.5 rounded-full bg-amber-500 shadow-md shadow-amber-500/60 animate-ping";
+                btn.title = "Synchronisation avec le Cloud en cours...";
             } else {
-                badge.className = "cursor-pointer flex items-center space-x-2 px-3 py-1.5 rounded-full text-xs font-bold tracking-wide transition-all select-none bg-emerald-500/10 text-emerald-400 border border-emerald-500/25 hover:bg-emerald-500/20";
-                dot.className = "h-2.5 w-2.5 rounded-full bg-emerald-400 animate-pulse";
-                label.textContent = "EN LIGNE (CLOUD)";
+                dot.className = "h-3.5 w-3.5 rounded-full bg-emerald-500 shadow-md shadow-emerald-500/50";
+                btn.title = "En Ligne (Cloud) - Cliquer pour vérifier la synchronisation";
             }
         }
 
