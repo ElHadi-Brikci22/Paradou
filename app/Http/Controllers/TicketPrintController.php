@@ -26,9 +26,12 @@ class TicketPrintController extends Controller
         $order = Order::with(['client', 'orderItems.service', 'orderItems.garmentItem'])
             ->findOrFail($id);
 
-        $tags = $this->buildTagsList($order);
+        $tagsData = $this->buildTagsSummary($order);
+        $tags = $tagsData['tags'];
+        $itemsSummary = $tagsData['items_summary'];
+        $totalOrderPieces = $tagsData['total_pieces'];
 
-        return view('print.tags', compact('order', 'tags'));
+        return view('print.tags', compact('order', 'tags', 'itemsSummary', 'totalOrderPieces'));
     }
 
     /**
@@ -39,17 +42,23 @@ class TicketPrintController extends Controller
         $order = Order::with(['client', 'user', 'orderItems.service', 'orderItems.garmentItem'])
             ->findOrFail($id);
 
-        $tags = $this->buildTagsList($order);
+        $tagsData = $this->buildTagsSummary($order);
+        $tags = $tagsData['tags'];
+        $itemsSummary = $tagsData['items_summary'];
+        $totalOrderPieces = $tagsData['total_pieces'];
 
-        return view('print.all', compact('order', 'tags'));
+        return view('print.all', compact('order', 'tags', 'itemsSummary', 'totalOrderPieces'));
     }
 
     /**
-     * Generate individual tags for each physical piece of each order item.
+     * Generate tags summary and pieces count for the order.
      */
-    private function buildTagsList(Order $order): array
+    private function buildTagsSummary(Order $order): array
     {
         $tags = [];
+        $itemsSummary = [];
+        $totalOrderPieces = 0;
+
         foreach ($order->orderItems as $item) {
             $garment = $item->garmentItem;
             $piecesPerItem = $garment ? max(1, intval($garment->pieces_count ?: 1)) : 1;
@@ -60,8 +69,23 @@ class TicketPrintController extends Controller
                 : ($qty * $piecesPerItem);
             $totalPieces = max(1, $totalPieces);
 
+            $totalOrderPieces += $totalPieces;
             $isMultiPiece = ($piecesPerItem > 1 || $totalPieces > 1);
 
+            $itemsSummary[] = [
+                'name' => $garment ? $garment->name : 'Article',
+                'service' => $item->service ? $item->service->name : 'Service',
+                'quantity' => $qty,
+                'pieces' => $totalPieces,
+                'pieces_per_item' => $piecesPerItem,
+                'is_multi_piece' => $isMultiPiece,
+                'colors' => $item->colors,
+                'defects' => $item->defects,
+                'stains' => $item->stains,
+                'notes' => $item->notes
+            ];
+
+            // Retain individual tag items for backward compatibility
             for ($i = 0; $i < $totalPieces; $i++) {
                 $tags[] = [
                     'index' => ($i + 1),
@@ -77,6 +101,11 @@ class TicketPrintController extends Controller
                 ];
             }
         }
-        return $tags;
+
+        return [
+            'tags' => $tags,
+            'items_summary' => $itemsSummary,
+            'total_pieces' => $totalOrderPieces
+        ];
     }
 }

@@ -416,7 +416,8 @@
 
     <!-- Auto Print Script -->
     <script>
-        if (window.self === window.top) {
+        const isElectron = navigator.userAgent.toLowerCase().includes('electron') || !!window.posDesktop;
+        if (window.self === window.top && !isElectron) {
             // Close window ONLY after user finishes interacting with print dialog (print or cancel)
             window.addEventListener('afterprint', () => {
                 setTimeout(() => {

@@ -515,6 +515,7 @@
         }
 
         // -------------------------------------------------------------
+        // -------------------------------------------------------------
         // MULTI-PRINTER CONFIGURATION & SILENT ESC/POS ROUTING
         // -------------------------------------------------------------
         function getPrinterConfig() {
@@ -530,6 +531,29 @@
             };
         }
 
+        async function getMergedPrinterConfig() {
+            let cfg = getPrinterConfig();
+            if (window.posDesktop && typeof window.posDesktop.getConfig === 'function') {
+                try {
+                    const desktopCfg = await window.posDesktop.getConfig();
+                    if (desktopCfg) {
+                        cfg = { ...cfg, ...desktopCfg };
+                        try {
+                            localStorage.setItem('pos_printers_cfg', JSON.stringify(cfg));
+                        } catch(e) {}
+                    }
+                } catch (e) {
+                    console.warn('Erreur lecture desktop config:', e);
+                }
+            }
+            return cfg;
+        }
+
+        // Synchronisation automatique de la configuration au chargement
+        document.addEventListener('DOMContentLoaded', async () => {
+            await getMergedPrinterConfig();
+        });
+
         async function openPrinterConfigModal() {
             const modal = document.getElementById('modal-printers-config');
             const receiptSelect = document.getElementById('cfg-printer-receipt');
@@ -541,17 +565,7 @@
             if (!modal) return;
 
             // Load saved settings
-            let cfg = getPrinterConfig();
-            if (window.posDesktop && typeof window.posDesktop.getConfig === 'function') {
-                try {
-                    const desktopCfg = await window.posDesktop.getConfig();
-                    if (desktopCfg) {
-                        cfg = { ...cfg, ...desktopCfg };
-                    }
-                } catch (e) {
-                    console.warn('Error reading desktop config:', e);
-                }
-            }
+            let cfg = await getMergedPrinterConfig();
 
             if (autoReceipt) autoReceipt.checked = cfg.autoPrintReceipt !== false;
             if (autoTags) autoTags.checked = cfg.autoPrintTags !== false;
@@ -637,7 +651,7 @@
         }
 
         async function testPrinter(role) {
-            const cfg = getPrinterConfig();
+            const cfg = await getMergedPrinterConfig();
             const targetPrinter = role === 'receipt' 
                 ? (document.getElementById('cfg-printer-receipt')?.value || cfg.receiptPrinter)
                 : (document.getElementById('cfg-printer-tags')?.value || cfg.tagPrinter);
@@ -657,21 +671,21 @@
                     + '<p style="font-size: 11px; margin: 0;">Imprimante dédiée aux Factures & Reçus Clients 80mm.</p>'
                     + '</div>';
             } else {
-                testHtml = '<div style="font-family: monospace; width: 72mm; padding: 8px; font-size: 13px; text-align: center; color: #000;">'
+                testHtml = '<div style="font-family: Arial, sans-serif; width: 72mm; padding: 6px; font-size: 12px; text-align: center; color: #000;">'
                     + '<div style="border: 2px solid #000; padding: 6px; border-radius: 4px;">'
-                    + '<div style="font-size: 11px; font-weight: bold;">PARADOU - ÉTIQUETTE CINTRE</div>'
-                    + '<div style="font-size: 32px; font-weight: 900; margin: 2px 0;">#00999</div>'
-                    + '<div style="border-top: 1px dashed #000; margin: 6px 0;"></div>'
-                    + '<p style="margin: 3px 0; font-weight: bold;">1/1 - COSTUME 2 PCS</p>'
-                    + '<p style="margin: 3px 0; font-size: 11px;">BLEU MARINE | PRESSING</p>'
-                    + '<div style="border-top: 1px dashed #000; margin: 6px 0;"></div>'
-                    + '<p style="font-size: 10px; margin: 0;">Périphérique : ' + (targetPrinter || 'Défaut Windows') + '</p>'
+                    + '<div style="font-size: 10px; font-weight: bold; text-transform: uppercase;">PARADOU - ÉTIQUETTE CINTRE</div>'
+                    + '<div style="background:#000; color:#fff; font-size: 28px; font-weight: 900; margin: 3px 0; padding: 2px 0; border-radius: 3px;">#TEST</div>'
+                    + '<div style="border-top: 1px dashed #000; margin: 5px 0;"></div>'
+                    + '<p style="margin: 2px 0; font-weight: 900; font-size: 12px;">1x COSTUME 2 PIÈCES</p>'
+                    + '<p style="margin: 2px 0; font-size: 10px; font-weight: bold;">PRESSING | Nbr Pieces=2</p>'
+                    + '<div style="border-top: 1px dashed #000; margin: 5px 0;"></div>'
+                    + '<p style="font-size: 10px; margin: 0; font-weight: bold;">TEST OK : 1 SEUL TICKET ADAPTÉ</p>'
                     + '</div></div>';
             }
 
             if (window.posDesktop && typeof window.posDesktop.silentPrint === 'function') {
                 try {
-                    const res = await window.posDesktop.silentPrint(testHtml, targetPrinter);
+                    const res = await window.posDesktop.silentPrint(testHtml, targetPrinter, { singlePage: true });
                     if (res && res.success === false) {
                         showAppAlert(`Échec du test : ${res.error || 'Erreur inconnue'}`, "error", "Erreur d'impression");
                     } else {
@@ -694,7 +708,7 @@
 
         // Global function for printing without opening new windows (Multi-Printer Silent ESC/POS Routing)
         async function printOrder(orderId, type = 'all') {
-            const cfg = getPrinterConfig();
+            const cfg = await getMergedPrinterConfig();
 
             // 1. Silent ESC/POS Printing via Electron Desktop
             if (window.posDesktop && typeof window.posDesktop.silentPrint === 'function') {
@@ -707,17 +721,17 @@
                         return;
                     }
 
-                    // Type: 'tags' -> Étiquettes Cintres / Laverie
+                    // Type: 'tags' -> Étiquette Cintre Unique Adaptée
                     if (type === 'tags') {
                         const r = await fetch(`/orders/${orderId}/print-tags`);
                         const html = await r.text();
-                        await window.posDesktop.silentPrint(html, cfg.tagPrinter || '');
+                        await window.posDesktop.silentPrint(html, cfg.tagPrinter || '', { singlePage: true });
                         return;
                     }
 
-                    // Type: 'all' -> Validation commande / Impression complète
+                    // Type: 'all' -> Validation commande / Impression automatique
                     if (type === 'all') {
-                        // Si deux imprimantes distinctes sont configurées
+                        // Cas A: Deux imprimantes distinctes sont configurées (Reçu + Étiquettes)
                         if (cfg.receiptPrinter && cfg.tagPrinter && cfg.receiptPrinter !== cfg.tagPrinter) {
                             if (cfg.autoPrintReceipt !== false) {
                                 fetch(`/orders/${orderId}/print-ticket`)
@@ -728,16 +742,39 @@
                             if (cfg.autoPrintTags !== false) {
                                 fetch(`/orders/${orderId}/print-tags`)
                                     .then(r => r.text())
-                                    .then(html => window.posDesktop.silentPrint(html, cfg.tagPrinter))
+                                    .then(html => window.posDesktop.silentPrint(html, cfg.tagPrinter, { singlePage: true }))
                                     .catch(e => console.error('Erreur print tags:', e));
                             }
                             return;
                         }
 
-                        // Sinon imprimante unique (ou par défaut) : impression du combiné
-                        const r = await fetch(`/orders/${orderId}/print-all`);
-                        const html = await r.text();
-                        await window.posDesktop.silentPrint(html, cfg.receiptPrinter || cfg.tagPrinter || '');
+                        // Cas B: Seule l'imprimante d'étiquettes / cintres est configurée (ex: Xprinter XP-420B)
+                        if (!cfg.receiptPrinter && cfg.tagPrinter) {
+                            if (cfg.autoPrintTags !== false) {
+                                const r = await fetch(`/orders/${orderId}/print-tags`);
+                                const html = await r.text();
+                                await window.posDesktop.silentPrint(html, cfg.tagPrinter, { singlePage: true });
+                            }
+                            return;
+                        }
+
+                        // Cas C: Seule l'imprimante de reçu est configurée
+                        if (cfg.receiptPrinter && !cfg.tagPrinter) {
+                            if (cfg.autoPrintReceipt !== false) {
+                                const r = await fetch(`/orders/${orderId}/print-ticket`);
+                                const html = await r.text();
+                                await window.posDesktop.silentPrint(html, cfg.receiptPrinter);
+                            }
+                            return;
+                        }
+
+                        // Cas D: Imprimante par défaut Windows (ou pas encore configurée)
+                        // On envoie exclusivement l'étiquette cintre unique adaptée
+                        if (cfg.autoPrintTags !== false) {
+                            const r = await fetch(`/orders/${orderId}/print-tags`);
+                            const html = await r.text();
+                            await window.posDesktop.silentPrint(html, cfg.tagPrinter || cfg.receiptPrinter || '', { singlePage: true });
+                        }
                         return;
                     }
                 } catch (err) {
@@ -746,6 +783,7 @@
             }
 
             // 2. Fallback Navigateur Standard (Offscreen iframe)
+            const targetType = (type === 'all') ? 'tags' : type;
             const oldIframe = document.getElementById('global-print-iframe');
             if (oldIframe) {
                 oldIframe.remove();
@@ -755,11 +793,11 @@
             iframe.style.position = 'fixed';
             iframe.style.left = '-9999px';
             iframe.style.top = '-9999px';
-            iframe.style.width = '80mm';
+            iframe.style.width = '76mm';
             iframe.style.height = '1000px';
             iframe.style.border = 'none';
             iframe.style.zIndex = '-9999';
-            iframe.src = `/orders/${orderId}/print-${type}`;
+            iframe.src = `/orders/${orderId}/print-${targetType}`;
             
             iframe.onload = function() {
                 setTimeout(() => {
@@ -768,12 +806,11 @@
                         iframe.contentWindow.print();
                     } catch (e) {
                         console.error('Erreur impression iframe, ouverture fenetre secours:', e);
-                        window.open(`/orders/${orderId}/print-${type}`, '_blank', 'width=450,height=750');
+                        window.open(`/orders/${orderId}/print-${targetType}`, '_blank', 'width=320,height=600');
                     }
-                }, 400);
+                }, 500);
             };
-            
-            document.body.appendChild(iframe);
+
         }
 
         // Custom Alert Logic

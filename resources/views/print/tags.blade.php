@@ -3,107 +3,195 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Étiquettes Cintres {{ $order->ticket_number }}</title>
+    <title>Étiquette Cintre #{{ $order->ticket_number }}</title>
     <style>
-        /* CSS reset & thermal paper configurations */
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
         }
-        body {
-            width: 80mm;
+        @page {
+            margin: 0;
+            size: 76mm auto;
+        }
+        html, body {
+            width: 76mm;
+            max-width: 76mm;
             margin: 0 auto;
-            padding: 4mm 3mm;
-            font-family: 'Courier New', Courier, monospace;
-            font-size: 12px;
+            padding: 2mm 2.5mm;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+            font-size: 11px;
             color: #000;
             background: #fff;
-            line-height: 1.4;
+            line-height: 1.25;
+            overflow: hidden;
         }
-
-        /* Hide elements on print */
         @media print {
-            body {
-                width: 80mm;
-                margin: 0 auto;
-                padding: 4mm 3mm;
+            html, body {
+                width: 76mm;
+                max-width: 76mm;
+                margin: 0;
+                padding: 1.5mm 2mm;
+                overflow: hidden;
             }
             .no-print {
                 display: none !important;
             }
-            @page {
-                margin: 0;
-                size: 80mm auto;
-            }
-            .tag-block {
-                page-break-after: always;
-                border-bottom: none;
-                padding: 4mm 2mm !important;
-            }
-            .tag-block:last-child {
-                page-break-after: avoid;
-                border-bottom: none;
+            .cintre-tag-card {
+                page-break-inside: avoid !important;
+                page-break-after: avoid !important;
+                break-inside: avoid !important;
             }
         }
 
-        /* Hanger Tag Styling */
-        .tag-block {
-            padding: 4mm 2mm;
-            border-bottom: none;
-            text-align: center;
-        }
-        .tag-block:last-child {
-            border-bottom: none;
+        .cintre-tag-card {
+            border: 2px solid #000;
+            border-radius: 6px;
+            padding: 2.5mm 2.5mm;
+            text-align: left;
+            background: #fff;
+            page-break-inside: avoid;
+            page-break-after: avoid;
+            break-inside: avoid;
         }
 
-        .ticket-no {
-            font-size: 50px;
-            font-weight: 800;
-            letter-spacing: 5px;
-            margin: 2mm 0 4mm 0;
-            border: 3px solid #000;
+        /* En-tête Numéro Ticket Géant (Blanc sur Fond Noir) */
+        .ticket-no-box {
+            font-size: 34px;
+            font-weight: 900;
+            letter-spacing: 1.5px;
+            border: 2px solid #000;
+            border-radius: 4px;
             display: block;
             width: 100%;
-            padding: 8mm 1mm;
+            padding: 2.5mm 1mm;
             text-align: center;
-            font-family: Arial, 'Segoe UI', Helvetica, sans-serif;
-            box-sizing: border-box;
             line-height: 1;
+            white-space: nowrap;
+            background: #000;
+            color: #fff;
+            margin-bottom: 2mm;
+        }
+
+        .express-banner {
+            background-color: #000;
+            color: #fff;
+            text-align: center;
+            padding: 1.5mm 0;
+            font-weight: 900;
+            font-size: 12px;
+            margin-bottom: 2mm;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            border-radius: 3px;
+        }
+
+        /* Section Informations Client & Dates */
+        .meta-table {
+            width: 100%;
+            font-size: 11px;
+            font-weight: bold;
+            margin-bottom: 2mm;
+            border-bottom: 1.5px dashed #000;
+            padding-bottom: 1.5mm;
+        }
+        .meta-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1mm;
+        }
+        .meta-label {
+            color: #222;
+            text-transform: uppercase;
+            font-size: 10px;
+            font-weight: 800;
+        }
+        .meta-val {
+            font-weight: 900;
+            text-align: right;
+        }
+        .badge-payment {
+            display: inline-block;
+            padding: 0.5mm 2mm;
+            border-radius: 3px;
+            font-size: 10px;
+            font-weight: 900;
+            text-transform: uppercase;
+        }
+        .badge-paid {
+            border: 1.5px solid #000;
+            background: #fff;
+            color: #000;
+        }
+        .badge-unpaid {
+            background: #000;
+            color: #fff;
+        }
+
+        /* Liste des Articles */
+        .items-list {
+            margin-bottom: 2mm;
+        }
+        .item-row {
+            margin-bottom: 1.5mm;
+            padding-bottom: 1.5mm;
+            border-bottom: 1px dotted #888;
+        }
+        .item-row:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+        .item-title {
+            font-size: 12.5px;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+        .item-subline {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 10px;
+            font-weight: 800;
+            text-transform: uppercase;
+            margin-top: 0.8mm;
+        }
+        .pieces-highlight {
+            background: #000;
+            color: #fff;
+            padding: 0.4mm 1.8mm;
+            border-radius: 3px;
+            font-size: 9.5px;
+            font-weight: 900;
             white-space: nowrap;
         }
 
-        .garment-title {
-            font-size: 16px;
-            font-weight: bold;
-            margin: 2mm 0;
+        .item-opts {
+            font-size: 9.5px;
+            font-weight: 700;
+            margin-top: 0.8mm;
+            color: #111;
+            padding-left: 1.5mm;
+        }
+
+        /* Total Cintre (Bas d'étiquette) */
+        .total-summary {
+            border-top: 2px solid #000;
+            margin-top: 2mm;
+            padding-top: 1.5mm;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 13px;
+            font-weight: 900;
             text-transform: uppercase;
         }
 
-        .details-box {
-            text-align: left;
-            font-size: 11px;
-            margin-top: 2mm;
-            line-height: 1.3;
-        }
-
-        .details-row {
-            display: flex;
-            justify-content: space-between;
-        }
-
-        /* Options layout (no borders) */
-        .tag-options {
-            font-size: 11px;
-            font-weight: bold;
-            margin-top: 2mm;
-            border: none;
-            padding: 1mm 0;
-            text-align: left;
-            background: transparent;
-        }
-
-        /* Print float controller (visible in browser view) */
+        /* Bouton Navigateur pour aperçu manuel */
         .print-btn-container {
             position: fixed;
             bottom: 20px;
@@ -120,75 +208,93 @@
             font-size: 13px;
             cursor: pointer;
             box-shadow: 0 4px 6px -1px rgba(0,0,0,0.2);
-            font-family: sans-serif;
-        }
-        .print-btn:hover {
-            background: #4338ca;
         }
     </style>
 </head>
 <body>
-
-    <!-- Browser Action Button (Hidden during print) -->
     <div class="print-btn-container no-print">
-        <button onclick="window.print()" class="print-btn">Imprimer les Étiquettes</button>
+        <button onclick="window.print()" class="print-btn">Imprimer l'Étiquette Cintre</button>
     </div>
 
-    <!-- Tags Container -->
-    @foreach($tags as $index => $tag)
-        <div class="tag-block">
-            <!-- Massive Ticket Number for immediate workshop visibility -->
-            <div class="ticket-no"><strong>{{ $order->ticket_number }}</strong></div>
-            
-            @if($order->is_express)
-                <div style="background-color: #000000; color: #ffffff; text-align: center; padding: 2px 0; font-weight: 900; font-size: 11px; margin: 1mm 0; text-transform: uppercase; letter-spacing: 1px;">
-                    !!! EXPRESS !!!
-                </div>
-            @endif
+    <div class="cintre-tag-card">
+        <!-- Numéro de ticket géant pour lecture rapide en atelier -->
+        <div class="ticket-no-box">#{{ $order->ticket_number }}</div>
 
-            <!-- Garment Description -->
-            <div class="garment-title">{{ $tag['garment_name'] }}</div>
-            <div style="display: flex; justify-content: space-between; align-items: center; font-weight: bold; font-size: 11px; text-transform: uppercase; margin: 1.5mm 0 2mm 0;">
-                <span>SERVICE: {{ $tag['service_name'] }}</span>
-                @if($tag['pieces_per_item'] > 1)
-                    <span>Nbr Pieces={{ $tag['pieces_per_item'] }}</span>
+        @if($order->is_express)
+            <div class="express-banner">!!! EXPRESS !!!</div>
+        @endif
+
+        <div class="meta-table">
+            <div class="meta-row">
+                <span class="meta-label">Client :</span>
+                <span class="meta-val">{{ $order->client->name }}</span>
+            </div>
+            @if($order->client->phone)
+            <div class="meta-row">
+                <span class="meta-label">Tél :</span>
+                <span class="meta-val">{{ $order->client->phone }}</span>
+            </div>
+            @endif
+            <div class="meta-row">
+                <span class="meta-label">Dépôt :</span>
+                <span class="meta-val">{{ $order->order_date->format('d/m/Y H:i') }}</span>
+            </div>
+            @if($order->target_delivery_date || $order->due_date)
+            <div class="meta-row">
+                <span class="meta-label">Prévu le :</span>
+                <span class="meta-val">{{ ($order->target_delivery_date ?? $order->due_date)->format('d/m/Y') }}</span>
+            </div>
+            @endif
+            <div class="meta-row" style="margin-top: 1mm;">
+                <span class="meta-label">Statut :</span>
+                @if($order->is_paid || $order->balance_amount <= 0)
+                    <span class="badge-payment badge-paid">PAYÉ</span>
+                @else
+                    <span class="badge-payment badge-unpaid">RESTE : {{ number_format($order->balance_amount, 0, ',', ' ') }} DA</span>
                 @endif
             </div>
-
-            <div class="details-box">
-                <div class="details-row">
-                    <span>Client:</span>
-                    <span class="font-bold">{{ $order->client->name }}</span>
-                </div>
-                <div class="details-row">
-                    <span>Dépôt:</span>
-                    <span>{{ $order->order_date->format('d/m/Y') }}</span>
-                </div>
-            </div>
-
-            <!-- Item Options (Colors, defects, stains) -->
-            @php
-                $opts = [];
-                if ($tag['colors'] && count($tag['colors']) > 0) $opts[] = 'COULEUR: ' . implode('/', $tag['colors']);
-                if ($tag['defects'] && count($tag['defects']) > 0) $opts[] = 'DÉFAUT: ' . implode('/', $tag['defects']);
-                if ($tag['stains'] && count($tag['stains']) > 0) $opts[] = 'TACHE: ' . implode('/', $tag['stains']);
-                if ($tag['notes']) $opts[] = 'NOTE: ' . $tag['notes'];
-            @endphp
-
-            @if(count($opts) > 0)
-                <div class="tag-options">
-                    @foreach($opts as $opt)
-                        <div>• {{ $opt }}</div>
-                    @endforeach
-                </div>
-            @endif
         </div>
-    @endforeach
 
-    <!-- Auto Print Script -->
+        <div class="items-list">
+            @foreach($itemsSummary as $item)
+                <div class="item-row">
+                    <div class="item-title">
+                        {{ $item['quantity'] > 1 ? $item['quantity'].'x ' : '' }}{{ $item['name'] }}
+                    </div>
+                    <div class="item-subline">
+                        <span>SERVICE: {{ $item['service'] }}</span>
+                        @if($item['pieces'] > 1)
+                            <span class="pieces-highlight">Nbr Pieces={{ $item['pieces'] }}</span>
+                        @endif
+                    </div>
+                    @php
+                        $opts = [];
+                        if (!empty($item['colors'])) $opts[] = 'COULEUR: ' . implode('/', $item['colors']);
+                        if (!empty($item['defects'])) $opts[] = 'DÉFAUT: ' . implode('/', $item['defects']);
+                        if (!empty($item['stains'])) $opts[] = 'TACHE: ' . implode('/', $item['stains']);
+                        if (!empty($item['notes'])) $opts[] = 'NOTE: ' . $item['notes'];
+                    @endphp
+                    @if(count($opts) > 0)
+                        <div class="item-opts">
+                            @foreach($opts as $opt)
+                                <div>• {{ $opt }}</div>
+                            @endforeach
+                        </div>
+                    @endif
+                </div>
+            @endforeach
+        </div>
+
+        <div class="total-summary">
+            <span>TOTAL CINTRE :</span>
+            <span>{{ $totalOrderPieces }} PIÈCE{{ $totalOrderPieces > 1 ? 'S' : '' }}</span>
+        </div>
+    </div>
+
+    <!-- Auto Print Script (Uniquement si ouvert hors Electron) -->
     <script>
-        if (window.self === window.top) {
-            // Close window ONLY after user finishes interacting with print dialog (print or cancel)
+        const isElectron = navigator.userAgent.toLowerCase().includes('electron') || !!window.posDesktop;
+        if (window.self === window.top && !isElectron) {
             window.addEventListener('afterprint', () => {
                 setTimeout(() => {
                     if (window.history.length === 1) {
@@ -201,7 +307,7 @@
                 setTimeout(() => {
                     window.focus();
                     window.print();
-                }, 500);
+                }, 400);
             });
         }
     </script>

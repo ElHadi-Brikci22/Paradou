@@ -422,58 +422,69 @@
         </div>
     </div>
 
-    <!-- PART 2: Hanger Tags -->
-    @foreach($tags as $index => $tag)
-        <div class="page-block tag-block">
-            <div class="ticket-no"><strong>{{ $order->ticket_number }}</strong></div>
-            
-            @if($order->is_express)
-                <div style="background-color: #000000; color: #ffffff; text-align: center; padding: 2px 0; font-weight: 900; font-size: 11px; margin: 1mm 0; text-transform: uppercase; letter-spacing: 1px;">
-                    !!! EXPRESS !!!
-                </div>
-            @endif
-
-            <div class="garment-title">{{ $tag['garment_name'] }}</div>
-            <div style="display: flex; justify-content: space-between; align-items: center; font-weight: bold; font-size: 11px; text-transform: uppercase; margin: 1.5mm 0 2mm 0;">
-                <span>SERVICE: {{ $tag['service_name'] }}</span>
-                @if($tag['pieces_per_item'] > 1)
-                    <span>Nbr Pieces={{ $tag['pieces_per_item'] }}</span>
-                @endif
-            </div>
-
-            <div class="details-box">
-                <div class="info-row">
-                    <span>Client:</span>
-                    <span class="font-bold">{{ $order->client->name }}</span>
-                </div>
-                <div class="info-row">
-                    <span>Dépôt:</span>
-                    <span>{{ $order->order_date->format('d/m/Y') }}</span>
-                </div>
-            </div>
-
-            @php
-                $tagOpts = [];
-                if ($tag['colors'] && count($tag['colors']) > 0) $tagOpts[] = 'COULEUR: ' . implode('/', $tag['colors']);
-                if ($tag['defects'] && count($tag['defects']) > 0) $tagOpts[] = 'DÉFAUT: ' . implode('/', $tag['defects']);
-                if ($tag['stains'] && count($tag['stains']) > 0) $tagOpts[] = 'TACHE: ' . implode('/', $tag['stains']);
-                if ($tag['notes']) $tagOpts[] = 'NOTE: ' . $tag['notes'];
-            @endphp
-
-            @if(count($tagOpts) > 0)
-                <div class="tag-options">
-                    @foreach($tagOpts as $opt)
-                        <div>• {{ $opt }}</div>
-                    @endforeach
-                </div>
-            @endif
+    <!-- PART 2: Single Adapted Hanger Tag -->
+    <div class="page-block tag-block">
+        <div class="ticket-no" style="background:#000; color:#fff; border:3px solid #000; padding:4mm 1mm; font-size:36px; border-radius:4px; line-height:1;">
+            <strong>#{{ $order->ticket_number }}</strong>
         </div>
-    @endforeach
+        
+        @if($order->is_express)
+            <div style="background-color: #000000; color: #ffffff; text-align: center; padding: 2px 0; font-weight: 900; font-size: 11px; margin: 1.5mm 0; text-transform: uppercase; letter-spacing: 1px;">
+                !!! EXPRESS !!!
+            </div>
+        @endif
+
+        <div class="details-box" style="margin-bottom: 2mm; border-bottom: 1.5px dashed #000; padding-bottom: 2mm;">
+            <div class="info-row">
+                <span style="font-weight:bold;">CLIENT :</span>
+                <span class="font-bold">{{ $order->client->name }}</span>
+            </div>
+            <div class="info-row">
+                <span style="font-weight:bold;">DÉPÔT :</span>
+                <span>{{ $order->order_date->format('d/m/Y H:i') }}</span>
+            </div>
+        </div>
+
+        <div style="margin-bottom: 2mm;">
+            @foreach($itemsSummary as $item)
+                <div style="margin-bottom: 2mm; padding-bottom: 1.5mm; border-bottom: 1px dotted #888;">
+                    <div style="font-size: 13px; font-weight: 900; text-transform: uppercase;">
+                        {{ $item['quantity'] > 1 ? $item['quantity'].'x ' : '' }}{{ $item['name'] }}
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; font-weight: bold; font-size: 11px; text-transform: uppercase; margin: 1mm 0;">
+                        <span>SERVICE: {{ $item['service'] }}</span>
+                        @if($item['pieces'] > 1)
+                            <span style="background:#000; color:#fff; padding:1px 4px; border-radius:3px; font-size:10px;">Nbr Pieces={{ $item['pieces'] }}</span>
+                        @endif
+                    </div>
+                    @php
+                        $opts = [];
+                        if (!empty($item['colors'])) $opts[] = 'COULEUR: ' . implode('/', $item['colors']);
+                        if (!empty($item['defects'])) $opts[] = 'DÉFAUT: ' . implode('/', $item['defects']);
+                        if (!empty($item['stains'])) $opts[] = 'TACHE: ' . implode('/', $item['stains']);
+                        if (!empty($item['notes'])) $opts[] = 'NOTE: ' . $item['notes'];
+                    @endphp
+                    @if(count($opts) > 0)
+                        <div class="tag-options" style="font-size: 10px; padding-left: 2mm;">
+                            @foreach($opts as $opt)
+                                <div>• {{ $opt }}</div>
+                            @endforeach
+                        </div>
+                    @endif
+                </div>
+            @endforeach
+        </div>
+
+        <div style="border-top: 2px solid #000; padding-top: 2mm; display: flex; justify-content: space-between; font-size: 13px; font-weight: 900; text-transform: uppercase;">
+            <span>TOTAL CINTRE :</span>
+            <span>{{ $totalOrderPieces }} PIÈCE{{ $totalOrderPieces > 1 ? 'S' : '' }}</span>
+        </div>
+    </div>
 
     <!-- Auto Print Script -->
     <script>
-        if (window.self === window.top) {
-            // Close window ONLY after user finishes interacting with print dialog (print or cancel)
+        const isElectron = navigator.userAgent.toLowerCase().includes('electron') || !!window.posDesktop;
+        if (window.self === window.top && !isElectron) {
             window.addEventListener('afterprint', () => {
                 setTimeout(() => {
                     if (window.history.length === 1) {
