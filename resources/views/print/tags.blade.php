@@ -146,6 +146,20 @@
                 </div>
             @endif
 
+            @if($tag['total_qty'] > 1)
+                <!-- Multi-piece indicator -->
+                <div style="background-color: #000; color: #fff; text-align: center; padding: 4px 2px; font-weight: 900; font-size: 15px; margin: 2mm 0 1mm 0; border-radius: 4px; letter-spacing: 1px;">
+                    PIÈCE {{ $tag['index'] }} / {{ $tag['total_qty'] }}
+                </div>
+                <div style="font-size: 11px; font-weight: 900; margin-bottom: 2mm; text-transform: uppercase; color: #000; background: #f0f0f0; padding: 2px 0; border: 1px dashed #555; border-radius: 3px; text-align: center;">
+                    Nombre de pièces = {{ $tag['pieces_per_item'] }} (Article composé)
+                </div>
+            @else
+                <div style="font-size: 11px; font-weight: bold; margin: 1.5mm 0 2mm 0; text-transform: uppercase; color: #333;">
+                    PIÈCE 1 / 1
+                </div>
+            @endif
+
             <!-- Garment Description -->
             <div class="garment-title">{{ $tag['garment_name'] }}</div>
             <p class="font-bold" style="text-transform: uppercase; font-size: 11px;">

@@ -65,6 +65,7 @@ class PosApiController extends Controller
                 'name' => $item->name,
                 'garment_target_id' => $item->garment_target_id,
                 'garment_subcategory_id' => $item->garment_subcategory_id,
+                'pieces_count' => intval($item->pieces_count ?? 1),
                 'standard_weight' => $item->standard_weight ? floatval($item->standard_weight) : null,
                 'is_carpet' => (bool)$item->is_carpet,
                 'unit_type' => $item->unit_type ?? 'piece',
@@ -291,11 +292,19 @@ class PosApiController extends Controller
                             $stains = [$stains];
                         }
 
+                        $garmentItem = GarmentItem::find($itemData['garment_item_id']);
+                        $piecesPerGarment = $garmentItem ? max(1, intval($garmentItem->pieces_count ?: 1)) : 1;
+                        $itemQty = floatval($itemData['quantity'] ?? 1.00);
+                        $itemPieces = isset($itemData['pieces']) && intval($itemData['pieces']) > 0
+                            ? intval($itemData['pieces'])
+                            : intval(ceil($itemQty * $piecesPerGarment));
+
                         OrderItem::create([
                             'order_id' => $order->id,
                             'service_id' => $itemData['service_id'],
                             'garment_item_id' => $itemData['garment_item_id'],
-                            'quantity' => $itemData['quantity'] ?? 1.00,
+                            'pieces' => $itemPieces,
+                            'quantity' => $itemQty,
                             'unit_price' => $itemData['unit_price'],
                             'total_price' => $itemData['total_price'],
                             'colors' => $colors,

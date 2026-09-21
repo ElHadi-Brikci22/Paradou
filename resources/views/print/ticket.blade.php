@@ -265,11 +265,15 @@
                 <tr>
                     <td>
                         <span class="font-bold">{{ $item->garmentItem->name }}</span> 
-                        <span style="font-size: 9px; text-transform: uppercase;">({{ $item->service->name }})</span>
+                        @php
+                            $piecesCount = $item->pieces ?: ($item->garmentItem->pieces_count ?? 1);
+                        @endphp
                         @if($isKilo && $item->pieces)
                             <span style="font-size: 9px; font-weight: bold; color: #555;">[{{ $item->pieces }} pcs]</span>
                         @elseif($isCarpet && $item->pieces)
                             <span style="font-size: 9px; font-weight: bold; color: #555;">[{{ $item->pieces }} pcs]</span>
+                        @elseif($piecesCount > 1)
+                            <span style="font-size: 9px; font-weight: bold; color: #333;">[{{ $piecesCount }} pièces]</span>
                         @endif
 
                         @if($isCarpet)

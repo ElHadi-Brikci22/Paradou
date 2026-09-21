@@ -175,12 +175,22 @@ class ImportExcelCatalog extends Command
                     ->where('name', $articleName)
                     ->first();
 
+                // Detect pieces count (e.g. Costume 3 pièces = 3, Costume 2 pièces / Karakou + pantalon = 2)
+                $nameLower = mb_strtolower($articleName);
+                $piecesCount = 1;
+                if (preg_match('/3\s*(pièces?|pieces?|pcs?|ps)/iu', $articleName)) {
+                    $piecesCount = 3;
+                } elseif (preg_match('/2\s*(pièces?|pieces?|pcs?|ps)/iu', $articleName) || str_contains($articleName, '+') || str_contains($nameLower, 'tailleur') || $nameLower === 'smoking' || str_contains($nameLower, 'survêtement') || (str_contains($nameLower, 'ensemble') && !str_contains($nameLower, 'seul'))) {
+                    $piecesCount = 2;
+                }
+
                 if ($item) {
                     $item->update([
                         'garment_subcategory_id' => $subcat?->id,
                         'standard_weight' => $stdWeight ?: $item->standard_weight,
                         'is_carpet' => $isCarpet,
                         'unit_type' => $unitType,
+                        'pieces_count' => $item->pieces_count ?: $piecesCount,
                     ]);
                     $itemsUpdated++;
                 } else {
@@ -191,6 +201,7 @@ class ImportExcelCatalog extends Command
                         'standard_weight' => $stdWeight,
                         'is_carpet' => $isCarpet,
                         'unit_type' => $unitType,
+                        'pieces_count' => $piecesCount,
                     ]);
                     $itemsCreated++;
                 }

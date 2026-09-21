@@ -16,11 +16,13 @@ class GarmentItem extends Model
         'image_path',
         'standard_weight',
         'unit_type',
-        'is_carpet'
+        'is_carpet',
+        'pieces_count'
     ];
 
     protected $casts = [
         'is_carpet' => 'boolean',
+        'pieces_count' => 'integer',
     ];
 
     public function isCarpet(): bool

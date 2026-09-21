@@ -770,6 +770,7 @@
                 const isCarpet = (item.garment_item && (item.garment_item.is_carpet || item.garment_item.unit_type === 'm2')) || 
                                  (item.garment_item && item.garment_item.name && item.garment_item.name.toLowerCase().includes('tapis')) ||
                                  item.area !== null;
+                const piecesPerItem = item.garment_item && item.garment_item.pieces_count ? parseInt(item.garment_item.pieces_count) : 1;
                 return {
                     id: item.garment_item_id,
                     name: item.garment_item ? item.garment_item.name : 'Article',
@@ -781,7 +782,8 @@
                     width: item.width,
                     area: item.area,
                     standard_weight: stdW,
-                    pieces: item.pieces ? parseInt(item.pieces) : 1,
+                    pieces_count: piecesPerItem,
+                    pieces: item.pieces ? parseInt(item.pieces) : Math.round(piecesPerItem * parseFloat(item.quantity)),
                     weight: itmWeight,
                     quantity: parseFloat(item.quantity),
                     unit_price: parseFloat(item.unit_price) / (editingOrder.is_express ? 2 : 1), // standard unit price
@@ -1103,12 +1105,15 @@
     function addToCart(item, price) {
         const currentService = allServices.find(s => s.id === selectedServiceId);
         const sName = currentService ? currentService.name : 'Service';
+        const piecesPerItem = parseInt(item.pieces_count) || 1;
 
         cart.push({
             id: item.id,
             name: item.name,
             service_id: selectedServiceId,
             service_name: sName,
+            pieces_count: piecesPerItem,
+            pieces: piecesPerItem,
             quantity: 1,
             unit_price: price,
             colors: [],
@@ -1168,6 +1173,11 @@
                 carpetTag.className = "text-[9px] font-bold text-amber-300 bg-amber-500/10 border border-amber-500/20 px-1.5 py-0.5 rounded uppercase tracking-wider ml-1";
                 carpetTag.textContent = item.is_measured ? `${item.area} m²` : "Métrage atelier";
                 info.appendChild(carpetTag);
+            } else if (item.pieces_count && item.pieces_count > 1) {
+                const pieceTag = document.createElement('span');
+                pieceTag.className = "text-[9px] font-bold text-sky-400 bg-sky-500/10 border border-sky-500/20 px-1.5 py-0.5 rounded uppercase tracking-wider ml-1";
+                pieceTag.textContent = `${item.pieces_count} pièces (${item.pieces || (item.pieces_count * item.quantity)} pcs)`;
+                info.appendChild(pieceTag);
             }
 
             // Visible options summary directly in the cart item line!
@@ -1421,6 +1431,8 @@
             removeFromCart(index);
         } else {
             cart[index].quantity = parseFloat(qty);
+            const piecesPerItem = parseInt(cart[index].pieces_count) || 1;
+            cart[index].pieces = Math.round(cart[index].quantity * piecesPerItem);
             renderCart();
             updateCartCalculations();
         }
@@ -1970,13 +1982,15 @@
                     notes: notesText
                 });
             } else {
+                const piecesPerItem = parseInt(pendingItem.pieces_count) || 1;
                 cart.push({
                     id: pendingItem.id,
                     name: pendingItem.name,
                     service_id: selectedServiceId,
                     service_name: sName,
+                    pieces_count: piecesPerItem,
                     quantity: 1,
-                    pieces: 1,
+                    pieces: piecesPerItem,
                     unit_price: pendingPrice,
                     colors: colorsArray,
                     defects: defectsArray,
@@ -2103,10 +2117,12 @@
                     });
                 }
             } else {
+                const piecesPerItem = parseInt(item.pieces_count) || 1;
+                const totalPieces = item.pieces ? parseInt(item.pieces) : Math.round(piecesPerItem * (parseFloat(item.quantity) || 1));
                 payloadItems.push({
                     service_id: item.service_id,
                     garment_item_id: item.id,
-                    pieces: item.pieces || 1,
+                    pieces: totalPieces,
                     weight: item.weight !== undefined && item.weight !== null ? parseFloat(item.weight) : null,
                     length: null,
                     width: null,

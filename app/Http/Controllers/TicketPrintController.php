@@ -26,23 +26,7 @@ class TicketPrintController extends Controller
         $order = Order::with(['client', 'orderItems.service', 'orderItems.garmentItem'])
             ->findOrFail($id);
 
-        // Generate flat array of tags (e.g. if qty of costume is 2, make 2 tags)
-        $tags = [];
-        foreach ($order->orderItems as $item) {
-            $qty = !empty($item->pieces) ? intval($item->pieces) : intval(ceil($item->quantity));
-            for ($i = 0; $i < $qty; $i++) {
-                $tags[] = [
-                    'index' => ($i + 1),
-                    'total_qty' => $qty,
-                    'garment_name' => $item->garmentItem->name,
-                    'service_name' => $item->service->name,
-                    'colors' => $item->colors,
-                    'defects' => $item->defects,
-                    'stains' => $item->stains,
-                    'notes' => $item->notes
-                ];
-            }
-        }
+        $tags = $this->buildTagsList($order);
 
         return view('print.tags', compact('order', 'tags'));
     }
@@ -55,15 +39,37 @@ class TicketPrintController extends Controller
         $order = Order::with(['client', 'user', 'orderItems.service', 'orderItems.garmentItem'])
             ->findOrFail($id);
 
+        $tags = $this->buildTagsList($order);
+
+        return view('print.all', compact('order', 'tags'));
+    }
+
+    /**
+     * Generate individual tags for each physical piece of each order item.
+     */
+    private function buildTagsList(Order $order): array
+    {
         $tags = [];
         foreach ($order->orderItems as $item) {
-            $qty = !empty($item->pieces) ? intval($item->pieces) : intval(ceil($item->quantity));
-            for ($i = 0; $i < $qty; $i++) {
+            $garment = $item->garmentItem;
+            $piecesPerItem = $garment ? max(1, intval($garment->pieces_count ?: 1)) : 1;
+            $qty = max(1, intval(ceil($item->quantity)));
+
+            $totalPieces = !empty($item->pieces) && intval($item->pieces) > 0 
+                ? intval($item->pieces) 
+                : ($qty * $piecesPerItem);
+            $totalPieces = max(1, $totalPieces);
+
+            $isMultiPiece = ($piecesPerItem > 1 || $totalPieces > 1);
+
+            for ($i = 0; $i < $totalPieces; $i++) {
                 $tags[] = [
                     'index' => ($i + 1),
-                    'total_qty' => $qty,
-                    'garment_name' => $item->garmentItem->name,
-                    'service_name' => $item->service->name,
+                    'total_qty' => $totalPieces,
+                    'pieces_per_item' => $piecesPerItem,
+                    'is_multi_piece' => $isMultiPiece,
+                    'garment_name' => $garment ? $garment->name : 'Article',
+                    'service_name' => $item->service ? $item->service->name : 'Service',
                     'colors' => $item->colors,
                     'defects' => $item->defects,
                     'stains' => $item->stains,
@@ -71,7 +77,6 @@ class TicketPrintController extends Controller
                 ];
             }
         }
-
-        return view('print.all', compact('order', 'tags'));
+        return $tags;
     }
 }

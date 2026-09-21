@@ -139,11 +139,16 @@ class OrderController extends Controller
                         $itemTotal = $qty * $uPrice;
                     }
 
+                    $piecesPerGarment = $garmentItem ? max(1, intval($garmentItem->pieces_count ?: 1)) : 1;
+                    $itemPieces = isset($item['pieces']) && intval($item['pieces']) > 0
+                        ? intval($item['pieces'])
+                        : intval(ceil($qty * $piecesPerGarment));
+
                     OrderItem::create([
                         'order_id' => $order->id,
                         'service_id' => $item['service_id'],
                         'garment_item_id' => $item['garment_item_id'],
-                        'pieces' => isset($item['pieces']) ? intval($item['pieces']) : 1,
+                        'pieces' => $itemPieces,
                         'weight' => isset($item['weight']) && $item['weight'] !== '' ? floatval($item['weight']) : null,
                         'length' => $length,
                         'width' => $width,
@@ -309,11 +314,16 @@ class OrderController extends Controller
                         $itemTotal = $qty * $uPrice;
                     }
 
+                    $piecesPerGarment = $garmentItem ? max(1, intval($garmentItem->pieces_count ?: 1)) : 1;
+                    $itemPieces = isset($item['pieces']) && intval($item['pieces']) > 0
+                        ? intval($item['pieces'])
+                        : intval(ceil($qty * $piecesPerGarment));
+
                     OrderItem::create([
                         'order_id' => $order->id,
                         'service_id' => $item['service_id'],
                         'garment_item_id' => $item['garment_item_id'],
-                        'pieces' => isset($item['pieces']) ? intval($item['pieces']) : 1,
+                        'pieces' => $itemPieces,
                         'weight' => isset($item['weight']) && $item['weight'] !== '' ? floatval($item['weight']) : null,
                         'length' => $length,
                         'width' => $width,
