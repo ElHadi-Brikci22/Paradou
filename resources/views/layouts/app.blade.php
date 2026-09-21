@@ -636,53 +636,27 @@
             let testHtml = '';
 
             if (role === 'receipt') {
-                testHtml = `
-                    <!DOCTYPE html>
-                    <html>
-                    <head><meta charset="utf-8"><title>Test Reçu</title>
-                    <style>
-                        body { font-family: 'Courier New', monospace; width: 72mm; margin: 0; padding: 10px; font-size: 13px; text-align: center; color: #000; }
-                        h2 { margin: 5px 0; font-size: 16px; font-weight: 900; }
-                        .line { border-top: 1px dashed #000; margin: 8px 0; }
-                    </style>
-                    </head>
-                    <body>
-                        <h2>PARADOU PRESSING</h2>
-                        <div>*** TEST IMPRIMANTE REÇU CLIENT ***</div>
-                        <div class="line"></div>
-                        <p style="margin: 4px 0;">Périphérique : <b>${targetPrinter || 'Défaut Windows'}</b></p>
-                        <p style="margin: 4px 0;">Heure du test : ${now}</p>
-                        <p style="color: green; font-weight: bold; margin: 6px 0;">STATUT : CONNEXION RÉUSSIE !</p>
-                        <div class="line"></div>
-                        <p style="font-size: 11px; margin: 0;">Imprimante dédiée aux Factures & Reçus Clients 80mm.</p>
-                    </body>
-                    </html>
-                `;
+                testHtml = '<div style="font-family: monospace; width: 72mm; padding: 10px; font-size: 13px; text-align: center; color: #000;">'
+                    + '<h2 style="margin: 5px 0; font-size: 16px; font-weight: 900;">PARADOU PRESSING</h2>'
+                    + '<div>*** TEST IMPRIMANTE REÇU CLIENT ***</div>'
+                    + '<div style="border-top: 1px dashed #000; margin: 8px 0;"></div>'
+                    + '<p style="margin: 4px 0;">Périphérique : <b>' + (targetPrinter || 'Défaut Windows') + '</b></p>'
+                    + '<p style="margin: 4px 0;">Heure du test : ' + now + '</p>'
+                    + '<p style="color: green; font-weight: bold; margin: 6px 0;">STATUT : CONNEXION RÉUSSIE !</p>'
+                    + '<div style="border-top: 1px dashed #000; margin: 8px 0;"></div>'
+                    + '<p style="font-size: 11px; margin: 0;">Imprimante dédiée aux Factures & Reçus Clients 80mm.</p>'
+                    + '</div>';
             } else {
-                testHtml = `
-                    <!DOCTYPE html>
-                    <html>
-                    <head><meta charset="utf-8"><title>Test Étiquette</title>
-                    <style>
-                        body { font-family: 'Courier New', monospace; width: 72mm; margin: 0; padding: 8px; font-size: 13px; text-align: center; color: #000; }
-                        .tag-box { border: 2px solid #000; padding: 6px; border-radius: 4px; }
-                        .ticket-num { font-size: 32px; font-weight: 900; margin: 2px 0; }
-                        .line { border-top: 1px dashed #000; margin: 6px 0; }
-                    </style>
-                    </head>
-                    <body>
-                        <div class="tag-box">
-                            <div style="font-size: 11px; font-weight: bold;">PARADOU - ÉTIQUETTE CINTRE</div>
-                            <div class="ticket-num">#00999</div>
-                            <div class="line"></div>
-                            <p style="margin: 3px 0; font-weight: bold;">1/1 - COSTUME 2 PCS</p>
-                            <p style="margin: 3px 0; font-size: 11px;">BLEU MARINE | PRESSING</p>
-                            <div class="line"></div>
-                            <p style="font-size: 10px; margin: 0;">Périphérique : ${targetPrinter || 'Défaut Windows'}</p>
-                        </div>
-                    </body>
-                    </html>
-                `;
+                testHtml = '<div style="font-family: monospace; width: 72mm; padding: 8px; font-size: 13px; text-align: center; color: #000;">'
+                    + '<div style="border: 2px solid #000; padding: 6px; border-radius: 4px;">'
+                    + '<div style="font-size: 11px; font-weight: bold;">PARADOU - ÉTIQUETTE CINTRE</div>'
+                    + '<div style="font-size: 32px; font-weight: 900; margin: 2px 0;">#00999</div>'
+                    + '<div style="border-top: 1px dashed #000; margin: 6px 0;"></div>'
+                    + '<p style="margin: 3px 0; font-weight: bold;">1/1 - COSTUME 2 PCS</p>'
+                    + '<p style="margin: 3px 0; font-size: 11px;">BLEU MARINE | PRESSING</p>'
+                    + '<div style="border-top: 1px dashed #000; margin: 6px 0;"></div>'
+                    + '<p style="font-size: 10px; margin: 0;">Périphérique : ' + (targetPrinter || 'Défaut Windows') + '</p>'
+                    + '</div></div>';
             }
 
             if (window.posDesktop && typeof window.posDesktop.silentPrint === 'function') {
