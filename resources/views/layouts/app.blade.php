@@ -561,6 +561,15 @@
             tagSelect.innerHTML = '<option value="">-- Imprimante par défaut de Windows --</option>';
 
             if (window.posDesktop && typeof window.posDesktop.getPrinters === 'function') {
+                if (banner) {
+                    banner.style.backgroundColor = '#1e1b4b';
+                    banner.style.border = '1px solid #6366f1';
+                    banner.innerHTML = `<svg class="h-5 w-5 text-indigo-300 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                    <div class="leading-relaxed">
+                        <span class="font-bold text-white block mb-0.5">Impression Thermique Silencieuse (ESC/POS) :</span>
+                        <span class="text-indigo-100 font-medium">Les impressions sont envoyées instantanément et directement aux imprimantes sélectionnées sans ouvrir de boîte de dialogue.</span>
+                    </div>`;
+                }
                 try {
                     const printers = await window.posDesktop.getPrinters();
                     printers.forEach(p => {
@@ -581,12 +590,13 @@
                 }
             } else {
                 if (banner) {
-                    banner.innerHTML = `<svg class="h-4 w-4 text-amber-400 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
-                    <div class="leading-relaxed text-amber-200">
-                        <span class="font-bold text-amber-300">Mode Navigateur Web :</span>
-                        Pour bénéficier de l'impression thermique silencieuse sans boîte de dialogue et gérer deux imprimantes distinctes en simultané, lancez l'application installée <b>Paradou POS Desktop</b>.
+                    banner.style.backgroundColor = '#451a03';
+                    banner.style.border = '1px solid #d97706';
+                    banner.innerHTML = `<svg class="h-5 w-5 text-amber-400 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                    <div class="leading-relaxed text-amber-100">
+                        <span class="font-bold text-white block mb-0.5">Mode Navigateur Web :</span>
+                        Pour bénéficier de l'impression thermique silencieuse directe (ESC/POS) et gérer deux imprimantes distinctes en simultané, lancez l'application <b>Paradou POS Desktop</b>.
                     </div>`;
-                    banner.className = "rounded-xl p-3 bg-amber-950/40 border border-amber-500/30 flex items-start space-x-2.5 text-xs text-amber-200";
                 }
             }
 
@@ -943,86 +953,86 @@
     </script>
 
     <!-- Modal Configuration Imprimantes Multi-Rôles -->
-    <div id="modal-printers-config" class="fixed inset-0 bg-slate-950/75 items-center justify-center p-4" style="display: none; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); z-index: 999998;">
-        <div class="bg-slate-850 border border-slate-700/80 rounded-2xl w-full max-w-lg p-6 shadow-2xl overflow-hidden flex flex-col space-y-5 text-left">
+    <div id="modal-printers-config" class="fixed inset-0 items-center justify-center p-4" style="display: none; background: rgba(7, 11, 25, 0.94); backdrop-filter: blur(28px) saturate(180%); -webkit-backdrop-filter: blur(28px) saturate(180%); z-index: 999998;">
+        <div class="rounded-2xl w-full max-w-lg p-6 overflow-hidden flex flex-col space-y-5 text-left" style="background-color: #0f172a; border: 1px solid rgba(99, 102, 241, 0.4); box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.95), 0 0 40px rgba(79, 70, 229, 0.25);">
             <!-- Modal Header -->
-            <div class="flex items-center justify-between pb-3 border-b border-slate-700/60">
+            <div class="flex items-center justify-between pb-3.5 border-b border-slate-700/90">
                 <div class="flex items-center space-x-3">
-                    <div class="h-9 w-9 rounded-xl bg-indigo-600/20 text-indigo-400 flex items-center justify-center border border-indigo-500/30">
+                    <div class="h-10 w-10 rounded-xl bg-indigo-600/30 text-indigo-400 flex items-center justify-center border border-indigo-500/40 shadow-inner">
                         <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
                         </svg>
                     </div>
                     <div>
-                        <h3 class="text-base font-bold text-white font-display">Configuration des Imprimantes</h3>
-                        <p class="text-xs text-slate-400">Routage automatique des tickets de caisse et des étiquettes cintres</p>
+                        <h3 class="text-base font-extrabold text-white font-display tracking-wide">Configuration des Imprimantes</h3>
+                        <p class="text-xs text-indigo-200 font-medium">Routage automatique des tickets de caisse et des étiquettes cintres</p>
                     </div>
                 </div>
-                <button type="button" onclick="closePrinterConfigModal()" class="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-700/50 transition-colors">
+                <button type="button" onclick="closePrinterConfigModal()" class="text-slate-400 hover:text-white p-1.5 rounded-lg hover:bg-slate-800 transition-colors cursor-pointer" title="Fermer">
                     <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
                 </button>
             </div>
 
             <!-- Banner info for Desktop vs Browser -->
-            <div id="printer-env-banner" class="rounded-xl p-3 bg-indigo-950/40 border border-indigo-500/30 flex items-start space-x-2.5 text-xs text-indigo-200">
-                <svg class="h-4 w-4 text-indigo-400 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+            <div id="printer-env-banner" class="rounded-xl p-3.5 flex items-start space-x-3 text-xs shadow-md" style="background-color: #1e1b4b; border: 1px solid #6366f1;">
+                <svg class="h-5 w-5 text-indigo-300 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                 <div class="leading-relaxed">
-                    <span class="font-bold text-indigo-300">Impression Thermique Silencieuse (ESC/POS) :</span>
-                    Les impressions sont envoyées instantanément et directement aux imprimantes sélectionnées sans ouvrir de boîte de dialogue.
+                    <span class="font-bold text-white block mb-0.5">Impression Thermique Silencieuse (ESC/POS) :</span>
+                    <span class="text-indigo-100 font-medium">Les impressions sont envoyées instantanément et directement aux imprimantes sélectionnées sans ouvrir de boîte de dialogue.</span>
                 </div>
             </div>
 
             <div class="space-y-4">
                 <!-- Imprimante 1 : Reçus Clients (Ticket Facture 80mm) -->
-                <div class="bg-slate-800/80 p-4 rounded-xl border border-slate-700/70 space-y-2">
+                <div class="p-4 rounded-xl space-y-3 shadow-md" style="background-color: #1e293b; border: 1px solid #334155;">
                     <div class="flex items-center justify-between">
-                        <label class="block text-xs font-bold text-slate-200 uppercase tracking-wide flex items-center space-x-1.5">
-                            <span class="h-2 w-2 rounded-full bg-emerald-400 inline-block"></span>
+                        <label class="block text-xs font-black text-white uppercase tracking-wider flex items-center space-x-2">
+                            <span class="h-2.5 w-2.5 rounded-full bg-emerald-400 shadow-[0_0_8px_#34d399] inline-block"></span>
                             <span>1. Imprimante Reçu Client (Facture Comptoir)</span>
                         </label>
-                        <span class="text-[11px] text-slate-400">Format 80mm</span>
+                        <span class="text-xs font-bold text-emerald-300 bg-emerald-950/90 border border-emerald-500/50 px-2.5 py-0.5 rounded-md">80mm</span>
                     </div>
                     <div class="flex space-x-2">
-                        <select id="cfg-printer-receipt" class="flex-1 bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-indigo-500">
+                        <select id="cfg-printer-receipt" class="flex-1 rounded-xl px-3.5 py-2.5 text-xs text-white font-medium focus:outline-none transition-colors shadow-inner" style="background-color: #0b0f19; border: 1px solid #475569;">
                             <option value="">-- Imprimante par défaut de Windows --</option>
                         </select>
-                        <button type="button" onclick="testPrinter('receipt')" class="px-3 py-2 bg-slate-700 hover:bg-slate-600 text-slate-200 text-xs font-medium rounded-lg transition-colors flex items-center space-x-1 shrink-0 cursor-pointer" title="Lancer un ticket test">
+                        <button type="button" onclick="testPrinter('receipt')" class="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded-xl transition-all shadow-md shadow-indigo-600/30 active:scale-95 flex items-center space-x-1.5 shrink-0 cursor-pointer" title="Lancer un ticket test">
                             <span>Test Reçu</span>
                         </button>
                     </div>
-                    <p class="text-[11px] text-slate-400">Utilisée pour le ticket remis au client lors du dépôt et du retrait des vêtements.</p>
+                    <p class="text-xs text-slate-200 font-normal">Ticket remis au client au comptoir lors du dépôt et du retrait des vêtements.</p>
                 </div>
 
                 <!-- Imprimante 2 : Étiquettes Laverie / Cintres -->
-                <div class="bg-slate-800/80 p-4 rounded-xl border border-slate-700/70 space-y-2">
+                <div class="p-4 rounded-xl space-y-3 shadow-md" style="background-color: #1e293b; border: 1px solid #334155;">
                     <div class="flex items-center justify-between">
-                        <label class="block text-xs font-bold text-slate-200 uppercase tracking-wide flex items-center space-x-1.5">
-                            <span class="h-2 w-2 rounded-full bg-indigo-400 inline-block"></span>
+                        <label class="block text-xs font-black text-white uppercase tracking-wider flex items-center space-x-2">
+                            <span class="h-2.5 w-2.5 rounded-full bg-indigo-400 shadow-[0_0_8px_#818cf8] inline-block"></span>
                             <span>2. Imprimante Étiquettes Laverie (Cintres / Vêtements)</span>
                         </label>
-                        <span class="text-[11px] text-slate-400">Format 80mm / 58mm</span>
+                        <span class="text-xs font-bold text-indigo-300 bg-indigo-950/90 border border-indigo-500/50 px-2.5 py-0.5 rounded-md">80mm / 58mm</span>
                     </div>
                     <div class="flex space-x-2">
-                        <select id="cfg-printer-tags" class="flex-1 bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-indigo-500">
+                        <select id="cfg-printer-tags" class="flex-1 rounded-xl px-3.5 py-2.5 text-xs text-white font-medium focus:outline-none transition-colors shadow-inner" style="background-color: #0b0f19; border: 1px solid #475569;">
                             <option value="">-- Imprimante par défaut de Windows --</option>
                         </select>
-                        <button type="button" onclick="testPrinter('tags')" class="px-3 py-2 bg-slate-700 hover:bg-slate-600 text-slate-200 text-xs font-medium rounded-lg transition-colors flex items-center space-x-1 shrink-0 cursor-pointer" title="Lancer une étiquette test">
+                        <button type="button" onclick="testPrinter('tags')" class="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded-xl transition-all shadow-md shadow-indigo-600/30 active:scale-95 flex items-center space-x-1.5 shrink-0 cursor-pointer" title="Lancer une étiquette test">
                             <span>Test Étiquette</span>
                         </button>
                     </div>
-                    <p class="text-[11px] text-slate-400">Utilisée pour les tickets agrafés sur les cintres avec le gros numéro de commande pour l'atelier.</p>
+                    <p class="text-xs text-slate-200 font-normal">Étiquettes agrafées sur les cintres avec le gros numéro de commande pour l'atelier.</p>
                 </div>
 
                 <!-- Options automatiques -->
-                <div class="bg-slate-800/50 p-3 rounded-xl border border-slate-700/50 space-y-2">
-                    <span class="text-xs font-semibold text-slate-300">Comportement lors de l'encaissement d'une commande :</span>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
-                        <label class="flex items-center space-x-2 cursor-pointer text-xs text-slate-300">
-                            <input type="checkbox" id="cfg-autoprint-receipt" checked class="rounded border-slate-700 text-indigo-600 focus:ring-indigo-500 bg-slate-900">
+                <div class="p-4 rounded-xl space-y-2.5 shadow-md" style="background-color: #1e293b; border: 1px solid #334155;">
+                    <span class="text-xs font-bold text-white tracking-wide">Comportement lors de l'encaissement d'une commande :</span>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                        <label class="flex items-center space-x-2.5 cursor-pointer text-xs font-medium text-slate-100 hover:text-white transition-colors">
+                            <input type="checkbox" id="cfg-autoprint-receipt" checked class="rounded border-slate-500 text-indigo-600 focus:ring-indigo-500 bg-slate-900 h-4 w-4">
                             <span>Imprimer automatiquement le Reçu</span>
                         </label>
-                        <label class="flex items-center space-x-2 cursor-pointer text-xs text-slate-300">
-                            <input type="checkbox" id="cfg-autoprint-tags" checked class="rounded border-slate-700 text-indigo-600 focus:ring-indigo-500 bg-slate-900">
+                        <label class="flex items-center space-x-2.5 cursor-pointer text-xs font-medium text-slate-100 hover:text-white transition-colors">
+                            <input type="checkbox" id="cfg-autoprint-tags" checked class="rounded border-slate-500 text-indigo-600 focus:ring-indigo-500 bg-slate-900 h-4 w-4">
                             <span>Imprimer automatiquement les Étiquettes</span>
                         </label>
                     </div>
@@ -1030,11 +1040,11 @@
             </div>
 
             <!-- Footer Buttons -->
-            <div class="flex items-center justify-end space-x-2.5 pt-3 border-t border-slate-700/60">
-                <button type="button" onclick="closePrinterConfigModal()" class="px-4 py-2 bg-slate-700/60 hover:bg-slate-700 text-slate-300 text-xs font-bold rounded-xl transition-colors cursor-pointer">
+            <div class="flex items-center justify-end space-x-3 pt-3 border-t border-slate-700/90">
+                <button type="button" onclick="closePrinterConfigModal()" class="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold rounded-xl border border-slate-600 transition-colors cursor-pointer">
                     Annuler
                 </button>
-                <button type="button" onclick="savePrinterConfig()" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold font-display rounded-xl shadow-lg shadow-indigo-600/20 transition-all cursor-pointer">
+                <button type="button" onclick="savePrinterConfig()" class="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-extrabold font-display uppercase tracking-wider rounded-xl shadow-lg shadow-indigo-600/40 active:scale-95 transition-all cursor-pointer">
                     Enregistrer la Configuration
                 </button>
             </div>
