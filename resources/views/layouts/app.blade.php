@@ -490,8 +490,22 @@
             initAppLayout();
         }
 
-        // Global function for printing without opening new windows (via offscreen iframe)
+        // Global function for printing without opening new windows (via offscreen iframe or Electron Silent Print)
         function printOrder(orderId, type = 'all') {
+            // Support impression thermique silencieuse sous Electron Desktop
+            if (window.posDesktop && typeof window.posDesktop.silentPrint === 'function') {
+                fetch(`/orders/${orderId}/print-${type}`)
+                    .then(r => r.text())
+                    .then(htmlContent => {
+                        window.posDesktop.silentPrint(htmlContent);
+                    })
+                    .catch(e => {
+                        console.error('Erreur silent print Electron:', e);
+                        window.open(`/orders/${orderId}/print-${type}`, '_blank', 'width=450,height=750');
+                    });
+                return;
+            }
+
             const oldIframe = document.getElementById('global-print-iframe');
             if (oldIframe) {
                 oldIframe.remove();

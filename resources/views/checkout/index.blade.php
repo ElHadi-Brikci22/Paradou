@@ -2185,9 +2185,71 @@
             }
         })
         .catch(err => {
+            // Sauvegarde automatique en mode secours hors-ligne si réseau coupé
+            if (!navigator.onLine || err.message.includes('Failed to fetch') || err.message.includes('NetworkError')) {
+                const offlineUuid = 'offline-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
+                const offlineOrder = {
+                    uuid: offlineUuid,
+                    ...body,
+                    is_offline: true,
+                    created_at: new Date().toISOString()
+                };
+                
+                const queue = JSON.parse(localStorage.getItem('pos_pending_offline_orders') || '[]');
+                queue.push(offlineOrder);
+                localStorage.setItem('pos_pending_offline_orders', JSON.stringify(queue));
+
+                showAppAlert(`Réseau interrompu : le ticket N° ${body.ticket_number} a été sécurisé localement en MODE SECOURS. Il sera synchronisé automatiquement avec le Cloud dès la reconnexion.`, "info", "Mode Secours Hors-Ligne");
+
+                if (!editingOrder) {
+                    cart = [];
+                    document.getElementById('express-toggle-input').checked = false;
+                    document.getElementById('no-print-toggle').checked = false;
+                    renderCart();
+                    clearSelectedClient();
+                    const nextNo = String(parseInt(body.ticket_number) + 1).padStart(6, '0');
+                    document.getElementById('ticket-number-input').value = nextNo;
+                    document.getElementById('remarks-input').value = '';
+                    document.getElementById('paid-amount-input').value = 0;
+                    updateCartCalculations();
+                }
+                return;
+            }
             showAppAlert(editingOrder ? "Erreur lors de la modification de la commande." : "Erreur lors de l'enregistrement de la commande.", "error", "Erreur");
         });
     }
+
+    // Synchronisation automatique des commandes hors-ligne en arrière-plan
+    function syncOfflineOrdersIfAny() {
+        if (!navigator.onLine) return;
+        const queue = JSON.parse(localStorage.getItem('pos_pending_offline_orders') || '[]');
+        if (queue.length === 0) return;
+
+        fetch('/api/pos/sync/orders', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({
+                terminal_code: 'POS-DESKTOP',
+                orders: queue
+            })
+        })
+        .then(r => r.json())
+        .then(res => {
+            if (res.success) {
+                localStorage.removeItem('pos_pending_offline_orders');
+                console.log('Commandes hors-ligne synchronisées avec succès vers le Cloud !');
+            }
+        })
+        .catch(e => console.warn('Synchro en attente:', e));
+    }
+
+    window.addEventListener('online', syncOfflineOrdersIfAny);
+    setInterval(syncOfflineOrdersIfAny, 30000);
+    document.addEventListener('DOMContentLoaded', syncOfflineOrdersIfAny);
 
 
 </script>
