@@ -214,11 +214,8 @@
         .theme-light #options-modal .bg-slate-800,
         .theme-light #new-client-modal .bg-slate-800,
         .theme-light #order-modal .bg-slate-800,
-        .theme-light #modal-printers-config .bg-slate-800\/80,
-        .theme-light #modal-printers-config .bg-slate-800\/50,
         .theme-light #custom-alert-modal .bg-slate-800 {
-            background-color: #f8fafc !important;
-            border-color: #e2e8f0 !important;
+            background-color: #ffffff !important;
         }
         .theme-light #options-modal .option-badge:not(.bg-indigo-600) {
             background-color: #f1f5f9 !important;
@@ -593,12 +590,12 @@
                 }
             }
 
-            modal.classList.remove('hidden');
+            modal.style.display = 'flex';
         }
 
         function closePrinterConfigModal() {
             const modal = document.getElementById('modal-printers-config');
-            if (modal) modal.classList.add('hidden');
+            if (modal) modal.style.display = 'none';
         }
 
         async function savePrinterConfig() {
@@ -972,7 +969,7 @@
     </script>
 
     <!-- Modal Configuration Imprimantes Multi-Rôles -->
-    <div id="modal-printers-config" class="hidden fixed inset-0 bg-slate-950/75 flex items-center justify-center p-4" style="backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); z-index: 999998;">
+    <div id="modal-printers-config" class="fixed inset-0 bg-slate-950/75 items-center justify-center p-4" style="display: none; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); z-index: 999998;">
         <div class="bg-slate-850 border border-slate-700/80 rounded-2xl w-full max-w-lg p-6 shadow-2xl overflow-hidden flex flex-col space-y-5 text-left">
             <!-- Modal Header -->
             <div class="flex items-center justify-between pb-3 border-b border-slate-700/60">
