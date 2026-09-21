@@ -424,37 +424,60 @@
 
     <!-- PART 2: Single Adapted Hanger Tag -->
     <div class="page-block tag-block">
-        <div class="ticket-no" style="background:#000; color:#fff; border:3px solid #000; padding:4mm 1mm; font-size:36px; border-radius:4px; line-height:1;">
-            <strong>#{{ $order->ticket_number }}</strong>
-        </div>
+        <!-- Massive Ticket Number for immediate workshop visibility -->
+        <div class="ticket-no"><strong>{{ $order->ticket_number }}</strong></div>
         
         @if($order->is_express)
-            <div style="background-color: #000000; color: #ffffff; text-align: center; padding: 2px 0; font-weight: 900; font-size: 11px; margin: 1.5mm 0; text-transform: uppercase; letter-spacing: 1px;">
+            <div style="background-color: #000000; color: #ffffff; text-align: center; padding: 2px 0; font-weight: 900; font-size: 11px; margin: 1mm 0; text-transform: uppercase; letter-spacing: 1px;">
                 !!! EXPRESS !!!
             </div>
         @endif
 
-        <div class="details-box" style="margin-bottom: 2mm; border-bottom: 1.5px dashed #000; padding-bottom: 2mm;">
-            <div class="info-row">
-                <span style="font-weight:bold;">CLIENT :</span>
-                <span class="font-bold">{{ $order->client->name }}</span>
+        @if(count($itemsSummary) === 1)
+            @php $item = $itemsSummary[0]; @endphp
+            <!-- Garment Description -->
+            <div class="garment-title">{{ $item['name'] }}</div>
+            <div style="display: flex; justify-content: space-between; align-items: center; font-weight: bold; font-size: 11px; text-transform: uppercase; margin: 1.5mm 0 2mm 0;">
+                <span>SERVICE: {{ $item['service'] }}</span>
+                @if($item['pieces'] > 1)
+                    <span>Nbr Pieces={{ $item['pieces'] }}</span>
+                @endif
             </div>
-            <div class="info-row">
-                <span style="font-weight:bold;">DÉPÔT :</span>
-                <span>{{ $order->order_date->format('d/m/Y H:i') }}</span>
-            </div>
-        </div>
 
-        <div style="margin-bottom: 2mm;">
+            <div class="details-box">
+                <div class="details-row">
+                    <span>Client:</span>
+                    <span class="font-bold">{{ $order->client->name }}</span>
+                </div>
+                <div class="details-row">
+                    <span>Dépôt:</span>
+                    <span>{{ $order->order_date->format('d/m/Y') }}</span>
+                </div>
+            </div>
+
+            @php
+                $opts = [];
+                if (!empty($item['colors'])) $opts[] = 'COULEUR: ' . implode('/', $item['colors']);
+                if (!empty($item['defects'])) $opts[] = 'DÉFAUT: ' . implode('/', $item['defects']);
+                if (!empty($item['stains'])) $opts[] = 'TACHE: ' . implode('/', $item['stains']);
+                if (!empty($item['notes'])) $opts[] = 'NOTE: ' . $item['notes'];
+            @endphp
+
+            @if(count($opts) > 0)
+                <div class="tag-options">
+                    @foreach($opts as $opt)
+                        <div>• {{ $opt }}</div>
+                    @endforeach
+                </div>
+            @endif
+        @else
             @foreach($itemsSummary as $item)
-                <div style="margin-bottom: 2mm; padding-bottom: 1.5mm; border-bottom: 1px dotted #888;">
-                    <div style="font-size: 13px; font-weight: 900; text-transform: uppercase;">
-                        {{ $item['quantity'] > 1 ? $item['quantity'].'x ' : '' }}{{ $item['name'] }}
-                    </div>
-                    <div style="display: flex; justify-content: space-between; align-items: center; font-weight: bold; font-size: 11px; text-transform: uppercase; margin: 1mm 0;">
+                <div style="{{ !$loop->first ? 'margin-top: 2.5mm; border-top: 1px dashed #000; padding-top: 2mm;' : '' }}">
+                    <div class="garment-title">{{ $item['quantity'] > 1 ? $item['quantity'].'X ' : '' }}{{ $item['name'] }}</div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; font-weight: bold; font-size: 11px; text-transform: uppercase; margin: 1.5mm 0 2mm 0;">
                         <span>SERVICE: {{ $item['service'] }}</span>
                         @if($item['pieces'] > 1)
-                            <span style="background:#000; color:#fff; padding:1px 4px; border-radius:3px; font-size:10px;">Nbr Pieces={{ $item['pieces'] }}</span>
+                            <span>NBR PIECES={{ $item['pieces'] }}</span>
                         @endif
                     </div>
                     @php
@@ -465,7 +488,7 @@
                         if (!empty($item['notes'])) $opts[] = 'NOTE: ' . $item['notes'];
                     @endphp
                     @if(count($opts) > 0)
-                        <div class="tag-options" style="font-size: 10px; padding-left: 2mm;">
+                        <div class="tag-options" style="margin-top: 1mm;">
                             @foreach($opts as $opt)
                                 <div>• {{ $opt }}</div>
                             @endforeach
@@ -473,12 +496,18 @@
                     @endif
                 </div>
             @endforeach
-        </div>
 
-        <div style="border-top: 2px solid #000; padding-top: 2mm; display: flex; justify-content: space-between; font-size: 13px; font-weight: 900; text-transform: uppercase;">
-            <span>TOTAL CINTRE :</span>
-            <span>{{ $totalOrderPieces }} PIÈCE{{ $totalOrderPieces > 1 ? 'S' : '' }}</span>
-        </div>
+            <div class="details-box" style="margin-top: 3mm; border-top: 1px dotted #555; padding-top: 2mm;">
+                <div class="details-row">
+                    <span>Client:</span>
+                    <span class="font-bold">{{ $order->client->name }}</span>
+                </div>
+                <div class="details-row">
+                    <span>Dépôt:</span>
+                    <span>{{ $order->order_date->format('d/m/Y') }}</span>
+                </div>
+            </div>
+        @endif
     </div>
 
     <!-- Auto Print Script -->
