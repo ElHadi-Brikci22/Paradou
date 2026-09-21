@@ -77,9 +77,9 @@
         @endforeach
     </div>
 
-    <!-- Targets & Subcategories Bar (Merged in 1 line - clear, legible, no heavy borders) -->
-    <div id="targets-bar" class="bg-slate-900/40 px-4 py-1.5 border-b border-slate-800/70 shrink-0 flex items-center gap-2 overflow-x-auto">
-        <!-- Target Publics -->
+    <!-- Categories & Context Bar (Row 2: Categories on Left, Client & Pricing on Right) -->
+    <div id="targets-bar" class="bg-slate-900/50 px-4 py-1.5 border-b border-slate-800/80 shrink-0 flex items-center justify-between gap-3 overflow-x-auto">
+        <!-- Target Publics (Categories) -->
         <div class="flex items-center gap-1.5 shrink-0">
             @foreach($targets as $target)
                 <button onclick="selectTarget({{ $target->id }})" 
@@ -90,38 +90,28 @@
             @endforeach
         </div>
 
-        <!-- Inline Separator between Targets and Subcategories -->
-        <div id="subcategories-divider" class="hidden h-4 w-px bg-slate-700/60 shrink-0 mx-1"></div>
+        <!-- Client & Pricing Context Bar (Moved UP to Row 2 right side) -->
+        <div class="flex items-center space-x-2.5 shrink-0">
+            <!-- Client Selector Button -->
+            <div class="flex items-center space-x-1.5">
+                <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Client :</span>
+                <button onclick="openClientSelectionModal()" 
+                        class="bg-slate-800 hover:bg-slate-700/90 border border-slate-700/60 hover:border-slate-600 px-3 py-1 rounded-lg text-xs font-bold text-slate-200 flex items-center space-x-2 cursor-pointer transition-colors shadow-xs">
+                    <svg class="h-3.5 w-3.5 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    </svg>
+                    <span id="selected-client-name-display" class="font-bold">Client Passage</span>
+                    <span id="selected-client-discount-badge" class="text-[10px] bg-indigo-500/10 text-indigo-400 font-bold px-1.5 py-0.5 rounded">Remise: 0%</span>
+                </button>
+                <button onclick="clearSelectedClient()" id="client-clear-btn-display" class="hidden text-slate-500 hover:text-rose-400 transition-colors p-1" title="Réinitialiser au client de passage">
+                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
 
-        <!-- Subcategory Pills (Rendered dynamically by renderSubcategoryPills()) -->
-        <div id="subcategories-bar" class="hidden flex items-center gap-1.5 shrink-0">
-        </div>
-    </div>
-
-    <!-- Client & Pricing Context Bar (Comfortable & readable) -->
-    <div class="bg-slate-900/70 px-4 py-1.5 border-b border-slate-800/80 shrink-0 flex items-center justify-between gap-3">
-        <!-- Client Selector Button -->
-        <div class="flex items-center space-x-2">
-            <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Client :</span>
-            <button onclick="openClientSelectionModal()" 
-                    class="bg-slate-800 hover:bg-slate-700/90 border border-slate-700/60 hover:border-slate-600 px-3 py-1 rounded-lg text-xs font-bold text-slate-200 flex items-center space-x-2 cursor-pointer transition-colors shadow-xs">
-                <svg class="h-3.5 w-3.5 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                </svg>
-                <span id="selected-client-name-display" class="font-bold">Client Passage</span>
-                <span id="selected-client-discount-badge" class="text-[10px] bg-indigo-500/10 text-indigo-400 font-bold px-1.5 py-0.5 rounded">Remise: 0%</span>
-            </button>
-            <button onclick="clearSelectedClient()" id="client-clear-btn-display" class="hidden text-slate-500 hover:text-rose-400 transition-colors p-1" title="Réinitialiser au client de passage">
-                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12" />
-                </svg>
-            </button>
-        </div>
-
-        <!-- Pricing Mode Switcher & Cart Toggle -->
-        <div class="flex items-center space-x-2.5">
             <!-- Pricing Mode Switcher -->
-            <div class="flex items-center space-x-2">
+            <div class="flex items-center space-x-1.5">
                 <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Tarif :</span>
                 <div class="flex bg-slate-950/70 p-0.5 rounded-lg border border-slate-800">
                     <button onclick="setPricingMode('detail')" id="pricing-mode-detail" 
@@ -146,6 +136,13 @@
                 <span id="cart-toggle-header-badge" class="text-[10px] bg-indigo-500/20 text-indigo-300 font-bold px-1.5 py-0.5 rounded-full font-mono">0</span>
                 <span id="cart-toggle-header-arrow" class="text-slate-400 text-xs">▶</span>
             </button>
+        </div>
+    </div>
+
+    <!-- Subcategories Bar (Row 3: Positioned cleanly UNDER Categories, full width row) -->
+    <div id="subcategories-container" class="hidden bg-slate-900/70 px-4 py-1.5 border-b border-slate-800/80 shrink-0 flex items-center gap-2 overflow-x-auto">
+        <div id="subcategories-bar" class="flex items-center gap-1.5 shrink-0">
+            <!-- Rendered dynamically by renderSubcategoryPills() -->
         </div>
     </div>
 
@@ -869,14 +866,14 @@
     };
 
     window.renderSubcategoryPills = function() {
+        const subContainer = document.getElementById('subcategories-container');
         const subBar = document.getElementById('subcategories-bar');
-        const subDivider = document.getElementById('subcategories-divider');
         if (!subBar) return;
 
         const targetsBar = document.getElementById('targets-bar');
         if (targetsBar && targetsBar.classList.contains('hidden')) {
-            subBar.classList.add('hidden');
-            if (subDivider) subDivider.classList.add('hidden');
+            if (subContainer) subContainer.classList.add('hidden');
+            subBar.innerHTML = '';
             return;
         }
 
@@ -886,14 +883,12 @@
             .sort((a, b) => (parseInt(a.sort_order || 0) - parseInt(b.sort_order || 0)) || a.name.localeCompare(b.name));
 
         if (targetSubs.length === 0) {
-            subBar.classList.add('hidden');
-            if (subDivider) subDivider.classList.add('hidden');
+            if (subContainer) subContainer.classList.add('hidden');
             subBar.innerHTML = '';
             return;
         }
 
-        subBar.classList.remove('hidden');
-        if (subDivider) subDivider.classList.remove('hidden');
+        if (subContainer) subContainer.classList.remove('hidden');
         subBar.innerHTML = '';
 
         // "Tous" pill
