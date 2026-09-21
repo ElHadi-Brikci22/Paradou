@@ -26,13 +26,17 @@ class Order extends Model
         'paid_amount',
         'balance_amount',
         'remarks',
-        'is_express'
+        'is_express',
+        'uuid',
+        'pos_terminal_code',
+        'synced_at',
     ];
 
     protected $casts = [
         'order_date' => 'datetime',
         'target_delivery_date' => 'date',
         'actual_delivery_date' => 'datetime',
+        'synced_at' => 'datetime',
         'is_paid' => 'boolean',
         'is_express' => 'boolean',
     ];
@@ -50,6 +54,11 @@ class Order extends Model
     public function orderItems()
     {
         return $this->hasMany(OrderItem::class);
+    }
+
+    public function items()
+    {
+        return $this->orderItems();
     }
 
     public function isGuestOrder(): bool

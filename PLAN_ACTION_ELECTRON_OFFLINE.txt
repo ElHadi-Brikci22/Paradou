@@ -1,0 +1,212 @@
+================================================================================
+          PLAN D'ACTION TECHNIQUE & ARCHITECTURE : POS CAISSE ELECTRON
+               MODE DOUBLE : ONLINE (WEB CLOUD) & OFFLINE (SECOURS)
+================================================================================
+
+DATE DE CRÉATION : 2026-09-21
+PROJET           : PARADOU / MSK DRY PLUS
+AUTEUR           : Équipe d'Ingénierie & Architecture Antigravity
+
+--------------------------------------------------------------------------------
+1. OBJECTIF & VISION DU SYSTÈME
+--------------------------------------------------------------------------------
+L'objectif est de transformer le système actuel en une solution de caisse 
+professionnelle commercialisable auprès de pressings clients :
+  - Le serveur central (Laravel + MySQL) est hébergé sur le Web (Cloud / VPS).
+  - La caisse fonctionne via une application Desktop native propre (Electron).
+  - La caisse opère en mode DUAL :
+      * En ligne : Transactions synchronisées en temps réel.
+      * Hors ligne : En cas de coupure d'Internet ou de panne réseau, la caisse 
+        continue à encaisser, enregistrer les commandes et imprimer les tickets 
+        instantanément sans aucun ralentissement ni blocage.
+      * Reconnexion : Synchronisation automatique et transparente des commandes 
+        locales vers le Cloud dès le rétablissement de la connexion.
+
+--------------------------------------------------------------------------------
+2. ORGANISATION GIT & REPOSITORIES (APPROCHE MULTI-REPO PROFESSIONNELLE)
+--------------------------------------------------------------------------------
+Pour isoler les responsabilités et ne jamais déstabiliser le code existant :
+
+  REPO 1 : [Paradou] (Le dépôt actuel)
+  ------------------------------------
+  Rôle : Backend API Cloud & Dashboard Web Administrateur.
+  Technos : Laravel 11, PHP 8.3+, MySQL.
+  Branches :
+    - main    : Version de production déployée sur le serveur Cloud.
+    - develop : Branche d'intégration des nouvelles fonctionnalités API.
+    - feat/*  : Branches de travail (ex: feat/pos-api).
+
+  REPO 2 : [Paradou-POS-Desktop] (Nouveau dépôt à créer)
+  ------------------------------------------------------
+  Rôle : Application Caisse Tactile de Comptoir (Installable sur PC client).
+  Technos : Electron, Node.js, Frontend Vue/Vite (ou Vanilla JS optimisé), 
+            IndexedDB / SQLite local, Pilote USB/Network ESC/POS.
+  Branches :
+    - main    : Releases stables des installateurs Windows (Setup.exe).
+    - develop : Développement et intégration continue des modules Desktop.
+
+--------------------------------------------------------------------------------
+3. SCHÉMA D'ARCHITECTURE GLOBALE
+--------------------------------------------------------------------------------
+
+   +-------------------------------------------------------------------+
+   |                    SERVEUR CLOUD (WEB PUBLIC)                     |
+   |                                                                   |
+   |   [ Back-Office Admin Web ] <---> [ Base Centrale MySQL ]         |
+   |                                              ^                    |
+   |                                              |                    |
+   |                  [ API REST /api/pos/* ] <---+                    |
+   +-------------------------------------------------------------------+
+                                  ^   ^
+               HTTPS / API Token  |   |  Synchronisation bidirectionnelle
+                                  v   v
+   +-------------------------------------------------------------------+
+   |             APPLICATION DESKTOP ELECTRON (POSTE CAISSE)           |
+   |                                                                   |
+   |   [ Interface Caisse Tactile ]                                    |
+   |                 |                                                 |
+   |                 v                                                 |
+   |   [ Base Locale IndexedDB / SQLite ]                              |
+   |        - Cache Articles, Tarifs, Sous-catégories                  |
+   |        - Cache Fichier Clients                                    |
+   |        - File d'attente des commandes (Queue 'pending_sync')      |
+   |                 |                                                 |
+   |                 +---> [ Moteur d'Impression Silencieuse (80mm) ]   |
+   |                 |                                                 |
+   |                 +---> [ Watchdog Réseau & Moteur de Synchro ]     |
+   +-------------------------------------------------------------------+
+
+--------------------------------------------------------------------------------
+4. LES 5 JALONS D'IMPLÉMENTATION (FEUILLE DE ROUTE DÉTAILLÉE)
+--------------------------------------------------------------------------------
+
+================================================================================
+JALON 1 : API CLOUD DE SYNCHRONISATION (REPO ACTUEL 'Paradou') - [TERMINÉ 100%]
+================================================================================
+Objectif : Doter le backend Laravel des routes nécessaires pour alimenter la
+caisse et recevoir les commandes hors-ligne de façon sécurisée et transactionnelle.
+
+  [X] Tâche 1.1 : Mise en place de l'API & Routage Laravel 11
+      - Routage API activé dans `bootstrap/app.php` pointant vers `routes/api.php`.
+      - Migration exécutée : ajout des champs `uuid`, `pos_terminal_code`, et `synced_at`
+        sur la table `orders` (`2026_09_21_000001_add_uuid_and_pos_fields_to_orders_table.php`).
+      - Modèle `Order` mis à jour ($fillable, $casts, alias de relation `items()`).
+
+  [X] Tâche 1.2 : Endpoints de Surveillance & Démarrage (`GET /api/pos/ping`, `GET /api/pos/bootstrap`)
+      - `/api/pos/ping` : Health-check ultra-rapide pour watchdog réseau.
+      - `/api/pos/bootstrap` : Fournit tout le catalogue (catégories ordonnées,
+        sous-catégories, services, articles avec grille tarifaire unifiée `prices`),
+        fichier clients, dictionnaires (couleurs, défauts, taches avec encodage UTF-8 sain)
+        et prochain numéro de ticket recommandé.
+      - `/api/pos/sync/pull` : Récupération incrémentielle delta par horodatage `?since=...`.
+
+  [X] Tâche 1.3 : Endpoint de Synchronisation des Commandes (`POST /api/pos/sync/orders`)
+      - Réception par lots (batch) des commandes créées en mode offline.
+      - Idempotence absolue via `uuid` : si l'UUID existe déjà, retour immédiat `already_synced` sans doublon.
+      - Insertion transactionnelle (`DB::transaction`) dans `orders` et `order_items`.
+      - Résolution automatique ou création du client passager si non existant.
+      - Prévention des collisions de numéros de ticket avec préfixe terminal (`POS-TCK-XXXX`).
+      - Mise à jour automatique du crédit client en cas de solde restant dû.
+
+  [X] Tâche 1.4 : Endpoint de Synchronisation des Clients (`POST /api/pos/sync/clients`)
+      - Création ou rapprochement par téléphone des nouveaux clients saisis hors ligne.
+      - Attribution automatique du numéro de code client suivant.
+
+  [X] Tâche 1.5 : Tests Automatisés de Non-Régression
+      - 6 tests Feature complets créés dans `tests/Feature/PosApiTest.php` : 100% SUCCÈS.
+      - Suite complète de l'application (42 tests, 299 assertions) : 100% SUCCÈS sans régression.
+
+================================================================================
+JALON 2 : PROJET DESKTOP ELECTRON (NOUVEAU REPO 'Paradou-POS-Desktop') - [TERMINÉ 100%]
+================================================================================
+Objectif : Créer le socle applicatif exécutable Windows moderne et optimisé.
+
+  [X] Tâche 2.1 : Initialisation du Repository / Dossier du projet
+      - Nouveau dossier et dépôt Git autonome créé : `paradou-pos-desktop/` (isolé du repo Laravel).
+      - Dépendances Electron v33 installées avec succès.
+      - Structure de répertoires propre :
+          * `/src/main/main.js`     : Processus principal Node.js (fenêtre native, watchdog HTTP, silent print ESC/POS).
+          * `/src/preload/preload.js`: Pont sécurisé IPC (contextBridge isolé, APIs exposées sans faille).
+          * `/src/renderer/`         : Interface graphique (index.html, css/app.css, js/app.js).
+
+  [X] Tâche 2.2 : Configuration de la Fenêtre Native & Ergonomie
+      - Fenêtre Electron configurée (1366x800, autoHideMenuBar, Dark theme #0f172a).
+      - Raccourci F11 pour basculer en mode Plein Écran (Kiosk).
+      - Watchdog réseau temps réel avec badge d'état (🟢 En ligne / 🟡 Mode secours / 🔵 Synchro).
+      - Lanceurs Windows 1-clic : `demarrer_caisse.bat` et `demarrer_caisse_desktop.bat`.
+
+  [X] Tâche 2.3 : Pipeline de Packaging & Configuration
+      - Fichier `package.json` configuré avec cible `nsis` pour générer un installateur Windows autonome.
+      - Initialisation Git `main` avec premier commit propre (`267877c`).
+
+================================================================================
+JALON 3 : INTERFACE CAISSE & BASE LOCALE OFFLINE-FIRST
+================================================================================
+Objectif : Garantir le fonctionnement fluide de la caisse à 100% sans Internet.
+
+  [ ] Tâche 3.1 : Intégration de l'Interface Tactile
+      - Grille des articles, catégories, sous-catégories, panier dynamique.
+      - Modale de règlement rapide, sélection du client, options vêtements.
+
+  [ ] Tâche 3.2 : Base de Données Locale
+      - Utilisation d'IndexedDB (via Dexie.js) ou SQLite local embarqué.
+      - Schéma local :
+          * `catalog_cache` : Articles, sous-catégories, tarifs.
+          * `clients_cache` : Fichier clients consultable et recherchable instantanément.
+          * `orders_queue`  : Commandes locales enregistrées (`synced: false/true`).
+
+  [ ] Tâche 3.3 : Stratégie de Numérotation Hors-Ligne des Tickets
+      - Attribution d'un préfixe par caisse (ex: `C1-` pour Caisse 1).
+      - Numéro séquentiel local : `C1-101094`, `C1-101095`.
+      - Zéro risque de collision si une autre caisse encaisse en même temps.
+
+================================================================================
+JALON 4 : MOTEUR DE DÉTECTION RÉSEAU & SYNCHRONISATION
+================================================================================
+Objectif : Assurer le va-et-vient des données entre la caisse et le Cloud.
+
+  [ ] Tâche 4.1 : Watchdog Réseau
+      - Écoute des événements `online` / `offline` du système d'exploitation.
+      - Ping régulier (toutes les 15 secondes) vers `GET /api/pos/ping`.
+
+  [ ] Tâche 4.2 : Indicateur Visuel d'État en Caisse
+      - Badge lumineux discret dans l'en-tête de caisse :
+          * 🟢 Vert  : Connecté & Synchronisé.
+          * 🟡 Jaune : Hors-ligne (Mode Secours actif - X tickets en attente).
+          * 🔵 Bleu  : Synchronisation en cours...
+
+  [ ] Tâche 4.3 : File d'Attente & Résolution des Conflits
+      - Dès le rétablissement de la connexion, vidage FIFO (First-In, First-Out)
+        des commandes vers `/api/pos/sync-orders`.
+      - Marquage local `synced = true` dès réception de l'accusé serveur.
+      - Téléchargement des mises à jour éventuelles du catalogue Cloud.
+
+================================================================================
+JALON 5 : IMPRESSION DIRECTE SILENCIEUSE (SILENT PRINT) & PACKAGING
+================================================================================
+Objectif : Vitesse maximale d'encaissement et livraison du logiciel client.
+
+  [ ] Tâche 5.1 : Impression Directe Electron
+      - Détection automatique des imprimantes connectées via Node.js.
+      - Impression directe sans afficher de boîte de dialogue système 
+        via `mainWindow.webContents.print({ silent: true, deviceName: ... })`.
+      - Compatibilité totale avec rouleaux thermiques standard 80mm.
+
+  [ ] Tâche 5.2 : Templates de Tickets Embarqués
+      - Reçu client avec code QR et récapitulatif détaillé.
+      - Étiquette cintre avec le numéro de ticket géant ultra-visible (50px).
+
+  [ ] Tâche 5.3 : Livrables & Documentation Client
+      - Installateur Windows autonome (`Setup.exe`).
+      - Manuel d'installation client et de configuration de l'imprimante.
+
+================================================================================
+5. ORDRE D'EXÉCUTION IMMÉDIAT
+================================================================================
+Conformément à votre demande, nous attaquons immédiatement le **JALON 1** 
+sur ce repository :
+  1. Installation de l'infrastructure API dans Laravel 11.
+  2. Création du contrôleur `PosApiController` pour `/api/pos/bootstrap` 
+     et `/api/pos/sync-orders`.
+  3. Tests et validation locale des endpoints.
+================================================================================

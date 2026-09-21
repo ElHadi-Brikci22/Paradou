@@ -4,22 +4,22 @@
 
 @section('styles')
 <style>
-    /* Styling for active tabs */
+    /* Styling for active tabs & pills */
     .service-tab-active {
-        background-color: rgb(79, 70, 229); /* Indigo 600 */
-        color: white;
-        box-shadow: 0 10px 15px -3px rgba(99, 102, 241, 0.2);
+        background-color: rgb(79, 70, 229) !important; /* Indigo 600 */
+        color: white !important;
+        box-shadow: 0 4px 6px -1px rgba(99, 102, 241, 0.25) !important;
     }
     .target-pill-active {
-        background-color: rgb(51, 65, 85); /* Slate 700 */
-        color: white;
-        border-color: rgb(99, 102, 241); /* Indigo 500 */
+        background-color: rgb(51, 65, 85) !important; /* Slate 700 */
+        color: white !important;
+        font-weight: 700 !important;
     }
     .subcat-pill-active {
         background-color: rgb(79, 70, 229) !important; /* Indigo 600 */
         color: white !important;
-        border-color: rgb(99, 102, 241) !important; /* Indigo 500 */
-        box-shadow: 0 4px 6px -1px rgba(99, 102, 241, 0.25) !important;
+        font-weight: 700 !important;
+        box-shadow: 0 2px 4px -1px rgba(99, 102, 241, 0.2) !important;
     }
     /* Grid adjustments for catalog */
     .catalog-grid {
@@ -66,75 +66,80 @@
 @section('content')
 <!-- Left Panel: Catalog (2/3 width on large screens) -->
 <div class="flex-1 flex flex-col min-w-0 border-r border-slate-700/50 bg-slate-900">
-    <!-- Services Tabs (Top horizontal bar) -->
-    <div class="bg-slate-800/40 p-4 border-b border-slate-700/50 shrink-0 flex gap-2 overflow-x-auto">
+    <!-- Services Tabs (Top horizontal bar - sleek, legible, comfortable touch) -->
+    <div class="bg-slate-800/30 px-4 py-2 border-b border-slate-700/40 shrink-0 flex items-center gap-2 overflow-x-auto">
         @foreach($services as $service)
             <button onclick="selectService({{ $service->id }})" 
                     id="service-tab-{{ $service->id }}" 
-                    class="service-tab shrink-0 px-5 py-3 rounded-xl font-display font-semibold text-sm transition-all duration-200 bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white">
+                    class="service-tab shrink-0 px-4 py-1.5 rounded-lg font-display font-bold text-sm tracking-wide transition-all duration-150 bg-slate-800/80 text-slate-300 hover:bg-slate-700 hover:text-white cursor-pointer">
                 {{ $service->name }}
             </button>
         @endforeach
     </div>
 
-    <!-- Target Public Pills (Secondary sub-bar) -->
-    <div id="targets-bar" class="bg-slate-800/10 px-6 py-3 border-b border-slate-700/30 shrink-0 flex gap-2 overflow-x-auto">
-        @foreach($targets as $target)
-            <button onclick="selectTarget({{ $target->id }})" 
-                    id="target-pill-{{ $target->id }}" 
-                    class="target-pill shrink-0 px-4 py-1.5 rounded-full border border-slate-700 bg-slate-800/50 text-slate-400 font-medium text-xs transition-all duration-150 hover:text-slate-200">
-                {{ $target->name }}
-            </button>
-        @endforeach
+    <!-- Targets & Subcategories Bar (Merged in 1 line - clear, legible, no heavy borders) -->
+    <div id="targets-bar" class="bg-slate-900/40 px-4 py-1.5 border-b border-slate-800/70 shrink-0 flex items-center gap-2 overflow-x-auto">
+        <!-- Target Publics -->
+        <div class="flex items-center gap-1.5 shrink-0">
+            @foreach($targets as $target)
+                <button onclick="selectTarget({{ $target->id }})" 
+                        id="target-pill-{{ $target->id }}" 
+                        class="target-pill shrink-0 px-3 py-1 rounded-lg text-sm font-semibold transition-all duration-150 text-slate-400 hover:text-white hover:bg-slate-800/70 cursor-pointer">
+                    {{ $target->name }}
+                </button>
+            @endforeach
+        </div>
+
+        <!-- Inline Separator between Targets and Subcategories -->
+        <div id="subcategories-divider" class="hidden h-4 w-px bg-slate-700/60 shrink-0 mx-1"></div>
+
+        <!-- Subcategory Pills (Rendered dynamically by renderSubcategoryPills()) -->
+        <div id="subcategories-bar" class="hidden flex items-center gap-1.5 shrink-0">
+        </div>
     </div>
 
-    <!-- Subcategory Pills (Tertiary sub-bar, dynamically populated & ordered by sort_order) -->
-    <div id="subcategories-bar" class="hidden bg-slate-950/40 px-6 py-2 border-b border-slate-800/80 shrink-0 flex items-center gap-1.5 overflow-x-auto transition-all">
-        <!-- Rendered dynamically by renderSubcategoryPills() -->
-    </div>
-
-    <!-- Client & Pricing Context Bar -->
-    <div class="bg-slate-800/25 px-6 py-2.5 border-b border-slate-700/30 shrink-0 flex items-center justify-between gap-4">
+    <!-- Client & Pricing Context Bar (Comfortable & readable) -->
+    <div class="bg-slate-900/70 px-4 py-1.5 border-b border-slate-800/80 shrink-0 flex items-center justify-between gap-3">
         <!-- Client Selector Button -->
         <div class="flex items-center space-x-2">
-            <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Client associé :</span>
+            <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Client :</span>
             <button onclick="openClientSelectionModal()" 
-                    class="bg-slate-800 hover:bg-slate-700 border border-slate-700 hover:border-slate-600 px-3.5 py-1.5 rounded-xl text-xs font-bold text-slate-200 flex items-center space-x-2 cursor-pointer transition-colors shadow-sm">
+                    class="bg-slate-800 hover:bg-slate-700/90 border border-slate-700/60 hover:border-slate-600 px-3 py-1 rounded-lg text-xs font-bold text-slate-200 flex items-center space-x-2 cursor-pointer transition-colors shadow-xs">
                 <svg class="h-3.5 w-3.5 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                 </svg>
-                <span id="selected-client-name-display">Client Passage</span>
-                <span id="selected-client-discount-badge" class="text-[9px] bg-indigo-500/10 text-indigo-400 font-bold px-1.5 py-0.5 rounded">Remise: 0%</span>
+                <span id="selected-client-name-display" class="font-bold">Client Passage</span>
+                <span id="selected-client-discount-badge" class="text-[10px] bg-indigo-500/10 text-indigo-400 font-bold px-1.5 py-0.5 rounded">Remise: 0%</span>
             </button>
             <button onclick="clearSelectedClient()" id="client-clear-btn-display" class="hidden text-slate-500 hover:text-rose-400 transition-colors p-1" title="Réinitialiser au client de passage">
-                <svg class="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12" />
                 </svg>
             </button>
         </div>
 
         <!-- Pricing Mode Switcher & Cart Toggle -->
-        <div class="flex items-center space-x-3">
+        <div class="flex items-center space-x-2.5">
             <!-- Pricing Mode Switcher -->
             <div class="flex items-center space-x-2">
-                <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Type de Tarif :</span>
-                <div class="flex bg-slate-900/85 p-0.5 rounded-lg border border-slate-700/50">
+                <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Tarif :</span>
+                <div class="flex bg-slate-950/70 p-0.5 rounded-lg border border-slate-800">
                     <button onclick="setPricingMode('detail')" id="pricing-mode-detail" 
-                            class="px-3 py-1 rounded-md text-[10px] font-black uppercase transition-all cursor-pointer bg-indigo-600 text-white shadow shadow-indigo-600/10">
+                            class="px-2.5 py-1 rounded-md text-xs font-black uppercase transition-all cursor-pointer bg-indigo-600 text-white shadow-xs">
                         Détail
                     </button>
                     <button onclick="setPricingMode('wholesale')" id="pricing-mode-wholesale" 
-                            class="px-3 py-1 rounded-md text-[10px] font-black uppercase text-slate-400 hover:text-white transition-all cursor-pointer">
+                            class="px-2.5 py-1 rounded-md text-xs font-black uppercase text-slate-400 hover:text-white transition-all cursor-pointer">
                         Gros
                     </button>
                 </div>
             </div>
 
-            <div class="h-5 w-px bg-slate-700/50"></div>
+            <div class="h-4 w-px bg-slate-800"></div>
 
             <!-- Cart Toggle Button in Context Bar -->
             <button onclick="toggleCartPanel()" id="cart-toggle-header-btn" 
-                    class="bg-slate-800 hover:bg-slate-700 border border-slate-700 hover:border-slate-600 px-3 py-1.5 rounded-xl text-xs font-bold text-slate-200 flex items-center space-x-2 cursor-pointer transition-all shadow-sm active:scale-95" 
+                    class="bg-slate-800 hover:bg-slate-700/90 border border-slate-700/60 hover:border-slate-600 px-3 py-1 rounded-lg text-xs font-bold text-slate-200 flex items-center space-x-2 cursor-pointer transition-all shadow-xs active:scale-95" 
                     title="Afficher / Réduire le panier (F4)">
                 <span class="text-sm">🛒</span>
                 <span id="cart-toggle-header-label">Panier</span>
@@ -144,9 +149,9 @@
         </div>
     </div>
 
-    <!-- Items Grid (Scrollable central container) -->
-    <div class="flex-1 overflow-y-auto p-6">
-        <div id="catalog-grid" class="grid catalog-grid gap-4">
+    <!-- Items Grid (Scrollable central container - maximized space for articles) -->
+    <div class="flex-1 overflow-y-auto p-3 sm:p-4">
+        <div id="catalog-grid" class="grid catalog-grid gap-3">
             <!-- Dynamically populated by JS based on service and target selection -->
         </div>
         <div id="catalog-empty" class="hidden flex flex-col items-center justify-center h-full text-slate-500 py-12">
@@ -814,9 +819,11 @@
         const currentService = allServices.find(s => s.id === id);
         const targetsBar = document.getElementById('targets-bar');
         const subcategoriesBar = document.getElementById('subcategories-bar');
+        const subcategoriesDivider = document.getElementById('subcategories-divider');
         if (currentService && (currentService.code === 'blanchisserie' || currentService.code === 'au_kilo' || id === 2 || id === 4)) {
             if(targetsBar) targetsBar.classList.add('hidden');
             if(subcategoriesBar) subcategoriesBar.classList.add('hidden');
+            if(subcategoriesDivider) subcategoriesDivider.classList.add('hidden');
             selectedTargetId = 5; // Target Linge de maison by default
         } else {
             if(targetsBar) targetsBar.classList.remove('hidden');
@@ -845,19 +852,21 @@
 
     window.updateTargetPillsStyles = function() {
         document.querySelectorAll('.target-pill').forEach(btn => {
-            btn.classList.remove('target-pill-active');
+            btn.classList.remove('target-pill-active', 'bg-slate-800', 'text-white');
         });
         const activePill = document.getElementById(`target-pill-${selectedTargetId}`);
-        if(activePill) activePill.classList.add('target-pill-active');
+        if(activePill) activePill.classList.add('target-pill-active', 'bg-slate-800', 'text-white');
     };
 
     window.renderSubcategoryPills = function() {
         const subBar = document.getElementById('subcategories-bar');
+        const subDivider = document.getElementById('subcategories-divider');
         if (!subBar) return;
 
         const targetsBar = document.getElementById('targets-bar');
         if (targetsBar && targetsBar.classList.contains('hidden')) {
             subBar.classList.add('hidden');
+            if (subDivider) subDivider.classList.add('hidden');
             return;
         }
 
@@ -868,18 +877,20 @@
 
         if (targetSubs.length === 0) {
             subBar.classList.add('hidden');
+            if (subDivider) subDivider.classList.add('hidden');
             subBar.innerHTML = '';
             return;
         }
 
         subBar.classList.remove('hidden');
+        if (subDivider) subDivider.classList.remove('hidden');
         subBar.innerHTML = '';
 
         // "Tous" pill
         const isAllActive = selectedSubcategoryId === null;
         const allBtn = document.createElement('button');
         allBtn.type = 'button';
-        allBtn.className = `subcat-pill shrink-0 px-3.5 py-1 rounded-full text-xs font-semibold transition-all duration-150 cursor-pointer border ${isAllActive ? 'subcat-pill-active bg-indigo-600 text-white border-indigo-500 shadow-sm' : 'bg-slate-800/90 text-slate-400 border-slate-700/60 hover:text-white hover:bg-slate-700/80'}`;
+        allBtn.className = `subcat-pill shrink-0 px-3 py-1 rounded-lg text-sm font-semibold transition-all duration-150 cursor-pointer ${isAllActive ? 'subcat-pill-active bg-indigo-600 text-white shadow-xs' : 'text-slate-400 hover:text-white hover:bg-slate-800/80'}`;
         allBtn.innerHTML = `<span>Tous</span>`;
         allBtn.onclick = () => selectSubcategory(null);
         subBar.appendChild(allBtn);
@@ -889,7 +900,7 @@
             const isActive = selectedSubcategoryId === sub.id;
             const btn = document.createElement('button');
             btn.type = 'button';
-            btn.className = `subcat-pill shrink-0 px-3.5 py-1 rounded-full text-xs font-semibold transition-all duration-150 cursor-pointer border ${isActive ? 'subcat-pill-active bg-indigo-600 text-white border-indigo-500 shadow-sm' : 'bg-slate-800/90 text-slate-400 border-slate-700/60 hover:text-white hover:bg-slate-700/80'}`;
+            btn.className = `subcat-pill shrink-0 px-3 py-1 rounded-lg text-sm font-semibold transition-all duration-150 cursor-pointer ${isActive ? 'subcat-pill-active bg-indigo-600 text-white shadow-xs' : 'text-slate-400 hover:text-white hover:bg-slate-800/80'}`;
             btn.innerHTML = `<span>${sub.name}</span>`;
             btn.onclick = () => selectSubcategory(sub.id);
             subBar.appendChild(btn);
