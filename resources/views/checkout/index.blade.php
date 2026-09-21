@@ -638,6 +638,7 @@
     // Global catalog state injected from PHP
     const allItems = @json($items);
     const allServices = @json($services);
+    const allTargets = @json($targets);
     const allSubcategories = @json($subcategories);
     const editingOrder = @json($editingOrder ?? null);
     const IS_ADMIN = {{ auth()->user()->role === 'admin' ? 'true' : 'false' }};
@@ -815,22 +816,29 @@
         const activeBtn = document.getElementById(`service-tab-${id}`);
         if(activeBtn) activeBtn.classList.add('service-tab-active');
 
-        // Services 'blanchisserie' & 'au_kilo' don't have targets sub-bar, hide it if active
         const currentService = allServices.find(s => s.id === id);
         const targetsBar = document.getElementById('targets-bar');
-        const subcategoriesBar = document.getElementById('subcategories-bar');
-        const subcategoriesDivider = document.getElementById('subcategories-divider');
-        if (currentService && (currentService.code === 'blanchisserie' || currentService.code === 'au_kilo' || id === 2 || id === 4)) {
-            if(targetsBar) targetsBar.classList.add('hidden');
-            if(subcategoriesBar) subcategoriesBar.classList.add('hidden');
-            if(subcategoriesDivider) subcategoriesDivider.classList.add('hidden');
-            selectedTargetId = 5; // Target Linge de maison by default
-        } else {
-            if(targetsBar) targetsBar.classList.remove('hidden');
-            if (selectedTargetId === 5) {
-                selectedTargetId = 1; // Default to Homme
-            }
+        if (targetsBar) targetsBar.classList.remove('hidden');
+
+        // Smart target selection on service change
+        const isBlanchisserie = currentService && (currentService.code === 'blanchisserie' || currentService.name.toLowerCase().includes('blanchisserie'));
+        const isKilo = currentService && (currentService.code === 'au_kilo' || currentService.name.toLowerCase().includes('kilo'));
+
+        const lingeDeMaisonTarget = allTargets.find(t => t.name.toLowerCase().includes('maison') || t.id === 5);
+        const hommeTarget = allTargets.find(t => t.name.toLowerCase() === 'homme' || t.id === 1);
+
+        if (isBlanchisserie && lingeDeMaisonTarget) {
+            // For Blanchisserie, default to Linge de maison
+            selectedTargetId = lingeDeMaisonTarget.id;
+        } else if (isKilo && selectedTargetId === 4 && hommeTarget) {
+            // Cuir (id 4) has no kilo items, default to Homme
+            selectedTargetId = hommeTarget.id;
+        } else if (!selectedTargetId) {
+            selectedTargetId = hommeTarget ? hommeTarget.id : (allTargets[0] ? allTargets[0].id : 1);
         }
+
+        // Reset subcategory to "Tous" on service change
+        selectedSubcategoryId = null;
 
         // Highlight target pills
         updateTargetPillsStyles();
@@ -930,15 +938,15 @@
             const hasPrice = serviceHasUniformPrice || prices.some(sp => sp.service_id === selectedServiceId);
             if (!hasPrice) return false;
 
-            if (selectedServiceId === 2 || selectedServiceId === 4) {
-                return true;
-            } else {
-                if (item.garment_target_id !== selectedTargetId) return false;
-                if (selectedSubcategoryId !== null && item.garment_subcategory_id !== selectedSubcategoryId) {
-                    return false;
-                }
-                return true;
+            // Filter strictly by target (category)
+            if (item.garment_target_id !== selectedTargetId) return false;
+
+            // Filter by subcategory (if a specific subcategory is selected, not "Tous")
+            if (selectedSubcategoryId !== null && item.garment_subcategory_id !== selectedSubcategoryId) {
+                return false;
             }
+
+            return true;
         });
 
         if (filtered.length === 0) {
