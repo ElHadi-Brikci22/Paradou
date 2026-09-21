@@ -1,0 +1,132 @@
+================================================================================
+         GUIDE COMPLET D'HÉBERGEMENT WEB CLOUD (SERVEUR OCTENIUM)
+                POUR LE SYSTÈME DE CAISSE TACTILE PARADOU
+================================================================================
+
+DATE     : 2026-09-21
+PROJET   : PARADOU / MSK DRY PLUS
+HÉBERGEUR: OCTENIUM (https://octenium.com)
+OFFRE    : PROFESSIONNEL (6 300 DA / An)
+
+--------------------------------------------------------------------------------
+1. QUEL REPOSITORY GITHUB SÉLECTIONNER ?
+--------------------------------------------------------------------------------
+
+👉 DÉPÔT À METTRE SUR LE SERVEUR WEB :
+   https://github.com/ElHadi-Brikci22/Paradou.git
+
+⚠️ ATTENTION :
+   Ne mettez JAMAIS le dépôt "Paradou-POS-Desktop" sur le serveur Web !
+   - Le repo "Paradou" = Le serveur central Cloud (API, base de données, admin).
+   - Le repo "Paradou-POS-Desktop" = L'application installable (.exe) qui reste
+     sur le PC de caisse du magasin client.
+
+--------------------------------------------------------------------------------
+2. POURQUOI L'OFFRE PROFESSIONNEL (6 300 DA/AN) EST PARFAITE ?
+--------------------------------------------------------------------------------
+
+   [✔] 300 GB d'espace disque : énorme capacité pour photos d'articles et backups.
+   [✔] Nom de domaine gratuit inclus : ex. caisse-paradou.com ou msk-dryplus.com.
+   [✔] Certificat SSL gratuit : connexion chiffrée et sécurisée en https://.
+   [✔] Performances Nginx + 2X Processeur & RAM : réponses ultra-rapides pour l'API.
+   [✔] Support de PHP 8.2 et 8.3 (obligatoire pour Laravel 11).
+
+--------------------------------------------------------------------------------
+3. ÉTAPES DE DÉPLOIEMENT PAS À PAS SUR CPANEL OCTENIUM
+--------------------------------------------------------------------------------
+
+ÉTAPE A : COMMANDE ET NOM DE DOMAINE
+------------------------------------
+1. Rendez-vous sur Octenium et commandez l'offre "PROFESSIONNEL" (6 300 DA/an).
+2. Choisissez votre nom de domaine gratuit (ex: caisse-paradou.com).
+3. Dès validation, vous recevez vos identifiants d'accès au panneau cPanel.
+
+ÉTAPE B : VÉRIFIER LA VERSION DE PHP
+------------------------------------
+1. Connectez-vous à votre panneau cPanel.
+2. Allez dans "MultiPHP Manager" (ou "Sélectionner une version de PHP").
+3. Sélectionnez votre domaine et choisissez "PHP 8.2" ou "PHP 8.3".
+
+ÉTAPE C : TÉLÉCHARGER LE CODE LARAVEL (REPO PARADOU)
+----------------------------------------------------
+Méthode 1 (Via l'outil Git de cPanel - Recommandée) :
+  1. Dans cPanel, cliquez sur "Git™ Version Control".
+  2. Cliquez sur "Create".
+  3. Clone URL : https://github.com/ElHadi-Brikci22/Paradou.git
+  4. Repository Path : repositories/paradou
+  5. Cliquez sur "Create". Le code se télécharge automatiquement.
+
+Méthode 2 (Via le Terminal cPanel) :
+  1. Ouvrez l'icône "Terminal" dans cPanel.
+  2. Tapez les commandes suivantes :
+     git clone https://github.com/ElHadi-Brikci22/Paradou.git
+     cd Paradou
+     composer install --no-dev --optimize-autoloader
+
+ÉTAPE D : CRÉER LA BASE DE DONNÉES MYSQL
+----------------------------------------
+1. Dans cPanel, allez sur "Bases de données MySQL".
+2. Créez une nouvelle base (ex: cpaneluser_paradou).
+3. Créez un utilisateur MySQL et associez-lui un mot de passe robuste.
+4. Ajoutez l'utilisateur à la base avec "TOUS LES PRIVILÈGES".
+5. Ouvrez "phpMyAdmin" dans cPanel, sélectionnez votre base, puis cliquez sur 
+   "Importer" et choisissez le fichier "database.sql" à la racine de votre projet.
+
+ÉTAPE E : CONFIGURER LE FICHIER .ENV
+------------------------------------
+Dans le dossier de votre projet sur le serveur, créez ou modifiez le fichier ".env" :
+
+   APP_NAME="PARADOU"
+   APP_ENV=production
+   APP_KEY=                 <-- Sera généré par php artisan key:generate
+   APP_DEBUG=false
+   APP_URL=https://votre-domaine.com
+
+   DB_CONNECTION=mysql
+   DB_HOST=127.0.0.1
+   DB_PORT=3306
+   DB_DATABASE=votre_nom_de_base
+   DB_USERNAME=votre_nom_utilisateur
+   DB_PASSWORD=votre_mot_de_passe_mysql
+
+Dans le Terminal cPanel, exécutez ensuite :
+   php artisan key:generate
+   php artisan migrate --force
+   php artisan storage:link
+   php artisan config:cache
+   php artisan route:cache
+   php artisan view:cache
+
+ÉTAPE F : POINTER LE DOMAINE VERS LE DOSSIER /public (RÈGLE D'OR LARAVEL)
+------------------------------------------------------------------------
+Dans cPanel, allez dans "Domaines" :
+- Cliquez sur votre domaine et modifiez la racine du document (Document Root).
+- Pointez-le vers : /repositories/paradou/public  (ou /public_html/public).
+⚠️ Ne pointez JAMAIS vers la racine directe du projet, toujours vers le dossier "public" !
+
+--------------------------------------------------------------------------------
+4. COMMENT RELIER LE LOGICIEL DE CAISSE (.EXE) AU SERVEUR EN LIGNE ?
+--------------------------------------------------------------------------------
+
+Une fois votre serveur en ligne (ex: https://caisse-paradou.com) :
+
+1. Sur votre PC dans le projet Desktop :
+   Ouvrez le fichier : paradou-pos-desktop/src/main/main.js
+   Modifiez la ligne :
+      serverUrl: 'https://caisse-paradou.com'
+
+2. Lancez la compilation :
+      npm run build:win
+
+3. Prenez le fichier généré dans "dist/" :
+      Paradou POS Caisse Setup 1.0.0.exe
+
+4. Installez-le sur le PC du magasin client :
+   La caisse se connecte immédiatement et automatiquement à votre serveur Cloud !
+
+--------------------------------------------------------------------------------
+5. SUPPORT & AIDE
+--------------------------------------------------------------------------------
+Dès que vous avez souscrit à l'offre Octenium, revenez vers moi avec vos accès
+ou vos questions et nous ferons la mise en ligne ensemble étape par étape !
+================================================================================
