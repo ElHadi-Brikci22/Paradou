@@ -993,8 +993,9 @@
             }
 
             if (item.image_path) {
+                const imageSrc = encodeURI(item.image_path.startsWith('/') ? item.image_path : '/' + item.image_path);
                 card.className = "relative border border-slate-700/60 p-3.5 rounded-2xl text-left flex flex-col justify-between h-32 active:scale-95 hover:border-slate-500 transition-all duration-150 shadow-md cursor-pointer overflow-hidden bg-cover bg-center";
-                card.style.backgroundImage = `linear-gradient(to bottom, rgba(15, 23, 42, 0.65), rgba(15, 23, 42, 0.85)), url('/${item.image_path}')`;
+                card.style.backgroundImage = `linear-gradient(to bottom, rgba(15, 23, 42, 0.65), rgba(15, 23, 42, 0.85)), url('${imageSrc}')`;
             } else {
                 card.className = "bg-slate-800 border border-slate-700/60 p-3.5 rounded-2xl text-left flex flex-col justify-between h-32 active:scale-95 hover:border-slate-500 hover:bg-slate-800/80 transition-all duration-150 shadow-md cursor-pointer";
             }
