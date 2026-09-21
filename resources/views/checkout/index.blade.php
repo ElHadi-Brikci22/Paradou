@@ -60,6 +60,14 @@
     .cart-badge-pulse {
         animation: cartBadgePulse 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     }
+    /* Hide scrollbars completely while preserving scrollability */
+    .no-scrollbar::-webkit-scrollbar {
+        display: none !important;
+    }
+    .no-scrollbar {
+        -ms-overflow-style: none !important;  /* IE and Edge */
+        scrollbar-width: none !important;  /* Firefox */
+    }
 </style>
 @endsection
 
@@ -67,7 +75,7 @@
 <!-- Left Panel: Catalog (2/3 width on large screens) -->
 <div class="flex-1 flex flex-col min-w-0 border-r border-slate-700/50 bg-slate-900">
     <!-- Services & Context Bar (Row 1: Services on Left, Client & Pricing on Right) -->
-    <div class="bg-slate-800/30 px-4 py-2 border-b border-slate-700/40 shrink-0 flex items-center justify-between gap-3 overflow-x-auto">
+    <div class="bg-slate-800/30 px-4 py-2 border-b border-slate-700/40 shrink-0 flex items-center justify-between gap-3 overflow-x-auto no-scrollbar">
         <!-- Services Tabs (Left side) -->
         <div class="flex items-center gap-2 shrink-0">
             @foreach($services as $service)
@@ -79,7 +87,7 @@
             @endforeach
         </div>
 
-        <!-- Client & Pricing Context Bar (Right side - In Yellow Box Area) -->
+        <!-- Client & Pricing Context Bar (Right side) -->
         <div class="flex items-center space-x-2.5 shrink-0 ml-auto pl-4">
             <!-- Client Selector Button -->
             <div class="flex items-center space-x-1.5">
@@ -113,35 +121,35 @@
                     </button>
                 </div>
             </div>
-
-            <div class="h-4 w-px bg-slate-800"></div>
-
-            <!-- Cart Toggle Button in Context Bar -->
-            <button onclick="toggleCartPanel()" id="cart-toggle-header-btn" 
-                    class="bg-slate-800 hover:bg-slate-700/90 border border-slate-700/60 hover:border-slate-600 px-3 py-1 rounded-lg text-xs font-bold text-slate-200 flex items-center space-x-2 cursor-pointer transition-all shadow-xs active:scale-95" 
-                    title="Afficher / Réduire le panier (F4)">
-                <span class="text-sm">🛒</span>
-                <span id="cart-toggle-header-label">Panier</span>
-                <span id="cart-toggle-header-badge" class="text-[10px] bg-indigo-500/20 text-indigo-300 font-bold px-1.5 py-0.5 rounded-full font-mono">0</span>
-                <span id="cart-toggle-header-arrow" class="text-slate-400 text-xs">▶</span>
-            </button>
         </div>
     </div>
 
-    <!-- Categories Bar (Row 2: Target Publics - full width, clean, comfortable) -->
-    <div id="targets-bar" class="bg-slate-900/50 px-4 py-1.5 border-b border-slate-800/80 shrink-0 flex items-center gap-1.5 overflow-x-auto">
-        @foreach($targets as $target)
-            <button onclick="selectTarget({{ $target->id }})" 
-                    id="target-pill-{{ $target->id }}" 
-                    class="target-pill shrink-0 px-3 py-1 rounded-lg text-sm font-semibold transition-all duration-150 text-slate-400 hover:text-white hover:bg-slate-800/70 cursor-pointer">
-                {{ $target->name }}
-            </button>
-        @endforeach
+    <!-- Categories Bar (Row 2: Target Publics on Left, Cart Toggle on Right - In Yellow Box Area) -->
+    <div id="targets-bar" class="bg-slate-900/50 px-4 py-1.5 border-b border-slate-800/80 shrink-0 flex items-center justify-between gap-3 overflow-x-auto no-scrollbar">
+        <div class="flex items-center gap-1.5 shrink-0 overflow-x-auto no-scrollbar">
+            @foreach($targets as $target)
+                <button onclick="selectTarget({{ $target->id }})" 
+                        id="target-pill-{{ $target->id }}" 
+                        class="target-pill shrink-0 px-3 py-1 rounded-lg text-sm font-semibold transition-all duration-150 text-slate-400 hover:text-white hover:bg-slate-800/70 cursor-pointer">
+                    {{ $target->name }}
+                </button>
+            @endforeach
+        </div>
+
+        <!-- Cart Toggle Button in Categories Bar (Right side - In Yellow Box Area) -->
+        <button onclick="toggleCartPanel()" id="cart-toggle-header-btn" 
+                class="bg-slate-800 hover:bg-slate-700/90 border border-slate-700/60 hover:border-slate-600 px-3 py-1 rounded-lg text-xs font-bold text-slate-200 flex items-center space-x-2 cursor-pointer transition-all shadow-xs active:scale-95 shrink-0 ml-auto" 
+                title="Afficher / Réduire le panier (F4)">
+            <span class="text-sm">🛒</span>
+            <span id="cart-toggle-header-label">Panier</span>
+            <span id="cart-toggle-header-badge" class="text-[10px] bg-indigo-500/20 text-indigo-300 font-bold px-1.5 py-0.5 rounded-full font-mono">0</span>
+            <span id="cart-toggle-header-arrow" class="text-slate-400 text-xs">▶</span>
+        </button>
     </div>
 
     <!-- Subcategories Bar (Row 3: Positioned cleanly UNDER Categories, full width row) -->
-    <div id="subcategories-container" class="hidden bg-slate-900/70 px-4 py-1.5 border-b border-slate-800/80 shrink-0 flex items-center gap-2 overflow-x-auto">
-        <div id="subcategories-bar" class="flex items-center gap-1.5 shrink-0">
+    <div id="subcategories-container" class="hidden bg-slate-900/70 px-4 py-1.5 border-b border-slate-800/80 shrink-0 flex items-center gap-2 overflow-x-auto no-scrollbar">
+        <div id="subcategories-bar" class="flex items-center gap-1.5 shrink-0 overflow-x-auto no-scrollbar">
             <!-- Rendered dynamically by renderSubcategoryPills() -->
         </div>
     </div>
