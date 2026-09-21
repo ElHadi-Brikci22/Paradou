@@ -66,32 +66,21 @@
 @section('content')
 <!-- Left Panel: Catalog (2/3 width on large screens) -->
 <div class="flex-1 flex flex-col min-w-0 border-r border-slate-700/50 bg-slate-900">
-    <!-- Services Tabs (Top horizontal bar - sleek, legible, comfortable touch) -->
-    <div class="bg-slate-800/30 px-4 py-2 border-b border-slate-700/40 shrink-0 flex items-center gap-2 overflow-x-auto">
-        @foreach($services as $service)
-            <button onclick="selectService({{ $service->id }})" 
-                    id="service-tab-{{ $service->id }}" 
-                    class="service-tab shrink-0 px-4 py-1.5 rounded-lg font-display font-bold text-sm tracking-wide transition-all duration-150 bg-slate-800/80 text-slate-300 hover:bg-slate-700 hover:text-white cursor-pointer">
-                {{ $service->name }}
-            </button>
-        @endforeach
-    </div>
-
-    <!-- Categories & Context Bar (Row 2: Categories on Left, Client & Pricing on Right) -->
-    <div id="targets-bar" class="bg-slate-900/50 px-4 py-1.5 border-b border-slate-800/80 shrink-0 flex items-center justify-between gap-3 overflow-x-auto">
-        <!-- Target Publics (Categories) -->
-        <div class="flex items-center gap-1.5 shrink-0">
-            @foreach($targets as $target)
-                <button onclick="selectTarget({{ $target->id }})" 
-                        id="target-pill-{{ $target->id }}" 
-                        class="target-pill shrink-0 px-3 py-1 rounded-lg text-sm font-semibold transition-all duration-150 text-slate-400 hover:text-white hover:bg-slate-800/70 cursor-pointer">
-                    {{ $target->name }}
+    <!-- Services & Context Bar (Row 1: Services on Left, Client & Pricing on Right) -->
+    <div class="bg-slate-800/30 px-4 py-2 border-b border-slate-700/40 shrink-0 flex items-center justify-between gap-3 overflow-x-auto">
+        <!-- Services Tabs (Left side) -->
+        <div class="flex items-center gap-2 shrink-0">
+            @foreach($services as $service)
+                <button onclick="selectService({{ $service->id }})" 
+                        id="service-tab-{{ $service->id }}" 
+                        class="service-tab shrink-0 px-4 py-1.5 rounded-lg font-display font-bold text-sm tracking-wide transition-all duration-150 bg-slate-800/80 text-slate-300 hover:bg-slate-700 hover:text-white cursor-pointer">
+                    {{ $service->name }}
                 </button>
             @endforeach
         </div>
 
-        <!-- Client & Pricing Context Bar (Moved UP to Row 2 right side) -->
-        <div class="flex items-center space-x-2.5 shrink-0">
+        <!-- Client & Pricing Context Bar (Right side - In Yellow Box Area) -->
+        <div class="flex items-center space-x-2.5 shrink-0 ml-auto pl-4">
             <!-- Client Selector Button -->
             <div class="flex items-center space-x-1.5">
                 <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Client :</span>
@@ -137,6 +126,17 @@
                 <span id="cart-toggle-header-arrow" class="text-slate-400 text-xs">▶</span>
             </button>
         </div>
+    </div>
+
+    <!-- Categories Bar (Row 2: Target Publics - full width, clean, comfortable) -->
+    <div id="targets-bar" class="bg-slate-900/50 px-4 py-1.5 border-b border-slate-800/80 shrink-0 flex items-center gap-1.5 overflow-x-auto">
+        @foreach($targets as $target)
+            <button onclick="selectTarget({{ $target->id }})" 
+                    id="target-pill-{{ $target->id }}" 
+                    class="target-pill shrink-0 px-3 py-1 rounded-lg text-sm font-semibold transition-all duration-150 text-slate-400 hover:text-white hover:bg-slate-800/70 cursor-pointer">
+                {{ $target->name }}
+            </button>
+        @endforeach
     </div>
 
     <!-- Subcategories Bar (Row 3: Positioned cleanly UNDER Categories, full width row) -->
