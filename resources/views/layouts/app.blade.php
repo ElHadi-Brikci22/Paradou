@@ -198,6 +198,7 @@
         .theme-light #options-modal > div,
         .theme-light #new-client-modal > div,
         .theme-light #order-modal > div,
+        .theme-light #modal-printers-config > div,
         .theme-light #custom-alert-modal > div {
             background-color: #ffffff !important;
             border-color: #cbd5e1 !important;
@@ -205,6 +206,7 @@
         .theme-light #options-modal h3,
         .theme-light #new-client-modal h3,
         .theme-light #order-modal h3,
+        .theme-light #modal-printers-config h3,
         .theme-light #custom-alert-title,
         .theme-light #custom-alert-modal span {
             color: #0f172a !important;
@@ -212,8 +214,11 @@
         .theme-light #options-modal .bg-slate-800,
         .theme-light #new-client-modal .bg-slate-800,
         .theme-light #order-modal .bg-slate-800,
+        .theme-light #modal-printers-config .bg-slate-800\/80,
+        .theme-light #modal-printers-config .bg-slate-800\/50,
         .theme-light #custom-alert-modal .bg-slate-800 {
-            background-color: #ffffff !important;
+            background-color: #f8fafc !important;
+            border-color: #e2e8f0 !important;
         }
         .theme-light #options-modal .option-badge:not(.bg-indigo-600) {
             background-color: #f1f5f9 !important;
@@ -374,6 +379,13 @@
 
             <!-- Action Controls: Fullscreen + Theme + Logout -->
             <div class="flex items-center space-x-1.5">
+                <!-- Printer Configuration Button -->
+                <button onclick="openPrinterConfigModal()" id="printer-config-btn" class="p-1.5 text-slate-400 hover:text-indigo-400 transition-colors bg-slate-800 border border-slate-700 rounded-lg hover:border-indigo-500/20 hover:bg-indigo-500/5 cursor-pointer flex items-center justify-center" title="Configurer les Imprimantes (Reçus & Étiquettes)">
+                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                    </svg>
+                </button>
+
                 <!-- Fullscreen Toggle Button -->
                 <button onclick="toggleAppFullscreen()" id="fullscreen-toggle-btn" class="p-1.5 text-slate-400 hover:text-indigo-400 transition-colors bg-slate-800 border border-slate-700 rounded-lg hover:border-indigo-500/20 hover:bg-indigo-500/5 cursor-pointer flex items-center justify-center" title="Plein Écran / Mode Kiosque (F11)">
                     <!-- Expand icon -->
@@ -505,22 +517,254 @@
             initAppLayout();
         }
 
-        // Global function for printing without opening new windows (via offscreen iframe or Electron Silent Print)
-        function printOrder(orderId, type = 'all') {
-            // Support impression thermique silencieuse sous Electron Desktop
-            if (window.posDesktop && typeof window.posDesktop.silentPrint === 'function') {
-                fetch(`/orders/${orderId}/print-${type}`)
-                    .then(r => r.text())
-                    .then(htmlContent => {
-                        window.posDesktop.silentPrint(htmlContent);
-                    })
-                    .catch(e => {
-                        console.error('Erreur silent print Electron:', e);
-                        window.open(`/orders/${orderId}/print-${type}`, '_blank', 'width=450,height=750');
-                    });
-                return;
+        // -------------------------------------------------------------
+        // MULTI-PRINTER CONFIGURATION & SILENT ESC/POS ROUTING
+        // -------------------------------------------------------------
+        function getPrinterConfig() {
+            try {
+                const saved = localStorage.getItem('pos_printers_cfg');
+                if (saved) return JSON.parse(saved);
+            } catch(e) {}
+            return {
+                receiptPrinter: '',
+                tagPrinter: '',
+                autoPrintReceipt: true,
+                autoPrintTags: true
+            };
+        }
+
+        async function openPrinterConfigModal() {
+            const modal = document.getElementById('modal-printers-config');
+            const receiptSelect = document.getElementById('cfg-printer-receipt');
+            const tagSelect = document.getElementById('cfg-printer-tags');
+            const autoReceipt = document.getElementById('cfg-autoprint-receipt');
+            const autoTags = document.getElementById('cfg-autoprint-tags');
+            const banner = document.getElementById('printer-env-banner');
+            
+            if (!modal) return;
+
+            // Load saved settings
+            let cfg = getPrinterConfig();
+            if (window.posDesktop && typeof window.posDesktop.getConfig === 'function') {
+                try {
+                    const desktopCfg = await window.posDesktop.getConfig();
+                    if (desktopCfg) {
+                        cfg = { ...cfg, ...desktopCfg };
+                    }
+                } catch (e) {
+                    console.warn('Error reading desktop config:', e);
+                }
             }
 
+            if (autoReceipt) autoReceipt.checked = cfg.autoPrintReceipt !== false;
+            if (autoTags) autoTags.checked = cfg.autoPrintTags !== false;
+
+            // Reset dropdowns
+            receiptSelect.innerHTML = '<option value="">-- Imprimante par défaut de Windows --</option>';
+            tagSelect.innerHTML = '<option value="">-- Imprimante par défaut de Windows --</option>';
+
+            if (window.posDesktop && typeof window.posDesktop.getPrinters === 'function') {
+                try {
+                    const printers = await window.posDesktop.getPrinters();
+                    printers.forEach(p => {
+                        const optR = document.createElement('option');
+                        optR.value = p.name;
+                        optR.textContent = `${p.displayName || p.name} ${p.isDefault ? '(Par défaut)' : ''}`;
+                        if (cfg.receiptPrinter === p.name) optR.selected = true;
+                        receiptSelect.appendChild(optR);
+
+                        const optT = document.createElement('option');
+                        optT.value = p.name;
+                        optT.textContent = `${p.displayName || p.name} ${p.isDefault ? '(Par défaut)' : ''}`;
+                        if (cfg.tagPrinter === p.name) optT.selected = true;
+                        tagSelect.appendChild(optT);
+                    });
+                } catch (err) {
+                    console.error('Error fetching system printers:', err);
+                }
+            } else {
+                if (banner) {
+                    banner.innerHTML = `<svg class="h-4 w-4 text-amber-400 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                    <div class="leading-relaxed text-amber-200">
+                        <span class="font-bold text-amber-300">Mode Navigateur Web :</span>
+                        Pour bénéficier de l'impression thermique silencieuse sans boîte de dialogue et gérer deux imprimantes distinctes en simultané, lancez l'application installée <b>Paradou POS Desktop</b>.
+                    </div>`;
+                    banner.className = "rounded-xl p-3 bg-amber-950/40 border border-amber-500/30 flex items-start space-x-2.5 text-xs text-amber-200";
+                }
+            }
+
+            modal.classList.remove('hidden');
+        }
+
+        function closePrinterConfigModal() {
+            const modal = document.getElementById('modal-printers-config');
+            if (modal) modal.classList.add('hidden');
+        }
+
+        async function savePrinterConfig() {
+            const receiptPrinter = document.getElementById('cfg-printer-receipt').value;
+            const tagPrinter = document.getElementById('cfg-printer-tags').value;
+            const autoPrintReceipt = document.getElementById('cfg-autoprint-receipt').checked;
+            const autoPrintTags = document.getElementById('cfg-autoprint-tags').checked;
+
+            const cfg = {
+                receiptPrinter,
+                tagPrinter,
+                autoPrintReceipt,
+                autoPrintTags
+            };
+
+            localStorage.setItem('pos_printers_cfg', JSON.stringify(cfg));
+
+            if (window.posDesktop && typeof window.posDesktop.saveConfig === 'function') {
+                try {
+                    const current = await window.posDesktop.getConfig();
+                    await window.posDesktop.saveConfig({ ...current, ...cfg });
+                } catch(e) {
+                    console.error('Erreur sauvegarde config Desktop:', e);
+                }
+            }
+
+            closePrinterConfigModal();
+            showAppAlert("Configuration des imprimantes enregistrée avec succès !", "success", "Imprimantes Configurées");
+        }
+
+        async function testPrinter(role) {
+            const cfg = getPrinterConfig();
+            const targetPrinter = role === 'receipt' 
+                ? (document.getElementById('cfg-printer-receipt')?.value || cfg.receiptPrinter)
+                : (document.getElementById('cfg-printer-tags')?.value || cfg.tagPrinter);
+
+            const now = new Date().toLocaleTimeString('fr-FR');
+            let testHtml = '';
+
+            if (role === 'receipt') {
+                testHtml = `
+                    <!DOCTYPE html>
+                    <html>
+                    <head><meta charset="utf-8"><title>Test Reçu</title>
+                    <style>
+                        body { font-family: 'Courier New', monospace; width: 72mm; margin: 0; padding: 10px; font-size: 13px; text-align: center; color: #000; }
+                        h2 { margin: 5px 0; font-size: 16px; font-weight: 900; }
+                        .line { border-top: 1px dashed #000; margin: 8px 0; }
+                    </style>
+                    </head>
+                    <body>
+                        <h2>PARADOU PRESSING</h2>
+                        <div>*** TEST IMPRIMANTE REÇU CLIENT ***</div>
+                        <div class="line"></div>
+                        <p style="margin: 4px 0;">Périphérique : <b>${targetPrinter || 'Défaut Windows'}</b></p>
+                        <p style="margin: 4px 0;">Heure du test : ${now}</p>
+                        <p style="color: green; font-weight: bold; margin: 6px 0;">STATUT : CONNEXION RÉUSSIE !</p>
+                        <div class="line"></div>
+                        <p style="font-size: 11px; margin: 0;">Imprimante dédiée aux Factures & Reçus Clients 80mm.</p>
+                    </body>
+                    </html>
+                `;
+            } else {
+                testHtml = `
+                    <!DOCTYPE html>
+                    <html>
+                    <head><meta charset="utf-8"><title>Test Étiquette</title>
+                    <style>
+                        body { font-family: 'Courier New', monospace; width: 72mm; margin: 0; padding: 8px; font-size: 13px; text-align: center; color: #000; }
+                        .tag-box { border: 2px solid #000; padding: 6px; border-radius: 4px; }
+                        .ticket-num { font-size: 32px; font-weight: 900; margin: 2px 0; }
+                        .line { border-top: 1px dashed #000; margin: 6px 0; }
+                    </style>
+                    </head>
+                    <body>
+                        <div class="tag-box">
+                            <div style="font-size: 11px; font-weight: bold;">PARADOU - ÉTIQUETTE CINTRE</div>
+                            <div class="ticket-num">#00999</div>
+                            <div class="line"></div>
+                            <p style="margin: 3px 0; font-weight: bold;">1/1 - COSTUME 2 PCS</p>
+                            <p style="margin: 3px 0; font-size: 11px;">BLEU MARINE | PRESSING</p>
+                            <div class="line"></div>
+                            <p style="font-size: 10px; margin: 0;">Périphérique : ${targetPrinter || 'Défaut Windows'}</p>
+                        </div>
+                    </body>
+                    </html>
+                `;
+            }
+
+            if (window.posDesktop && typeof window.posDesktop.silentPrint === 'function') {
+                try {
+                    const res = await window.posDesktop.silentPrint(testHtml, targetPrinter);
+                    if (res && res.success === false) {
+                        showAppAlert(`Échec du test : ${res.error || 'Erreur inconnue'}`, "error", "Erreur d'impression");
+                    } else {
+                        showAppAlert(`Ticket test envoyé avec succès à l'imprimante "${targetPrinter || 'Par défaut'}" !`, "success", "Test Réussi");
+                    }
+                } catch(e) {
+                    showAppAlert(`Erreur lors du test : ${e.message}`, "error", "Erreur");
+                }
+            } else {
+                // Browser popup fallback
+                const win = window.open('', '_blank', 'width=400,height=500');
+                if (win) {
+                    win.document.write(testHtml);
+                    win.document.close();
+                    win.focus();
+                    setTimeout(() => { win.print(); }, 300);
+                }
+            }
+        }
+
+        // Global function for printing without opening new windows (Multi-Printer Silent ESC/POS Routing)
+        async function printOrder(orderId, type = 'all') {
+            const cfg = getPrinterConfig();
+
+            // 1. Silent ESC/POS Printing via Electron Desktop
+            if (window.posDesktop && typeof window.posDesktop.silentPrint === 'function') {
+                try {
+                    // Type: 'ticket' -> Ticket Reçu Client (Facture comptoir)
+                    if (type === 'ticket') {
+                        const r = await fetch(`/orders/${orderId}/print-ticket`);
+                        const html = await r.text();
+                        await window.posDesktop.silentPrint(html, cfg.receiptPrinter || '');
+                        return;
+                    }
+
+                    // Type: 'tags' -> Étiquettes Cintres / Laverie
+                    if (type === 'tags') {
+                        const r = await fetch(`/orders/${orderId}/print-tags`);
+                        const html = await r.text();
+                        await window.posDesktop.silentPrint(html, cfg.tagPrinter || '');
+                        return;
+                    }
+
+                    // Type: 'all' -> Validation commande / Impression complète
+                    if (type === 'all') {
+                        // Si deux imprimantes distinctes sont configurées
+                        if (cfg.receiptPrinter && cfg.tagPrinter && cfg.receiptPrinter !== cfg.tagPrinter) {
+                            if (cfg.autoPrintReceipt !== false) {
+                                fetch(`/orders/${orderId}/print-ticket`)
+                                    .then(r => r.text())
+                                    .then(html => window.posDesktop.silentPrint(html, cfg.receiptPrinter))
+                                    .catch(e => console.error('Erreur print ticket:', e));
+                            }
+                            if (cfg.autoPrintTags !== false) {
+                                fetch(`/orders/${orderId}/print-tags`)
+                                    .then(r => r.text())
+                                    .then(html => window.posDesktop.silentPrint(html, cfg.tagPrinter))
+                                    .catch(e => console.error('Erreur print tags:', e));
+                            }
+                            return;
+                        }
+
+                        // Sinon imprimante unique (ou par défaut) : impression du combiné
+                        const r = await fetch(`/orders/${orderId}/print-all`);
+                        const html = await r.text();
+                        await window.posDesktop.silentPrint(html, cfg.receiptPrinter || cfg.tagPrinter || '');
+                        return;
+                    }
+                } catch (err) {
+                    console.error('Erreur silent print Electron:', err);
+                }
+            }
+
+            // 2. Fallback Navigateur Standard (Offscreen iframe)
             const oldIframe = document.getElementById('global-print-iframe');
             if (oldIframe) {
                 oldIframe.remove();
@@ -726,6 +970,105 @@
         setInterval(updateDualModeStatus, 4000);
         document.addEventListener('DOMContentLoaded', updateDualModeStatus);
     </script>
+
+    <!-- Modal Configuration Imprimantes Multi-Rôles -->
+    <div id="modal-printers-config" class="hidden fixed inset-0 bg-slate-950/75 flex items-center justify-center p-4" style="backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); z-index: 999998;">
+        <div class="bg-slate-850 border border-slate-700/80 rounded-2xl w-full max-w-lg p-6 shadow-2xl overflow-hidden flex flex-col space-y-5 text-left">
+            <!-- Modal Header -->
+            <div class="flex items-center justify-between pb-3 border-b border-slate-700/60">
+                <div class="flex items-center space-x-3">
+                    <div class="h-9 w-9 rounded-xl bg-indigo-600/20 text-indigo-400 flex items-center justify-center border border-indigo-500/30">
+                        <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 class="text-base font-bold text-white font-display">Configuration des Imprimantes</h3>
+                        <p class="text-xs text-slate-400">Routage automatique des tickets de caisse et des étiquettes cintres</p>
+                    </div>
+                </div>
+                <button type="button" onclick="closePrinterConfigModal()" class="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-700/50 transition-colors">
+                    <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                </button>
+            </div>
+
+            <!-- Banner info for Desktop vs Browser -->
+            <div id="printer-env-banner" class="rounded-xl p-3 bg-indigo-950/40 border border-indigo-500/30 flex items-start space-x-2.5 text-xs text-indigo-200">
+                <svg class="h-4 w-4 text-indigo-400 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                <div class="leading-relaxed">
+                    <span class="font-bold text-indigo-300">Impression Thermique Silencieuse (ESC/POS) :</span>
+                    Les impressions sont envoyées instantanément et directement aux imprimantes sélectionnées sans ouvrir de boîte de dialogue.
+                </div>
+            </div>
+
+            <div class="space-y-4">
+                <!-- Imprimante 1 : Reçus Clients (Ticket Facture 80mm) -->
+                <div class="bg-slate-800/80 p-4 rounded-xl border border-slate-700/70 space-y-2">
+                    <div class="flex items-center justify-between">
+                        <label class="block text-xs font-bold text-slate-200 uppercase tracking-wide flex items-center space-x-1.5">
+                            <span class="h-2 w-2 rounded-full bg-emerald-400 inline-block"></span>
+                            <span>1. Imprimante Reçu Client (Facture Comptoir)</span>
+                        </label>
+                        <span class="text-[11px] text-slate-400">Format 80mm</span>
+                    </div>
+                    <div class="flex space-x-2">
+                        <select id="cfg-printer-receipt" class="flex-1 bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-indigo-500">
+                            <option value="">-- Imprimante par défaut de Windows --</option>
+                        </select>
+                        <button type="button" onclick="testPrinter('receipt')" class="px-3 py-2 bg-slate-700 hover:bg-slate-600 text-slate-200 text-xs font-medium rounded-lg transition-colors flex items-center space-x-1 shrink-0 cursor-pointer" title="Lancer un ticket test">
+                            <span>Test Reçu</span>
+                        </button>
+                    </div>
+                    <p class="text-[11px] text-slate-400">Utilisée pour le ticket remis au client lors du dépôt et du retrait des vêtements.</p>
+                </div>
+
+                <!-- Imprimante 2 : Étiquettes Laverie / Cintres -->
+                <div class="bg-slate-800/80 p-4 rounded-xl border border-slate-700/70 space-y-2">
+                    <div class="flex items-center justify-between">
+                        <label class="block text-xs font-bold text-slate-200 uppercase tracking-wide flex items-center space-x-1.5">
+                            <span class="h-2 w-2 rounded-full bg-indigo-400 inline-block"></span>
+                            <span>2. Imprimante Étiquettes Laverie (Cintres / Vêtements)</span>
+                        </label>
+                        <span class="text-[11px] text-slate-400">Format 80mm / 58mm</span>
+                    </div>
+                    <div class="flex space-x-2">
+                        <select id="cfg-printer-tags" class="flex-1 bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-indigo-500">
+                            <option value="">-- Imprimante par défaut de Windows --</option>
+                        </select>
+                        <button type="button" onclick="testPrinter('tags')" class="px-3 py-2 bg-slate-700 hover:bg-slate-600 text-slate-200 text-xs font-medium rounded-lg transition-colors flex items-center space-x-1 shrink-0 cursor-pointer" title="Lancer une étiquette test">
+                            <span>Test Étiquette</span>
+                        </button>
+                    </div>
+                    <p class="text-[11px] text-slate-400">Utilisée pour les tickets agrafés sur les cintres avec le gros numéro de commande pour l'atelier.</p>
+                </div>
+
+                <!-- Options automatiques -->
+                <div class="bg-slate-800/50 p-3 rounded-xl border border-slate-700/50 space-y-2">
+                    <span class="text-xs font-semibold text-slate-300">Comportement lors de l'encaissement d'une commande :</span>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+                        <label class="flex items-center space-x-2 cursor-pointer text-xs text-slate-300">
+                            <input type="checkbox" id="cfg-autoprint-receipt" checked class="rounded border-slate-700 text-indigo-600 focus:ring-indigo-500 bg-slate-900">
+                            <span>Imprimer automatiquement le Reçu</span>
+                        </label>
+                        <label class="flex items-center space-x-2 cursor-pointer text-xs text-slate-300">
+                            <input type="checkbox" id="cfg-autoprint-tags" checked class="rounded border-slate-700 text-indigo-600 focus:ring-indigo-500 bg-slate-900">
+                            <span>Imprimer automatiquement les Étiquettes</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer Buttons -->
+            <div class="flex items-center justify-end space-x-2.5 pt-3 border-t border-slate-700/60">
+                <button type="button" onclick="closePrinterConfigModal()" class="px-4 py-2 bg-slate-700/60 hover:bg-slate-700 text-slate-300 text-xs font-bold rounded-xl transition-colors cursor-pointer">
+                    Annuler
+                </button>
+                <button type="button" onclick="savePrinterConfig()" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold font-display rounded-xl shadow-lg shadow-indigo-600/20 transition-all cursor-pointer">
+                    Enregistrer la Configuration
+                </button>
+            </div>
+        </div>
+    </div>
 
     <!-- Custom Alert Modal Overlay -->
     <div id="custom-alert-modal" class="hidden fixed inset-0 bg-slate-950/70 flex items-center justify-center p-4" style="backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); z-index: 999999;">
