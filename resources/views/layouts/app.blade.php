@@ -341,7 +341,14 @@
             @endif
         </nav>
 
-        <div class="flex items-center space-x-6">
+        <div class="flex items-center space-x-4 sm:space-x-5">
+            <!-- Network Watchdog & Dual-Mode Status Badge (Online / Offline Secours) -->
+            <div id="dual-mode-badge" onclick="triggerManualSync()" class="cursor-pointer flex items-center space-x-2 px-3 py-1.5 rounded-full text-xs font-bold tracking-wide transition-all select-none bg-emerald-500/10 text-emerald-400 border border-emerald-500/25 hover:bg-emerald-500/20" title="État de la connexion Cloud - Cliquer pour synchroniser">
+                <span id="dual-mode-dot" class="h-2.5 w-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                <span id="dual-mode-label" class="font-display">EN LIGNE (CLOUD)</span>
+                <span id="dual-mode-queue" class="hidden bg-amber-500/30 text-amber-300 text-[10px] px-1.5 py-0.5 rounded-full border border-amber-500/40">0</span>
+            </div>
+
             <!-- Clock -->
             <div class="text-right hidden sm:block">
                 <p id="clock-date" class="text-xs text-slate-400 font-medium"></p>
@@ -370,31 +377,46 @@
                 </div>
             </div>
 
-            @if(Auth::check())
-                <div class="h-8 w-px bg-slate-700/50"></div>
+            <div class="h-8 w-px bg-slate-700/50"></div>
 
-                <!-- Theme Toggle Button -->
-                <button onclick="toggleTheme()" class="p-2 text-slate-400 hover:text-indigo-400 transition-colors bg-slate-800 border border-slate-700 rounded-lg hover:border-indigo-500/20 hover:bg-indigo-500/5 cursor-pointer flex items-center justify-center mr-1" title="Changer de thème">
-                    <!-- Sun Icon (visible in dark mode) -->
-                    <svg id="theme-icon-sun" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707m12.728 0l-.707-.707M6.343 6.343l-.707-.707M14 12a2 2 0 11-4 0 2 2 0 014 0z" />
+            <!-- Action Controls: Fullscreen + Theme + Logout -->
+            <div class="flex items-center space-x-1.5">
+                <!-- Fullscreen Toggle Button -->
+                <button onclick="toggleAppFullscreen()" id="fullscreen-toggle-btn" class="p-2 text-slate-400 hover:text-indigo-400 transition-colors bg-slate-800 border border-slate-700 rounded-lg hover:border-indigo-500/20 hover:bg-indigo-500/5 cursor-pointer flex items-center justify-center" title="Plein Écran / Mode Kiosque (F11)">
+                    <!-- Expand icon -->
+                    <svg id="fullscreen-icon-expand" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
                     </svg>
-                    <!-- Moon Icon (visible in light mode) -->
-                    <svg id="theme-icon-moon" class="h-4 w-4 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                    <!-- Compress icon (hidden by default) -->
+                    <svg id="fullscreen-icon-compress" class="h-4 w-4 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 9L4 4m0 0h5m-5 0v5m11-5l5 5m0-5h-5m5 0v5M9 15l-5 5m0 0h5m-5 0v-5m11 5l5-5m0 5h-5m5 0v-5" />
                     </svg>
                 </button>
 
-                <!-- Logout Button -->
-                <form action="{{ route('logout') }}" method="POST" class="inline">
-                    @csrf
-                    <button type="submit" class="p-2 text-slate-400 hover:text-rose-400 transition-colors bg-slate-800 border border-slate-700 rounded-lg hover:border-rose-500/20 hover:bg-rose-500/5 cursor-pointer flex items-center justify-center" title="Se déconnecter">
-                        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                @if(Auth::check())
+                    <!-- Theme Toggle Button -->
+                    <button onclick="toggleTheme()" class="p-2 text-slate-400 hover:text-indigo-400 transition-colors bg-slate-800 border border-slate-700 rounded-lg hover:border-indigo-500/20 hover:bg-indigo-500/5 cursor-pointer flex items-center justify-center" title="Changer de thème">
+                        <!-- Sun Icon (visible in dark mode) -->
+                        <svg id="theme-icon-sun" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707m12.728 0l-.707-.707M6.343 6.343l-.707-.707M14 12a2 2 0 11-4 0 2 2 0 014 0z" />
+                        </svg>
+                        <!-- Moon Icon (visible in light mode) -->
+                        <svg id="theme-icon-moon" class="h-4 w-4 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
                         </svg>
                     </button>
-                </form>
-            @endif
+
+                    <!-- Logout Button -->
+                    <form action="{{ route('logout') }}" method="POST" class="inline">
+                        @csrf
+                        <button type="submit" class="p-2 text-slate-400 hover:text-rose-400 transition-colors bg-slate-800 border border-slate-700 rounded-lg hover:border-rose-500/20 hover:bg-rose-500/5 cursor-pointer flex items-center justify-center" title="Se déconnecter">
+                            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                            </svg>
+                        </button>
+                    </form>
+                @endif
+            </div>
         </div>
     </header>
 
@@ -589,6 +611,121 @@
                 }
             }, 100);
         }
+
+        // ================= FULLSCREEN LOGIC =================
+        function toggleAppFullscreen() {
+            if (window.posDesktop && typeof window.posDesktop.toggleFullscreen === 'function') {
+                window.posDesktop.toggleFullscreen().then(isFull => {
+                    updateFullscreenIcons(isFull);
+                }).catch(() => {
+                    fallbackHtmlFullscreen();
+                });
+            } else {
+                fallbackHtmlFullscreen();
+            }
+        }
+
+        function fallbackHtmlFullscreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().then(() => updateFullscreenIcons(true)).catch(() => {});
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen().then(() => updateFullscreenIcons(false)).catch(() => {});
+                }
+            }
+        }
+
+        function updateFullscreenIcons(isFull) {
+            const expand = document.getElementById('fullscreen-icon-expand');
+            const compress = document.getElementById('fullscreen-icon-compress');
+            if (expand && compress) {
+                if (isFull) {
+                    expand.classList.add('hidden');
+                    compress.classList.remove('hidden');
+                } else {
+                    expand.classList.remove('hidden');
+                    compress.classList.add('hidden');
+                }
+            }
+        }
+
+        document.addEventListener('fullscreenchange', () => {
+            updateFullscreenIcons(!!document.fullscreenElement);
+        });
+
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'F11') {
+                e.preventDefault();
+                toggleAppFullscreen();
+            }
+        });
+
+        // ================= DUAL-MODE ONLINE / OFFLINE WATCHDOG =================
+        window.isAppSyncing = false;
+
+        function updateDualModeStatus() {
+            const badge = document.getElementById('dual-mode-badge');
+            const dot = document.getElementById('dual-mode-dot');
+            const label = document.getElementById('dual-mode-label');
+            const queueBadge = document.getElementById('dual-mode-queue');
+            if (!badge || !dot || !label) return;
+
+            const queue = JSON.parse(localStorage.getItem('pos_pending_offline_orders') || '[]');
+            const isOnline = navigator.onLine;
+
+            if (queue.length > 0) {
+                queueBadge.classList.remove('hidden');
+                queueBadge.textContent = `${queue.length} en attente`;
+            } else {
+                queueBadge.classList.add('hidden');
+            }
+
+            if (!isOnline) {
+                badge.className = "cursor-pointer flex items-center space-x-2 px-3 py-1.5 rounded-full text-xs font-bold tracking-wide transition-all select-none bg-amber-500/15 text-amber-300 border border-amber-500/35 shadow-sm shadow-amber-500/10";
+                dot.className = "h-2.5 w-2.5 rounded-full bg-amber-400 animate-ping";
+                label.textContent = "MODE SECOURS (HORS-LIGNE)";
+            } else if (window.isAppSyncing) {
+                badge.className = "cursor-pointer flex items-center space-x-2 px-3 py-1.5 rounded-full text-xs font-bold tracking-wide transition-all select-none bg-indigo-500/20 text-indigo-300 border border-indigo-500/35";
+                dot.className = "h-2.5 w-2.5 rounded-full bg-indigo-400 animate-spin";
+                label.textContent = "SYNCHRONISATION...";
+            } else {
+                badge.className = "cursor-pointer flex items-center space-x-2 px-3 py-1.5 rounded-full text-xs font-bold tracking-wide transition-all select-none bg-emerald-500/10 text-emerald-400 border border-emerald-500/25 hover:bg-emerald-500/20";
+                dot.className = "h-2.5 w-2.5 rounded-full bg-emerald-400 animate-pulse";
+                label.textContent = "EN LIGNE (CLOUD)";
+            }
+        }
+
+        function triggerManualSync() {
+            if (!navigator.onLine) {
+                showAppAlert("La caisse fonctionne actuellement en MODE SECOURS HORS-LIGNE.\n\nVos commandes et tickets sont sécurisés localement et seront synchronisés automatiquement dès le rétablissement de la connexion Internet.", "info", "Mode Secours Actif");
+                return;
+            }
+            const queue = JSON.parse(localStorage.getItem('pos_pending_offline_orders') || '[]');
+            if (queue.length === 0) {
+                showAppAlert("Toutes les commandes sont à jour et synchronisées avec le Cloud !", "success", "En Ligne & Synchronisé");
+                return;
+            }
+            window.isAppSyncing = true;
+            updateDualModeStatus();
+            
+            if (typeof syncOfflineOrdersIfAny === 'function') {
+                syncOfflineOrdersIfAny();
+            }
+
+            setTimeout(() => {
+                window.isAppSyncing = false;
+                updateDualModeStatus();
+                showAppAlert(`${queue.length} commande(s) transmise(s) au Cloud avec succès !`, "success", "Synchronisation Réussie");
+            }, 1500);
+        }
+
+        window.addEventListener('online', () => {
+            updateDualModeStatus();
+            if (typeof syncOfflineOrdersIfAny === 'function') syncOfflineOrdersIfAny();
+        });
+        window.addEventListener('offline', updateDualModeStatus);
+        setInterval(updateDualModeStatus, 4000);
+        document.addEventListener('DOMContentLoaded', updateDualModeStatus);
     </script>
 
     <!-- Custom Alert Modal Overlay -->
