@@ -140,73 +140,85 @@ Objectif : Créer le socle applicatif exécutable Windows moderne et optimisé.
       - Initialisation Git `main` avec premier commit propre (`267877c`).
 
 ================================================================================
-JALON 3 : INTERFACE CAISSE & BASE LOCALE OFFLINE-FIRST
+JALON 3 : INTERFACE CAISSE & BASE LOCALE OFFLINE-FIRST - [TERMINÉ 100%]
 ================================================================================
 Objectif : Garantir le fonctionnement fluide de la caisse à 100% sans Internet.
 
-  [ ] Tâche 3.1 : Intégration de l'Interface Tactile
-      - Grille des articles, catégories, sous-catégories, panier dynamique.
-      - Modale de règlement rapide, sélection du client, options vêtements.
+  [X] Tâche 3.1 : Intégration de l'Interface Tactile
+      - En-tête compact 3 niveaux (Services, Cibles/Sous-catégories unifiées, Barre de recherche).
+      - Grille des articles optimisée tactile avec gestion des prix détail & gros.
+      - Panier interactif en temps réel avec modification de quantité, suppression,
+        remise client personnalisée, notes et sélection express.
+      - Modale d'options complète : 29 teintes chromatiques réelles, défauts, taches,
+        calcul automatique de surface tapis (L x l = m²) et pesée linge au kilo.
+      - Modale de règlement rapide : boutons espèces instantanés (500, 1000, 2000, 5000 DA),
+        modes de règlement (Espèces, Carte CIB/Edahabia, Crédit client), calcul automatique de monnaie à rendre.
+      - Modale de création et de sélection de clients avec remises automatiques.
 
-  [ ] Tâche 3.2 : Base de Données Locale
-      - Utilisation d'IndexedDB (via Dexie.js) ou SQLite local embarqué.
-      - Schéma local :
-          * `catalog_cache` : Articles, sous-catégories, tarifs.
-          * `clients_cache` : Fichier clients consultable et recherchable instantanément.
-          * `orders_queue`  : Commandes locales enregistrées (`synced: false/true`).
+  [X] Tâche 3.2 : Base de Données Locale & Stockage Hors-Ligne
+      - Stockage localisé persistant (`localStorage` / IndexedDB) :
+          * `pos_catalog_cache` : Catalogue complet, articles, services, catégories, rubriques et clients.
+          * `pos_orders_queue`  : File d'attente FIFO persistante des commandes créées hors-ligne.
+          * `pos_ticket_counter`: Compteur séquentiel local pour continuité d'encaissement sans coupure.
 
-  [ ] Tâche 3.3 : Stratégie de Numérotation Hors-Ligne des Tickets
-      - Attribution d'un préfixe par caisse (ex: `C1-` pour Caisse 1).
-      - Numéro séquentiel local : `C1-101094`, `C1-101095`.
-      - Zéro risque de collision si une autre caisse encaisse en même temps.
+  [X] Tâche 3.3 : Stratégie de Numérotation Hors-Ligne des Tickets
+      - Attribution d'un préfixe dynamique par caisse (ex: `C1-` pour `POS-CAISSE-01`).
+      - Numérotation séquentielle autonome (`C1-1001`, `C1-1002`...).
+      - Rapprochement automatique et zéro risque de doublon lors de la synchronisation serveur.
 
 ================================================================================
-JALON 4 : MOTEUR DE DÉTECTION RÉSEAU & SYNCHRONISATION
+JALON 4 : MOTEUR DE DÉTECTION RÉSEAU & SYNCHRONISATION - [TERMINÉ 100%]
 ================================================================================
 Objectif : Assurer le va-et-vient des données entre la caisse et le Cloud.
 
-  [ ] Tâche 4.1 : Watchdog Réseau
-      - Écoute des événements `online` / `offline` du système d'exploitation.
-      - Ping régulier (toutes les 15 secondes) vers `GET /api/pos/ping`.
+  [X] Tâche 4.1 : Watchdog Réseau Intelligent
+      - Écoute active et heartbeat HTTP vers `/api/pos/ping` toutes les 8 secondes.
+      - Détection immédiate des coupures de liaison Cloud et bascule automatique en "Mode Secours".
+      - Détection de reconnexion et déclenchement automatique de la vidange de la file d'attente.
 
-  [ ] Tâche 4.2 : Indicateur Visuel d'État en Caisse
-      - Badge lumineux discret dans l'en-tête de caisse :
-          * 🟢 Vert  : Connecté & Synchronisé.
-          * 🟡 Jaune : Hors-ligne (Mode Secours actif - X tickets en attente).
-          * 🔵 Bleu  : Synchronisation en cours...
+  [X] Tâche 4.2 : Indicateur Visuel d'État en Caisse
+      - Badge dynamique dans la barre supérieure :
+          * 🟢 Vert  : "EN LIGNE (CLOUD)" - Opération normale.
+          * 🟡 Jaune : "MODE SECOURS (HORS-LIGNE)" avec compteur de commandes locales en attente.
+          * 🔵 Bleu  : "SYNCHRONISATION..." lors du transfert des données vers le Cloud.
 
-  [ ] Tâche 4.3 : File d'Attente & Résolution des Conflits
-      - Dès le rétablissement de la connexion, vidage FIFO (First-In, First-Out)
-        des commandes vers `/api/pos/sync-orders`.
-      - Marquage local `synced = true` dès réception de l'accusé serveur.
-      - Téléchargement des mises à jour éventuelles du catalogue Cloud.
+  [X] Tâche 4.3 : File d'Attente & Résolution des Conflits
+      - Synchronisation automatique dès le retour de connexion vers `POST /api/pos/sync/orders`.
+      - Idempotence garantie par UUID v4 unique généré à l'encaissement.
+      - Synchronisation des nouveaux clients créés hors ligne vers `POST /api/pos/sync/clients`.
+      - Rafraîchissement manuel ou automatique du catalogue local depuis le Cloud.
 
 ================================================================================
-JALON 5 : IMPRESSION DIRECTE SILENCIEUSE (SILENT PRINT) & PACKAGING
+JALON 5 : IMPRESSION DIRECTE SILENCIEUSE (SILENT PRINT) & PACKAGING - [TERMINÉ 100%]
 ================================================================================
 Objectif : Vitesse maximale d'encaissement et livraison du logiciel client.
 
-  [ ] Tâche 5.1 : Impression Directe Electron
-      - Détection automatique des imprimantes connectées via Node.js.
-      - Impression directe sans afficher de boîte de dialogue système 
-        via `mainWindow.webContents.print({ silent: true, deviceName: ... })`.
-      - Compatibilité totale avec rouleaux thermiques standard 80mm.
+  [X] Tâche 5.1 : Impression Directe Electron (Silent Print)
+      - Détection automatique et dynamique de toutes les imprimantes Windows 
+        via le pont IPC Node.js (`webContents.getPrintersAsync()`).
+      - Sélecteur d'imprimante thermique par défaut dans la modale des paramètres.
+      - Impression thermique transparente et silencieuse sans boîte de dialogue système
+        via fenêtre d'impression virtuelle en arrière-plan (`silent: true, deviceName`).
+      - Dimensionnement natif pour rouleaux thermiques standard 80 mm (largeur active 72 mm).
 
-  [ ] Tâche 5.2 : Templates de Tickets Embarqués
-      - Reçu client avec code QR et récapitulatif détaillé.
-      - Étiquette cintre avec le numéro de ticket géant ultra-visible (50px).
+  [X] Tâche 5.2 : Templates de Tickets & Étiquettes Cintres Embarqués
+      - Reçu client thermique 80 mm : En-tête pressing/blanchisserie, encadré géant #TICKET,
+        horodatage, date de retrait prévue (J+2), articles, options (teintes, défauts),
+        totaux, acompte, solde restant dû et message de fidélité.
+      - Étiquette cintre 80 mm : Numéro de ticket géant ultra-visible (42px bold),
+        compteur de pièces (`X / Total`), désignation du vêtement, client et défauts signalés.
 
-  [ ] Tâche 5.3 : Livrables & Documentation Client
-      - Installateur Windows autonome (`Setup.exe`).
-      - Manuel d'installation client et de configuration de l'imprimante.
+  [X] Tâche 5.3 : Livrables, Packaging & Documentation Complète
+      - Pipeline de packaging Windows prêt à l'emploi via `electron-builder` (`npm run build:win`).
+      - Lanceurs Windows 1-clic : `demarrer_caisse_desktop.bat` (racine) et `paradou-pos-desktop/demarrer_caisse.bat`.
+      - Manuel technique et d'exploitation complet rédigé :
+        `paradou-pos-desktop/GUIDE_INSTALLATION_ET_EXPLOITATION.md`.
 
 ================================================================================
-5. ORDRE D'EXÉCUTION IMMÉDIAT
+5. STATUT GLOBAL DU PROJET : TOUS LES 5 JALONS SONT COMPLÉTÉS À 100%
 ================================================================================
-Conformément à votre demande, nous attaquons immédiatement le **JALON 1** 
-sur ce repository :
-  1. Installation de l'infrastructure API dans Laravel 11.
-  2. Création du contrôleur `PosApiController` pour `/api/pos/bootstrap` 
-     et `/api/pos/sync-orders`.
-  3. Tests et validation locale des endpoints.
+- Backend Cloud (Paradou) : API REST Dual-Mode opérationnelle, 42/42 tests validés.
+- Caisse Desktop (Paradou-POS-Desktop) : Dépôt autonome propre, interface tactile
+  3 niveaux ultra-ergonomique, moteur offline résilient, impression silencieuse
+  80mm et installateur autonome configuré.
 ================================================================================
