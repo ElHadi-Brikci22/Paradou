@@ -282,36 +282,36 @@
 </head>
 <body class="h-full antialiased overflow-hidden flex flex-col">
 
-    <!-- Header bar -->
-    <header class="bg-slate-800/80 backdrop-blur border-b border-slate-700/50 px-6 py-4 flex items-center justify-between shrink-0">
+    <!-- Header bar (Slim, compact, responsive height) -->
+    <header class="bg-slate-800/80 backdrop-blur border-b border-slate-700/50 px-4 sm:px-6 py-2 sm:py-2.5 flex items-center justify-between shrink-0">
         <div class="flex items-center space-x-3">
-            <div class="h-9 w-9 rounded-lg bg-indigo-600 flex items-center justify-center shadow-lg shadow-indigo-500/20">
-                <span class="text-white font-bold font-display text-lg">P</span>
+            <div class="h-8 w-8 rounded-lg bg-indigo-600 flex items-center justify-center shadow-md shadow-indigo-500/20">
+                <span class="text-white font-bold font-display text-base">P</span>
             </div>
             <div>
-                <h1 class="text-lg font-black font-display tracking-wider text-white">
-                    PARAD<svg class="h-5 w-5 inline-block text-indigo-400 align-middle -mt-1 mx-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><rect x="4" y="3" width="16" height="18" rx="2" /><line x1="4" y1="7" x2="20" y2="7" /><circle cx="7" cy="5" r="0.75" fill="currentColor" /><circle cx="10" cy="5" r="0.75" fill="currentColor" /><circle cx="13" cy="5" r="0.75" fill="currentColor" /><circle cx="12" cy="14" r="4" /><circle cx="12" cy="14" r="2.5" stroke-dasharray="3 2" /></svg>U <span class="text-indigo-400 font-medium text-xs font-sans tracking-normal lowercase">v2026</span>
+                <h1 class="text-base font-black font-display tracking-wider text-white">
+                    PARAD<svg class="h-4.5 w-4.5 inline-block text-indigo-400 align-middle -mt-1 mx-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><rect x="4" y="3" width="16" height="18" rx="2" /><line x1="4" y1="7" x2="20" y2="7" /><circle cx="7" cy="5" r="0.75" fill="currentColor" /><circle cx="10" cy="5" r="0.75" fill="currentColor" /><circle cx="13" cy="5" r="0.75" fill="currentColor" /><circle cx="12" cy="14" r="4" /><circle cx="12" cy="14" r="2.5" stroke-dasharray="3 2" /></svg>U <span class="text-indigo-400 font-medium text-[11px] font-sans tracking-normal lowercase">v2026</span>
                 </h1>
             </div>
         </div>
 
         <!-- Navigation Links -->
-        <nav class="hidden md:flex space-x-2">
+        <nav class="hidden md:flex space-x-1.5">
             <a href="{{ route('checkout.index') }}" 
-               class="px-4 py-2 rounded-lg text-xs font-bold font-display uppercase tracking-wide transition-colors {{ Request::routeIs('checkout.index') ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/10' : 'text-slate-300 hover:text-white hover:bg-slate-700/50' }}">
+               class="px-3.5 py-1.5 rounded-lg text-xs font-bold font-display uppercase tracking-wide transition-colors {{ Request::routeIs('checkout.index') ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/10' : 'text-slate-300 hover:text-white hover:bg-slate-700/50' }}">
                 Caisse Tactile
             </a>
             <a href="{{ route('orders.index') }}" 
-               class="px-4 py-2 rounded-lg text-xs font-bold font-display uppercase tracking-wide transition-colors {{ Request::routeIs('orders.index') ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/10' : 'text-slate-300 hover:text-white hover:bg-slate-700/50' }}">
+               class="px-3.5 py-1.5 rounded-lg text-xs font-bold font-display uppercase tracking-wide transition-colors {{ Request::routeIs('orders.index') ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/10' : 'text-slate-300 hover:text-white hover:bg-slate-700/50' }}">
                 Suivi Commandes
             </a>
             @if(Auth::check() && Auth::user()->role === 'admin')
                 <a href="{{ route('admin.dashboard') }}" 
-                   class="px-4 py-2 rounded-lg text-xs font-bold font-display uppercase tracking-wide transition-colors {{ Request::routeIs('admin.dashboard') ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/10' : 'text-slate-300 hover:text-white hover:bg-slate-700/50' }}">
+                   class="px-3.5 py-1.5 rounded-lg text-xs font-bold font-display uppercase tracking-wide transition-colors {{ Request::routeIs('admin.dashboard') ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/10' : 'text-slate-300 hover:text-white hover:bg-slate-700/50' }}">
                     Dashboard Admin
                 </a>
                 <div class="relative inline-block text-left">
-                    <button id="gestion-dropdown-btn" class="px-4 py-2 rounded-lg text-xs font-bold font-display uppercase tracking-wide transition-colors text-slate-300 hover:text-white hover:bg-slate-700/50 flex items-center space-x-1 cursor-pointer">
+                    <button id="gestion-dropdown-btn" class="px-3.5 py-1.5 rounded-lg text-xs font-bold font-display uppercase tracking-wide transition-colors text-slate-300 hover:text-white hover:bg-slate-700/50 flex items-center space-x-1 cursor-pointer">
                         <span>Gestion</span>
                         <svg id="gestion-dropdown-arrow" class="h-3 w-3 transition-transform duration-150" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
@@ -320,19 +320,19 @@
                     <!-- Dropdown menu -->
                     <div id="gestion-dropdown-menu" class="absolute left-0 mt-1 w-52 rounded-xl bg-slate-800 border border-slate-700/60 shadow-xl opacity-0 invisible transition-all duration-150 z-50 overflow-hidden">
                         <div class="py-1">
-                            <a href="{{ route('admin.users.index') }}" class="block px-4 py-2.5 text-xs font-bold text-slate-300 hover:text-white hover:bg-slate-700/50 transition-colors uppercase font-display">
+                            <a href="{{ route('admin.users.index') }}" class="block px-4 py-2 text-xs font-bold text-slate-300 hover:text-white hover:bg-slate-700/50 transition-colors uppercase font-display">
                                 Gestion Caissiers
                             </a>
-                            <a href="{{ route('admin.clients.index') }}" class="block px-4 py-2.5 text-xs font-bold text-slate-300 hover:text-white hover:bg-slate-700/50 transition-colors uppercase font-display border-t border-slate-700/30">
+                            <a href="{{ route('admin.clients.index') }}" class="block px-4 py-2 text-xs font-bold text-slate-300 hover:text-white hover:bg-slate-700/50 transition-colors uppercase font-display border-t border-slate-700/30">
                                 Gestion Clients
                             </a>
-                            <a href="{{ route('admin.catalog.index') }}" class="block px-4 py-2.5 text-xs font-bold text-slate-300 hover:text-white hover:bg-slate-700/50 transition-colors uppercase font-display border-t border-slate-700/30">
+                            <a href="{{ route('admin.catalog.index') }}" class="block px-4 py-2 text-xs font-bold text-slate-300 hover:text-white hover:bg-slate-700/50 transition-colors uppercase font-display border-t border-slate-700/30">
                                 Catégories & Articles
                             </a>
-                            <a href="{{ route('admin.prices.index') }}" class="block px-4 py-2.5 text-xs font-bold text-slate-300 hover:text-white hover:bg-slate-700/50 transition-colors uppercase font-display border-t border-slate-700/30">
+                            <a href="{{ route('admin.prices.index') }}" class="block px-4 py-2 text-xs font-bold text-slate-300 hover:text-white hover:bg-slate-700/50 transition-colors uppercase font-display border-t border-slate-700/30">
                                 Gestion des Prix
                             </a>
-                            <a href="{{ route('admin.rubrics.index') }}" class="block px-4 py-2.5 text-xs font-bold text-slate-300 hover:text-white hover:bg-slate-700/50 transition-colors uppercase font-display border-t border-slate-700/30">
+                            <a href="{{ route('admin.rubrics.index') }}" class="block px-4 py-2 text-xs font-bold text-slate-300 hover:text-white hover:bg-slate-700/50 transition-colors uppercase font-display border-t border-slate-700/30">
                                 Rubriques (Dicos)
                             </a>
                         </div>
@@ -342,40 +342,40 @@
         </nav>
 
         <div class="flex items-center space-x-3 sm:space-x-4">
-            <!-- Network Status Indicator Dot (Vert: En Ligne / Rouge: Offline / Orange: Synchro) -->
-            <button id="dual-mode-indicator" onclick="triggerManualSync()" class="relative p-2 rounded-lg bg-slate-800 border border-slate-700 hover:border-slate-600 transition-colors flex items-center justify-center cursor-pointer" title="En Ligne (Cloud) - Cliquer pour vérifier la synchronisation">
-                <span id="dual-mode-dot" class="h-3.5 w-3.5 rounded-full bg-emerald-500 shadow-sm shadow-emerald-500/60"></span>
-                <span id="dual-mode-queue" class="hidden absolute -top-1.5 -right-1.5 bg-rose-600 text-white text-[9px] font-bold h-4 min-w-[16px] px-1 rounded-full flex items-center justify-center border border-slate-900 shadow">0</span>
-            </button>
+            <!-- Simple Round Dot Indicator (Green: Online / Red: Offline / Orange: Syncing) -->
+            <div id="dual-mode-indicator" onclick="triggerManualSync()" class="cursor-pointer relative flex items-center justify-center p-1.5 rounded-full hover:bg-slate-700/40 transition-colors" title="En Ligne (Cloud) - Cliquer pour vérifier la synchronisation">
+                <div id="dual-mode-dot" style="width: 13px; height: 13px; border-radius: 50%; background-color: #22c55e; box-shadow: 0 0 10px rgba(34, 197, 94, 0.9), 0 0 3px #22c55e; border: 2px solid #15803d; transition: all 0.3s ease;"></div>
+                <span id="dual-mode-queue" class="hidden absolute -top-1 -right-1 bg-rose-600 text-white text-[9px] font-bold h-4 min-w-[16px] px-1 rounded-full flex items-center justify-center border border-slate-900 shadow">0</span>
+            </div>
 
-            <div class="h-8 w-px bg-slate-700/50"></div>
+            <div class="h-6 w-px bg-slate-700/50"></div>
 
             <!-- Operator Status -->
-            <div class="flex items-center space-x-3">
-                <div class="h-8 w-8 rounded-full bg-slate-700 flex items-center justify-center border border-slate-600">
-                    <svg class="h-4 w-4 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <div class="flex items-center space-x-2.5">
+                <div class="h-7 w-7 rounded-full bg-slate-700 flex items-center justify-center border border-slate-600">
+                    <svg class="h-3.5 w-3.5 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                     </svg>
                 </div>
                 <div class="text-left">
                     <div class="flex items-center space-x-1.5">
-                        <p class="text-xs text-slate-400">Opérateur</p>
+                        <p class="text-[11px] text-slate-400">Opérateur</p>
                         @if(Auth::check())
                             <span class="text-[9px] px-1.5 py-0.2 rounded font-bold uppercase {{ Auth::user()->role === 'admin' ? 'bg-indigo-500/20 text-indigo-400 border border-indigo-500/20' : 'bg-slate-700 text-slate-300' }}">
                                 {{ Auth::user()->role === 'admin' ? 'Admin' : 'Caissier' }}
                             </span>
                         @endif
                     </div>
-                    <p class="text-sm font-semibold text-slate-200">{{ Auth::user() ? Auth::user()->name : 'Caisse 1' }}</p>
+                    <p class="text-xs font-semibold text-slate-200">{{ Auth::user() ? Auth::user()->name : 'Caisse 1' }}</p>
                 </div>
             </div>
 
-            <div class="h-8 w-px bg-slate-700/50"></div>
+            <div class="h-6 w-px bg-slate-700/50"></div>
 
             <!-- Action Controls: Fullscreen + Theme + Logout -->
             <div class="flex items-center space-x-1.5">
                 <!-- Fullscreen Toggle Button -->
-                <button onclick="toggleAppFullscreen()" id="fullscreen-toggle-btn" class="p-2 text-slate-400 hover:text-indigo-400 transition-colors bg-slate-800 border border-slate-700 rounded-lg hover:border-indigo-500/20 hover:bg-indigo-500/5 cursor-pointer flex items-center justify-center" title="Plein Écran / Mode Kiosque (F11)">
+                <button onclick="toggleAppFullscreen()" id="fullscreen-toggle-btn" class="p-1.5 text-slate-400 hover:text-indigo-400 transition-colors bg-slate-800 border border-slate-700 rounded-lg hover:border-indigo-500/20 hover:bg-indigo-500/5 cursor-pointer flex items-center justify-center" title="Plein Écran / Mode Kiosque (F11)">
                     <!-- Expand icon -->
                     <svg id="fullscreen-icon-expand" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
@@ -388,7 +388,7 @@
 
                 @if(Auth::check())
                     <!-- Theme Toggle Button -->
-                    <button onclick="toggleTheme()" class="p-2 text-slate-400 hover:text-indigo-400 transition-colors bg-slate-800 border border-slate-700 rounded-lg hover:border-indigo-500/20 hover:bg-indigo-500/5 cursor-pointer flex items-center justify-center" title="Changer de thème">
+                    <button onclick="toggleTheme()" class="p-1.5 text-slate-400 hover:text-indigo-400 transition-colors bg-slate-800 border border-slate-700 rounded-lg hover:border-indigo-500/20 hover:bg-indigo-500/5 cursor-pointer flex items-center justify-center" title="Changer de thème">
                         <!-- Sun Icon (visible in dark mode) -->
                         <svg id="theme-icon-sun" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707m12.728 0l-.707-.707M6.343 6.343l-.707-.707M14 12a2 2 0 11-4 0 2 2 0 014 0z" />
@@ -402,7 +402,7 @@
                     <!-- Logout Button -->
                     <form action="{{ route('logout') }}" method="POST" class="inline">
                         @csrf
-                        <button type="submit" class="p-2 text-slate-400 hover:text-rose-400 transition-colors bg-slate-800 border border-slate-700 rounded-lg hover:border-rose-500/20 hover:bg-rose-500/5 cursor-pointer flex items-center justify-center" title="Se déconnecter">
+                        <button type="submit" class="p-1.5 text-slate-400 hover:text-rose-400 transition-colors bg-slate-800 border border-slate-700 rounded-lg hover:border-rose-500/20 hover:bg-rose-500/5 cursor-pointer flex items-center justify-center" title="Se déconnecter">
                             <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                             </svg>
@@ -674,14 +674,23 @@
 
             // Vert: En Ligne | Rouge: Offline | Orange: Synchronisation
             if (!isOnline) {
-                dot.className = "h-3.5 w-3.5 rounded-full bg-rose-500 shadow-md shadow-rose-500/60 animate-pulse";
+                dot.style.backgroundColor = '#ef4444';
+                dot.style.boxShadow = '0 0 10px rgba(239, 68, 68, 0.9), 0 0 3px #ef4444';
+                dot.style.borderColor = '#b91c1c';
+                dot.className = "animate-pulse";
                 btn.title = "Hors-Ligne (Mode Secours) - " + (queue.length ? queue.length + " commande(s) locale(s) en attente" : "Connexion coupée");
             } else if (window.isAppSyncing) {
-                dot.className = "h-3.5 w-3.5 rounded-full bg-amber-500 shadow-md shadow-amber-500/60 animate-ping";
+                dot.style.backgroundColor = '#f97316';
+                dot.style.boxShadow = '0 0 10px rgba(249, 115, 22, 0.9), 0 0 3px #f97316';
+                dot.style.borderColor = '#c2410c';
+                dot.className = "animate-ping";
                 btn.title = "Synchronisation avec le Cloud en cours...";
             } else {
-                dot.className = "h-3.5 w-3.5 rounded-full bg-emerald-500 shadow-md shadow-emerald-500/50";
-                btn.title = "En Ligne (Cloud) - Cliquer pour vérifier la synchronisation";
+                dot.style.backgroundColor = '#22c55e';
+                dot.style.boxShadow = '0 0 10px rgba(34, 197, 94, 0.9), 0 0 3px #22c55e';
+                dot.style.borderColor = '#15803d';
+                dot.className = "";
+                btn.title = "En Ligne (Cloud) - Tout est synchronisé";
             }
         }
 
