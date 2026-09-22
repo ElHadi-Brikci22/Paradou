@@ -250,6 +250,14 @@
                                             </svg>
                                         </button>
                                     @endif
+                                    <button type="button" 
+                                            onclick="event.stopPropagation(); openTicketPreview({{ $order->id }}, '{{ $order->ticket_number }}')" 
+                                            class="bg-slate-800 hover:bg-slate-700 text-sky-400 hover:text-sky-300 p-1.5 rounded-lg border border-slate-700 transition-all cursor-pointer shadow-sm" title="Aperçu du Ticket (Reçu / Cintre)">
+                                        <svg class="h-4 w-4 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                        </svg>
+                                    </button>
                                     <button onclick="printOrder({{ $order->id }}, 'ticket')" 
                                              class="bg-slate-800 hover:bg-slate-700 text-indigo-400 hover:text-indigo-300 p-1.5 rounded-lg border border-slate-700 transition-all cursor-pointer" title="Imprimer Reçu Client">
                                         <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -301,6 +309,14 @@
                         </svg>
                     </button>
                 @endif
+                <button type="button" 
+                        onclick="event.stopPropagation(); openTicketPreview(currentOrder ? currentOrder.id : null, currentOrder ? currentOrder.ticket_number : '')" 
+                        class="text-sky-400 hover:text-sky-300 p-1.5 bg-slate-700/50 hover:bg-slate-700 rounded-lg border border-slate-600 cursor-pointer transition-all shadow-sm" title="Aperçu du Ticket (Reçu / Cintre)">
+                    <svg class="h-4 w-4 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                    </svg>
+                </button>
                 <button onclick="printOrder(currentOrder.id, 'ticket')" 
                         class="text-indigo-400 hover:text-indigo-300 p-1.5 bg-slate-700/50 hover:bg-slate-700 rounded-lg border border-slate-600 cursor-pointer" title="Imprimer Reçu Client">
                     <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">

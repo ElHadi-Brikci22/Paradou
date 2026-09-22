@@ -175,7 +175,7 @@ class CashierWorkflowTest extends TestCase
         // Verify print views work without error and ticket contains QR code & ticket number
         $ticketResponse = $this->actingAs($this->cashier)->get(route('orders.print-ticket', $order->id));
         $ticketResponse->assertStatus(200);
-        $ticketResponse->assertSee('*' . $order->ticket_number . '*');
+        $ticketResponse->assertSee($order->ticket_number);
         $ticketResponse->assertSee('qrcode-container');
         $ticketResponse->assertSee('<svg', false);
 

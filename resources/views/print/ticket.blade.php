@@ -10,28 +10,43 @@
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+            font-weight: bold !important;
         }
         body {
-            width: 80mm;
-            margin: 0 auto;
-            padding: 4mm 3mm;
+            width: 100%;
+            max-width: 72mm;
+            margin: 0 !important;
+            margin-left: 0 !important;
+            padding: 0 3mm 8mm 5px !important; /* 0 en haut, 3mm a droite, 8mm en bas pour dechirer, 5px a gauche */
             font-family: 'Courier New', Courier, monospace; /* Classic thermal monospace style */
-            font-size: 12px;
+            font-size: 11px;
+            font-weight: bold !important;
             color: #000;
             background: #fff;
-            line-height: 1.4;
+            line-height: 1.3;
         }
 
         /* Hide elements on print */
         @media print {
-            body {
-                width: 80mm;
-                margin: 0 auto;
-                padding: 4mm 3mm;
+            html, body {
+                width: 100%;
+                max-width: 72mm;
+                margin: 0 !important;
+                margin-left: 0 !important;
+                padding: 0 3mm 8mm 5px !important; /* 0 en haut, 3mm droite, 8mm bas, 5px gauche */
+                color: #000 !important;
+                background: #fff !important;
+                font-weight: bold !important;
             }
             .no-print {
                 display: none !important;
             }
+            @if(request('preview'))
+                .print-btn-container { display: none !important; }
+                body { padding: 4mm 4mm 8mm 4mm !important; }
+            @endif
             @page {
                 margin: 0;
                 size: 80mm auto;
@@ -186,11 +201,11 @@
     <!-- Ticket Container -->
     <div class="header text-center">
         <h1 style="font-size: 22px; font-weight: 900; letter-spacing: 1px; margin-bottom: 1mm; display: inline-flex; align-items: center; justify-content: center; width: 100%;">
-            PARAD<svg style="width: 20px; height: 20px; margin: 0 1px; display: inline-block; vertical-align: middle;" fill="none" viewBox="0 0 24 24" stroke="#000" stroke-width="2.5"><rect x="4" y="3" width="16" height="18" rx="2" /><line x1="4" y1="7" x2="20" y2="7" /><circle cx="7" cy="5" r="0.75" fill="#000" /><circle cx="10" cy="5" r="0.75" fill="#000" /><circle cx="13" cy="5" r="0.75" fill="#000" /><circle cx="12" cy="14" r="4" /><circle cx="12" cy="14" r="2.5" stroke-dasharray="3 2" /></svg>U
+            LE PARAD<svg style="width: 20px; height: 20px; margin: 0 1px; display: inline-block; vertical-align: middle;" fill="none" viewBox="0 0 24 24" stroke="#000" stroke-width="2.5"><rect x="4" y="3" width="16" height="18" rx="2" /><line x1="4" y1="7" x2="20" y2="7" /><circle cx="7" cy="5" r="0.75" fill="#000" /><circle cx="10" cy="5" r="0.75" fill="#000" /><circle cx="13" cy="5" r="0.75" fill="#000" /><circle cx="12" cy="14" r="4" /><circle cx="12" cy="14" r="2.5" stroke-dasharray="3 2" /></svg>U
         </h1>
-        <p>Pressing & Nettoyage à Sec Moderne</p>
+        <p>Pressing & Blanchisserie & Nettoyage à Sec</p>
         <p>Tél : 0561 99 88 01</p>
-        <p>Alger, Algérie</p>
+        <p style="font-size: 10px;">Facebook : pressing blanchisserie le paradou</p>
     </div>
 
     @if($order->is_express)
@@ -203,10 +218,6 @@
 
     <!-- Ticket Meta Info -->
     <div class="info-section">
-        <div class="info-row">
-            <span>TICKET N°:</span>
-            <span class="font-bold">#{{ $order->ticket_number }}</span>
-        </div>
         <div class="info-row">
             <span>DATE DÉPÔT:</span>
             <span>{{ $order->order_date->format('d/m/Y H:i') }}</span>
@@ -233,10 +244,6 @@
             <span>CLIENT:</span>
             <span class="font-bold">{{ $order->client->name }}</span>
         </div>
-        <div class="info-row">
-            <span>CODE CLIENT:</span>
-            <span>{{ $order->client->code }}</span>
-        </div>
         @if($order->client->phone)
             <div class="info-row">
                 <span>TÉLÉPHONE:</span>
@@ -251,7 +258,7 @@
     <table class="items-table">
         <thead>
             <tr>
-                <th>ARTICLE (Service)</th>
+                <th>ARTICLE</th>
                 <th class="text-center" style="width: 10mm;">QTÉ</th>
                 <th class="text-right" style="width: 20mm;">TOTAL</th>
             </tr>
@@ -359,10 +366,6 @@
                 <span class="font-bold">{{ number_format($order->total_weight, 2) }} kg ({{ round($order->total_weight * 1000) }} g)</span>
             </div>
         @endif
-        <div class="totals-row">
-            <span>Sous-total brut:</span>
-            <span>{{ number_format($totalBrut, 0, '.', '') }} DA</span>
-        </div>
         @if($discountAmount > 0)
             <div class="totals-row">
                 @if($order->discount_type === 'percent')
@@ -374,7 +377,7 @@
             </div>
         @endif
         <div class="totals-row">
-            <span>Total Net:</span>
+            <span>Total:</span>
             <span>{{ number_format($order->total_amount, 0, '.', '') }} DA</span>
         </div>
         <div class="totals-row">
@@ -405,7 +408,7 @@
         
         <!-- Simulated Barcode for scanning -->
         <div class="barcode-text text-center">
-            *{{ $order->ticket_number }}*
+            {{ $order->ticket_number }}
         </div>
 
         <!-- Code QR du numéro de commande / ticket -->

@@ -10,108 +10,184 @@
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+            font-weight: bold !important;
         }
-        body {
-            width: 80mm;
-            margin: 0 auto;
-            padding: 4mm 3mm;
+        @page {
+            margin: 0;
+            size: 80mm 50mm;
+        }
+        html, body {
+            width: 100%;
+            max-width: 76mm;
+            margin: 0 !important;
+            margin-left: 0 !important;
+            padding: 0 2mm 7mm 0 !important; /* Zero marge a gauche, 0 en haut, 2mm a droite, 7mm en bas */
+            padding-left: 0 !important;
             font-family: 'Courier New', Courier, monospace;
-            font-size: 12px;
+            font-size: 9.5px;
+            font-weight: bold !important;
             color: #000;
             background: #fff;
-            line-height: 1.4;
+            line-height: 1.25;
+            zoom: 1 !important;
+            transform: scale(1) !important;
+            transform-origin: top left !important;
         }
 
         /* Hide elements on print */
         @media print {
-            body {
-                width: 80mm;
-                margin: 0 auto;
-                padding: 4mm 3mm;
+            html, body {
+                width: 100%;
+                max-width: 76mm;
+                margin: 0 !important;
+                margin-left: 0 !important;
+                padding: 0 2mm 7mm 0 !important; /* Zero marge a gauche */
+                padding-left: 0 !important;
+                color: #000 !important;
+                background: #fff !important;
+                font-weight: bold !important;
+                zoom: 1 !important;
+                transform: scale(1) !important;
+                transform-origin: top left !important;
             }
             .no-print {
                 display: none !important;
             }
+            @if(request('preview'))
+                .print-btn-container { display: none !important; }
+                body { padding: 3mm 3mm 6mm 3mm !important; }
+            @endif
             @page {
+                size: 80mm 50mm;
                 margin: 0;
-                size: 80mm auto;
             }
             .tag-block {
+                margin: 0 !important;
+                margin-left: 0 !important;
+                padding: 0 !important;
+                padding-left: 0 !important;
+                width: 100% !important;
+                max-width: 76mm !important;
                 page-break-after: avoid !important;
                 page-break-inside: avoid !important;
-                border-bottom: none;
-                padding: 2mm 1mm !important;
+                break-inside: avoid !important;
             }
         }
 
-        /* Hanger Tag Styling */
+        /* Hanger Tag Block - Aligned to left */
         .tag-block {
-            padding: 4mm 2mm;
-            border-bottom: none;
+            width: 100%;
+            max-width: 76mm;
+            margin: 0 !important;
+            margin-left: 0 !important;
+            padding: 0 !important;
+            padding-left: 0 !important;
             text-align: center;
+            font-weight: bold !important;
         }
 
         .ticket-no {
-            font-size: 50px;
-            font-weight: 800;
-            letter-spacing: 5px;
-            margin: 2mm 0 4mm 0;
+            font-size: 32px;
+            font-weight: 900 !important;
+            letter-spacing: 2px;
+            margin: 0 0 1.5mm 0;
             border: 3px solid #000;
             display: block;
             width: 100%;
-            padding: 8mm 1mm;
+            padding: 2mm 1mm;
             text-align: center;
             font-family: Arial, 'Segoe UI', Helvetica, sans-serif;
             box-sizing: border-box;
             line-height: 1;
             white-space: nowrap;
+            background: #fff;
+            color: #000;
+        }
+
+        .express-banner {
+            background-color: #000000;
+            color: #ffffff;
+            text-align: center;
+            padding: 1px 0;
+            font-weight: 900 !important;
+            font-size: 9px;
+            margin-bottom: 1.5mm;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
 
         .garment-title {
-            font-size: 16px;
-            font-weight: bold;
-            margin: 2mm 0;
+            font-size: 12.5px;
+            font-weight: 900 !important;
+            margin: 1mm 0 0.8mm 0;
             text-transform: uppercase;
+            line-height: 1.15;
+            color: #000;
+        }
+
+        .service-line {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 900 !important;
+            font-size: 9.5px;
+            text-transform: uppercase;
+            margin: 0.8mm 0 1.2mm 0;
+            color: #000;
         }
 
         .details-box {
             text-align: left;
-            font-size: 11px;
-            margin-top: 2mm;
-            line-height: 1.3;
+            font-size: 9.5px;
+            font-weight: 900 !important;
+            margin-top: 1.2mm;
+            line-height: 1.25;
+            color: #000;
         }
 
         .details-row {
             display: flex;
             justify-content: space-between;
+            font-weight: 900 !important;
+        }
+
+        .details-row span {
+            font-weight: 900 !important;
         }
 
         /* Options layout (no borders) */
         .tag-options {
-            font-size: 11px;
-            font-weight: bold;
-            margin-top: 2mm;
+            font-size: 9px;
+            font-weight: 900 !important;
+            margin-top: 0.8mm;
             border: none;
-            padding: 1mm 0;
+            padding: 0;
             text-align: left;
             background: transparent;
+            color: #000;
+        }
+
+        .tag-options div {
+            font-weight: 900 !important;
         }
 
         /* Print float controller (visible in browser view) */
         .print-btn-container {
             position: fixed;
-            bottom: 20px;
-            right: 20px;
+            bottom: 10px;
+            right: 10px;
             z-index: 100;
         }
         .print-btn {
             background: #4f46e5;
             color: white;
             border: none;
-            padding: 10px 20px;
-            border-radius: 8px;
+            padding: 8px 16px;
+            border-radius: 6px;
             font-weight: bold;
-            font-size: 13px;
+            font-size: 12px;
             cursor: pointer;
             box-shadow: 0 4px 6px -1px rgba(0,0,0,0.2);
             font-family: sans-serif;
@@ -128,22 +204,20 @@
         <button onclick="window.print()" class="print-btn">Imprimer les Étiquettes</button>
     </div>
 
-    <!-- Tags Container - Exactly 1 single tag block -->
+    <!-- Tags Container - Centered on 80mm x 50mm -->
     <div class="tag-block">
         <!-- Massive Ticket Number for immediate workshop visibility -->
         <div class="ticket-no"><strong>{{ $order->ticket_number }}</strong></div>
         
         @if($order->is_express)
-            <div style="background-color: #000000; color: #ffffff; text-align: center; padding: 2px 0; font-weight: 900; font-size: 11px; margin: 1mm 0; text-transform: uppercase; letter-spacing: 1px;">
-                !!! EXPRESS !!!
-            </div>
+            <div class="express-banner">!!! EXPRESS !!!</div>
         @endif
 
         @if(count($itemsSummary) === 1)
             @php $item = $itemsSummary[0]; @endphp
             <!-- Garment Description -->
             <div class="garment-title">{{ $item['name'] }}</div>
-            <div style="display: flex; justify-content: space-between; align-items: center; font-weight: bold; font-size: 11px; text-transform: uppercase; margin: 1.5mm 0 2mm 0;">
+            <div class="service-line">
                 <span>SERVICE: {{ $item['service'] }}</span>
                 @if($item['pieces'] > 1)
                     <span>Nbr Pieces={{ $item['pieces'] }}</span>
@@ -180,9 +254,9 @@
         @else
             <!-- Multi-articles dans la commande -->
             @foreach($itemsSummary as $item)
-                <div style="{{ !$loop->first ? 'margin-top: 2.5mm; border-top: 1px dashed #000; padding-top: 2mm;' : '' }}">
-                    <div class="garment-title">{{ $item['quantity'] > 1 ? $item['quantity'].'X ' : '' }}{{ $item['name'] }}</div>
-                    <div style="display: flex; justify-content: space-between; align-items: center; font-weight: bold; font-size: 11px; text-transform: uppercase; margin: 1.5mm 0 2mm 0;">
+                <div style="{{ !$loop->first ? 'margin-top: 1.5mm; border-top: 1px dashed #000; padding-top: 1mm;' : '' }}">
+                    <div class="garment-title" style="font-size: 12px;">{{ $item['quantity'] > 1 ? $item['quantity'].'X ' : '' }}{{ $item['name'] }}</div>
+                    <div class="service-line">
                         <span>SERVICE: {{ $item['service'] }}</span>
                         @if($item['pieces'] > 1)
                             <span>Nbr Pieces={{ $item['pieces'] }}</span>
@@ -196,7 +270,7 @@
                         if (!empty($item['notes'])) $opts[] = 'NOTE: ' . $item['notes'];
                     @endphp
                     @if(count($opts) > 0)
-                        <div class="tag-options" style="margin-top: 1mm;">
+                        <div class="tag-options">
                             @foreach($opts as $opt)
                                 <div>• {{ $opt }}</div>
                             @endforeach
@@ -205,7 +279,7 @@
                 </div>
             @endforeach
 
-            <div class="details-box" style="margin-top: 3mm; border-top: 1px dotted #555; padding-top: 2mm;">
+            <div class="details-box" style="margin-top: 1.5mm; border-top: 1px dotted #555; padding-top: 1mm;">
                 <div class="details-row">
                     <span>Client:</span>
                     <span class="font-bold">{{ $order->client->name }}</span>

@@ -68,6 +68,50 @@
         -ms-overflow-style: none !important;  /* IE and Edge */
         scrollbar-width: none !important;  /* Firefox */
     }
+
+    /* Tactile Keypad (Pavé Numérique) */
+    .cpay-key {
+        height: 48px;
+        background-color: #1e293b;
+        border: 1px solid #334155;
+        border-radius: 0.75rem;
+        font-size: 1.3rem;
+        font-weight: 800;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+        color: #f8fafc;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        user-select: none;
+        transition: all 0.1s ease;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+    }
+    .cpay-key:hover {
+        background-color: #334155;
+        border-color: #475569;
+        color: #ffffff;
+    }
+    .cpay-key:active {
+        transform: scale(0.94);
+        background-color: #4f46e5;
+        color: #ffffff;
+    }
+    .cpay-key-action {
+        height: 48px;
+        border-radius: 0.75rem;
+        font-size: 1.15rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        user-select: none;
+        transition: all 0.1s ease;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+    }
+    .cpay-key-action:active {
+        transform: scale(0.94);
+    }
 </style>
 @endsection
 
@@ -265,15 +309,24 @@
                 </span>
                 <span id="total-weight-collapsed" class="text-xs font-mono font-black">0.00 kg</span>
             </div>
-            <div class="flex items-center justify-between gap-4">
+            <div class="flex items-center justify-between gap-3">
                 <div class="flex-1">
                     <span class="text-[9px] text-slate-500 font-bold uppercase tracking-wider block">Net à Payer</span>
                     <span id="total-net-collapsed" class="text-lg font-black text-indigo-400 font-mono">0 DA</span>
                 </div>
-                <button type="button" onclick="openPaymentView()" 
-                        class="bg-indigo-600 hover:bg-indigo-500 text-white font-display font-bold py-2.5 px-5 rounded-xl shadow-lg shadow-indigo-600/25 active:translate-y-0.5 transition-all flex items-center justify-center space-x-2 cursor-pointer text-xs">
-                    <span>Payer & Valider ➜</span>
-                </button>
+                <div class="flex items-center space-x-2">
+                    <button type="button" onclick="openPaymentView()" 
+                            class="py-2.5 px-3 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white rounded-xl text-xs font-bold border border-slate-700 transition-all cursor-pointer shadow-sm" title="Voir les options (remise, date, express...)">
+                        ⚙️ Détails
+                    </button>
+                    <button type="button" onclick="openCheckoutPaymentModal()" 
+                            class="bg-indigo-600 hover:bg-indigo-500 text-white font-display font-bold py-2.5 px-4 rounded-xl shadow-lg shadow-indigo-600/25 active:translate-y-0.5 transition-all flex items-center justify-center space-x-1.5 cursor-pointer text-xs">
+                        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+                        </svg>
+                        <span>Valider & Imprimer ➜</span>
+                    </button>
+                </div>
             </div>
         </div>
 
@@ -328,8 +381,14 @@
                 <!-- Deposit amount paid -->
                 <div class="flex items-center justify-between">
                     <span class="font-semibold text-slate-400 uppercase tracking-wider text-[10px]">Acompte payé</span>
-                    <input type="number" id="paid-amount-input" oninput="updateCartCalculations()" value="0" min="0" step="10"
-                           class="w-32 bg-slate-800 border border-slate-700 rounded-md px-2 py-1 text-xs text-right font-bold text-white focus:outline-none focus:border-indigo-500 font-mono">
+                    <div class="flex items-center space-x-1.5">
+                        <input type="number" id="paid-amount-input" oninput="updateCartCalculations()" onclick="openCheckoutPaymentModal()" value="0" min="0" step="10"
+                               class="w-24 bg-slate-800 border border-slate-700 rounded-md px-2 py-1 text-xs text-right font-bold text-white focus:outline-none focus:border-indigo-500 font-mono cursor-pointer" title="Cliquer pour ouvrir le pavé tactile">
+                        <button type="button" onclick="openCheckoutPaymentModal()" 
+                                class="px-2 py-1 bg-indigo-600/30 hover:bg-indigo-600 border border-indigo-500/40 text-indigo-300 hover:text-white rounded text-[11px] font-bold transition-all cursor-pointer" title="Ouvrir le pavé tactile">
+                            🔢 Pavé
+                        </button>
+                    </div>
                 </div>
 
                 <!-- Net à Payer (Grand Total Box) -->
@@ -388,7 +447,7 @@
 
             <!-- Submit action inside expanded view -->
             <div class="pt-2">
-                <button onclick="submitOrder()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-display font-bold py-3 px-4 rounded-xl shadow-lg shadow-indigo-600/20 active:translate-y-0.5 transition-all flex items-center justify-center space-x-2 cursor-pointer">
+                <button type="button" onclick="openCheckoutPaymentModal()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-display font-bold py-3 px-4 rounded-xl shadow-lg shadow-indigo-600/20 active:translate-y-0.5 transition-all flex items-center justify-center space-x-2 cursor-pointer">
                     <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
                     </svg>
@@ -629,10 +688,155 @@
             <div id="client-select-results" class="bg-slate-900 border border-slate-700/60 rounded-xl max-h-60 overflow-y-auto divide-y divide-slate-800/60 hidden">
                 <!-- Populated by JS -->
             </div>
-            
+
             <div id="client-select-empty" class="text-center py-6 text-slate-500 text-xs">
                 Saisissez au moins 2 caractères pour rechercher un client.
             </div>
+        </div>
+    </div>
+</div>
+
+<!-- 4. Modal Encaissement & Pavé Numérique Tactile (Calculatrice Compacte) -->
+<div id="checkout-payment-modal" class="hidden fixed inset-0" style="display: none; position: fixed; inset: 0; z-index: 999999; background-color: rgba(2, 6, 23, 0.75); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); align-items: center; justify-content: center; padding: 12px;" onclick="if(event.target === this) closeCheckoutPaymentModal()">
+    <div class="bg-slate-900 border border-slate-700/80 rounded-2xl shadow-2xl overflow-hidden transform transition-all animate-in fade-in zoom-in-95 duration-150" style="width: 100%; max-width: 415px; max-height: 94vh; display: flex; flex-direction: column; margin: auto;" onclick="event.stopPropagation()">
+        
+        <!-- Header -->
+        <div class="px-4 py-2.5 bg-slate-800/90 border-b border-slate-700/80 flex justify-between items-center shrink-0">
+            <div class="flex items-center space-x-2.5">
+                <div class="h-8 w-8 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 flex items-center justify-center text-base shadow-inner">
+                    💰
+                </div>
+                <div>
+                    <h3 class="text-xs font-extrabold text-white font-display flex items-center space-x-1.5">
+                        <span>Règlement & Acompte</span>
+                        <span id="cpay-ticket-badge" class="text-sky-400 font-mono text-[11px] px-1.5 py-0.2 rounded bg-sky-950/80 border border-sky-500/30">#...</span>
+                    </h3>
+                    <p class="text-[10px] text-slate-400">Client : <span id="cpay-client-name" class="font-bold text-slate-200">Client Passage</span></p>
+                </div>
+            </div>
+            <button type="button" onclick="closeCheckoutPaymentModal()" class="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-700/60 transition-colors cursor-pointer" title="Fermer">
+                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+        </div>
+
+        <!-- Body -->
+        <div class="p-3.5 space-y-2.5 overflow-y-auto">
+            <!-- Financial Recap Strip (Net, Versé, Solde) -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px;" class="p-2 bg-slate-950/70 border border-slate-800 rounded-xl text-center font-mono">
+                <div class="bg-slate-900/70 p-1.5 rounded-lg border border-slate-800/90 flex flex-col justify-center">
+                    <span class="text-[9px] uppercase font-sans font-bold text-slate-400 block mb-0.5 whitespace-nowrap">Net à Payer</span>
+                    <span id="cpay-total-net" class="text-xs sm:text-sm font-black text-indigo-400 font-mono">0 DA</span>
+                </div>
+                <div class="bg-slate-900/70 p-1.5 rounded-lg border border-slate-800/90 flex flex-col justify-center">
+                    <span class="text-[9px] uppercase font-sans font-bold text-slate-400 block mb-0.5 whitespace-nowrap">Acompte Perçu</span>
+                    <span id="cpay-paid-display" class="text-xs sm:text-sm font-black text-emerald-400 font-mono">0 DA</span>
+                </div>
+                <div class="bg-slate-900/70 p-1.5 rounded-lg border border-slate-800/90 flex flex-col justify-center">
+                    <span class="text-[9px] uppercase font-sans font-bold text-slate-400 block mb-0.5 whitespace-nowrap">Reste Solde</span>
+                    <span id="cpay-balance-display" class="text-xs sm:text-sm font-black text-amber-400 font-mono">0 DA</span>
+                </div>
+            </div>
+
+            <!-- Interactive Calculator Display Screen (Number cleanly inside) -->
+            <div class="bg-slate-950 border-2 border-slate-700/80 focus-within:border-emerald-500/80 rounded-xl p-2.5 px-3.5 transition-all shadow-inner flex items-center justify-between overflow-hidden">
+                <div class="shrink-0 pr-2">
+                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Versement / Acompte :</span>
+                    <span class="text-[9px] text-slate-500 font-sans">Pavé tactile</span>
+                </div>
+                <div class="flex items-baseline justify-end space-x-1.5 flex-1 min-w-0 pr-1">
+                    <input type="text" id="cpay-input-value" value="0" readonly
+                           style="background: transparent; border: none; outline: none; font-size: 1.65rem; font-weight: 900; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; text-align: right; color: #34d399; width: 100%; max-width: 140px; cursor: default; padding: 0 4px;"
+                           class="select-all">
+                    <span class="text-xs font-bold text-emerald-500 font-mono shrink-0">DA</span>
+                </div>
+            </div>
+
+            <!-- Dynamic Feedback (Monnaie à rendre OU Solde différé OU Payé en totalité) -->
+            <div id="cpay-feedback-container">
+                <!-- Change box (if input > net) -->
+                <div id="cpay-change-box" class="hidden p-2 rounded-xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-between text-xs">
+                    <span class="text-emerald-300 font-bold flex items-center space-x-1.5">
+                        <span>💵</span>
+                        <span>Monnaie à rendre au client :</span>
+                    </span>
+                    <span id="cpay-change-val" class="font-mono font-black text-emerald-300 text-xs">0 DA</span>
+                </div>
+                <!-- Balance box (if input < net) -->
+                <div id="cpay-partial-box" class="p-2 rounded-xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-between text-xs">
+                    <span class="text-amber-300 font-bold flex items-center space-x-1.5">
+                        <span>📝</span>
+                        <span>Reste à payer au retrait (Solde) :</span>
+                    </span>
+                    <span id="cpay-partial-val" class="font-mono font-black text-amber-300 text-xs">0 DA</span>
+                </div>
+                <!-- Fully paid box (if input == net) -->
+                <div id="cpay-full-box" class="hidden p-2 rounded-xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-between text-xs">
+                    <span class="text-emerald-300 font-bold flex items-center space-x-1.5">
+                        <span>✅</span>
+                        <span>Commande réglée en totalité</span>
+                    </span>
+                    <span class="font-mono font-bold text-emerald-300 text-xs">Solde 0 DA</span>
+                </div>
+            </div>
+
+            <!-- Quick Preset: Totalité seule sur la ligne -->
+            <div>
+                <button type="button" onclick="cpaySetPreset('exact')" 
+                        class="w-full py-2 px-3 bg-indigo-600/25 hover:bg-indigo-600 text-indigo-300 hover:text-white rounded-xl text-xs font-bold border border-indigo-500/40 transition-all cursor-pointer text-center active:scale-98 shadow-sm flex items-center justify-center space-x-2">
+                    <svg class="h-4 w-4 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                    </svg>
+                    <span>Payer la totalité (Net)</span>
+                </button>
+            </div>
+
+            <!-- Tactile Numeric Keypad (4x3 Grid) -->
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px;" class="pt-0.5">
+                <button type="button" onclick="cpayPressKey('7')" class="cpay-key">7</button>
+                <button type="button" onclick="cpayPressKey('8')" class="cpay-key">8</button>
+                <button type="button" onclick="cpayPressKey('9')" class="cpay-key">9</button>
+
+                <button type="button" onclick="cpayPressKey('4')" class="cpay-key">4</button>
+                <button type="button" onclick="cpayPressKey('5')" class="cpay-key">5</button>
+                <button type="button" onclick="cpayPressKey('6')" class="cpay-key">6</button>
+
+                <button type="button" onclick="cpayPressKey('1')" class="cpay-key">1</button>
+                <button type="button" onclick="cpayPressKey('2')" class="cpay-key">2</button>
+                <button type="button" onclick="cpayPressKey('3')" class="cpay-key">3</button>
+
+                <button type="button" onclick="cpayClear()" class="cpay-key-action bg-rose-500/20 hover:bg-rose-500/30 text-rose-400 border border-rose-500/40 font-black">
+                    C
+                </button>
+                <button type="button" onclick="cpayPressKey('0')" class="cpay-key">0</button>
+                <button type="button" onclick="cpayPressKey('00')" class="cpay-key text-base font-bold">00</button>
+            </div>
+            
+            <!-- Backspace button (full-width) -->
+            <div class="pt-0.5">
+                <button type="button" onclick="cpayBackspace()" class="w-full py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white font-bold text-xs border border-slate-700 flex items-center justify-center space-x-2 transition-all active:scale-95 cursor-pointer">
+                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2M3 12l6.414-6.414a2 2 0 011.414-.586H19a2 2 0 012 2v10a2 2 0 01-2 2h-9.172a2 2 0 01-1.414-.586L3 12z" />
+                    </svg>
+                    <span>Effacer (⌫)</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Footer / Confirm Validation & Print -->
+        <div class="p-3 bg-slate-800/90 border-t border-slate-700/80 space-y-1.5 shrink-0">
+            <button type="button" onclick="cpayConfirmAndSubmit()" 
+                    class="w-full py-3 px-4 bg-emerald-600 hover:bg-emerald-500 text-white font-display font-extrabold text-xs sm:text-sm rounded-xl shadow-lg shadow-emerald-600/30 active:scale-98 transition-all flex items-center justify-center space-x-2 cursor-pointer">
+                <svg class="h-4 w-4 sm:h-5 sm:w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
+                </svg>
+                <span id="cpay-submit-btn-label">Valider sans acompte</span>
+            </button>
+            <button type="button" onclick="closeCheckoutPaymentModal()" 
+                    class="w-full py-1 text-xs font-semibold text-slate-400 hover:text-white hover:bg-slate-700/40 rounded-xl transition-colors text-center cursor-pointer">
+                Annuler / Retour au panier
+            </button>
         </div>
     </div>
 </div>
@@ -2279,6 +2483,229 @@
     setInterval(syncOfflineOrdersIfAny, 30000);
     document.addEventListener('DOMContentLoaded', syncOfflineOrdersIfAny);
 
+    // ================= MODAL ENCAISSEMENT TACTILE (CALCULATRICE / PAVÉ NUMÉRIQUE) =================
+    let cpayCurrentAmount = 0;
+    let cpayTotalNet = 0;
+
+    window.openCheckoutPaymentModal = function() {
+        if (!selectedClient && typeof defaultClient !== 'undefined') {
+            selectedClient = { ...defaultClient };
+        }
+
+        updateCartCalculations();
+
+        // Calculate total net
+        let totalBrut = 0;
+        cart.forEach(item => {
+            if (item.is_carpet && !item.is_measured) {
+                // Not measured
+            } else if (item.is_carpet && item.is_measured) {
+                totalBrut += item.unit_price * item.area;
+            } else {
+                totalBrut += item.unit_price * item.quantity;
+            }
+        });
+
+        const isExpress = document.getElementById('express-toggle-input')?.checked || false;
+        if (isExpress) totalBrut = totalBrut * 2;
+
+        const discountInput = document.getElementById('discount-percent-input');
+        const discountType = document.getElementById('discount-type-select')?.value || 'fixed';
+        let discountValue = parseFloat(discountInput?.value) || 0;
+        let discountAmount = 0;
+        if (discountType === 'percent') {
+            discountAmount = totalBrut * (discountValue / 100);
+        } else {
+            discountAmount = discountValue;
+        }
+
+        cpayTotalNet = Math.max(0, Math.round(totalBrut - discountAmount));
+
+        // Prefill with existing paid-amount-input value, if any, else default to 0
+        const existingPaid = parseFloat(document.getElementById('paid-amount-input')?.value) || 0;
+        cpayCurrentAmount = existingPaid;
+
+        // Set labels
+        const ticketNum = document.getElementById('ticket-number-input')?.value || '{{ $nextTicketNumber }}';
+        const clientName = selectedClient ? selectedClient.name : 'Client Passage';
+        const ticketBadge = document.getElementById('cpay-ticket-badge');
+        const clientNameElem = document.getElementById('cpay-client-name');
+        const totalNetElem = document.getElementById('cpay-total-net');
+        
+        if (ticketBadge) ticketBadge.textContent = `#${ticketNum}`;
+        if (clientNameElem) clientNameElem.textContent = clientName;
+        if (totalNetElem) totalNetElem.textContent = `${cpayTotalNet} DA`;
+
+        cpayRefreshDisplay();
+
+        const modal = document.getElementById('checkout-payment-modal');
+        if (modal) {
+            modal.classList.remove('hidden');
+            modal.style.setProperty('display', 'flex', 'important');
+        }
+    };
+
+    window.closeCheckoutPaymentModal = function() {
+        const modal = document.getElementById('checkout-payment-modal');
+        if (modal) {
+            modal.classList.add('hidden');
+            modal.style.setProperty('display', 'none', 'important');
+        }
+    };
+
+    window.cpayPressKey = function(digit) {
+        let str = cpayCurrentAmount.toString();
+        if (str === '0') {
+            str = digit.toString();
+        } else {
+            if (str.length < 9) {
+                str += digit.toString();
+            }
+        }
+        cpayCurrentAmount = parseInt(str) || 0;
+        cpayRefreshDisplay();
+    };
+
+    window.cpayBackspace = function() {
+        let str = cpayCurrentAmount.toString();
+        if (str.length <= 1) {
+            cpayCurrentAmount = 0;
+        } else {
+            str = str.slice(0, -1);
+            cpayCurrentAmount = parseInt(str) || 0;
+        }
+        cpayRefreshDisplay();
+    };
+
+    window.cpayClear = function() {
+        cpayCurrentAmount = 0;
+        cpayRefreshDisplay();
+    };
+
+    window.cpaySetPreset = function(preset) {
+        if (preset === 'exact') {
+            cpayCurrentAmount = cpayTotalNet;
+        } else {
+            cpayCurrentAmount = parseInt(preset) || 0;
+        }
+        cpayRefreshDisplay();
+    };
+
+    window.cpayAddAmount = function(amount) {
+        cpayCurrentAmount = (cpayCurrentAmount || 0) + amount;
+        cpayRefreshDisplay();
+    };
+
+    function cpayRefreshDisplay() {
+        const inputElem = document.getElementById('cpay-input-value');
+        if (inputElem) {
+            inputElem.value = cpayCurrentAmount;
+        }
+        const paidDisplay = document.getElementById('cpay-paid-display');
+        if (paidDisplay) paidDisplay.textContent = `${cpayCurrentAmount} DA`;
+
+        const diff = cpayTotalNet - cpayCurrentAmount;
+        const changeBox = document.getElementById('cpay-change-box');
+        const partialBox = document.getElementById('cpay-partial-box');
+        const fullBox = document.getElementById('cpay-full-box');
+        const balanceElem = document.getElementById('cpay-balance-display');
+        const submitLabel = document.getElementById('cpay-submit-btn-label');
+
+        if (diff > 0) {
+            // Remaining balance
+            if (balanceElem) {
+                balanceElem.textContent = `${diff} DA`;
+                balanceElem.className = 'text-sm font-black text-amber-400 font-mono';
+            }
+            if (partialBox) {
+                partialBox.classList.remove('hidden');
+                const pVal = document.getElementById('cpay-partial-val');
+                if (pVal) pVal.textContent = `${diff} DA`;
+            }
+            if (changeBox) changeBox.classList.add('hidden');
+            if (fullBox) fullBox.classList.add('hidden');
+
+            if (submitLabel) {
+                if (cpayCurrentAmount > 0) {
+                    submitLabel.textContent = `Valider avec acompte de ${cpayCurrentAmount} DA (Solde: ${diff} DA)`;
+                } else {
+                    submitLabel.textContent = `Valider sans acompte (Solde: ${diff} DA)`;
+                }
+            }
+        } else if (diff === 0) {
+            // Fully paid
+            if (balanceElem) {
+                balanceElem.textContent = `0 DA`;
+                balanceElem.className = 'text-sm font-black text-emerald-400 font-mono';
+            }
+            if (partialBox) partialBox.classList.add('hidden');
+            if (changeBox) changeBox.classList.add('hidden');
+            if (fullBox) fullBox.classList.remove('hidden');
+            if (submitLabel) submitLabel.textContent = `Valider & Imprimer (Totalité ${cpayTotalNet} DA)`;
+        } else {
+            // Overpaid (change to return)
+            const change = Math.abs(diff);
+            if (balanceElem) {
+                balanceElem.textContent = `0 DA`;
+                balanceElem.className = 'text-sm font-black text-emerald-400 font-mono';
+            }
+            if (partialBox) partialBox.classList.add('hidden');
+            if (fullBox) fullBox.classList.add('hidden');
+            if (changeBox) {
+                changeBox.classList.remove('hidden');
+                const cVal = document.getElementById('cpay-change-val');
+                if (cVal) cVal.textContent = `${change} DA`;
+            }
+            if (submitLabel) submitLabel.textContent = `Valider & Imprimer (Rendre: ${change} DA)`;
+        }
+    }
+
+    window.cpayConfirmAndSubmit = function() {
+        if (!cart || cart.length === 0) {
+            showAppAlert("Le panier est vide. Veuillez ajouter des articles avant de valider la commande.", "error", "Panier Vide");
+            return;
+        }
+
+        const clientId = selectedClient ? selectedClient.id : null;
+        if (!clientId) {
+            showAppAlert("Veuillez associer un client (ex: Client Passage ou client recherché).", "error", "Client manquant");
+            return;
+        }
+
+        // Store actual payment up to net total (since any surplus is returned as change)
+        const actualPaidToStore = Math.min(cpayCurrentAmount, cpayTotalNet);
+        const paidInput = document.getElementById('paid-amount-input');
+        if (paidInput) {
+            paidInput.value = actualPaidToStore;
+        }
+
+        updateCartCalculations();
+        closeCheckoutPaymentModal();
+
+        // Submit order via AJAX & automatically trigger dual-printing
+        submitOrder();
+    };
+
+    // Keyboard support for physical numpad
+    document.addEventListener('keydown', function(e) {
+        const modal = document.getElementById('checkout-payment-modal');
+        if (!modal || modal.classList.contains('hidden') || modal.style.display === 'none') {
+            return;
+        }
+        if (e.key >= '0' && e.key <= '9') {
+            e.preventDefault();
+            cpayPressKey(e.key);
+        } else if (e.key === 'Backspace') {
+            e.preventDefault();
+            cpayBackspace();
+        } else if (e.key === 'Escape') {
+            e.preventDefault();
+            closeCheckoutPaymentModal();
+        } else if (e.key === 'Enter') {
+            e.preventDefault();
+            cpayConfirmAndSubmit();
+        }
+    });
 
 </script>
 @endsection

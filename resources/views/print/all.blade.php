@@ -12,22 +12,28 @@
             box-sizing: border-box;
         }
         body {
-            width: 80mm;
-            margin: 0 auto;
-            padding: 4mm 3mm;
+            width: 100%;
+            max-width: 80mm;
+            margin: 0 !important;
+            margin-left: 0 !important;
+            padding: 3mm 2mm 3mm 0 !important; /* Zero marge a gauche */
             font-family: 'Courier New', Courier, monospace;
             font-size: 12px;
             color: #000;
             background: #fff;
-            line-height: 1.4;
+            line-height: 1.35;
         }
 
         /* Hide elements on print */
         @media print {
-            body {
-                width: 80mm;
-                margin: 0 auto;
-                padding: 4mm 3mm;
+            html, body {
+                width: 100%;
+                max-width: 80mm;
+                margin: 0 !important;
+                margin-left: 0 !important;
+                padding: 2mm 2mm 2mm 0 !important; /* Zero marge a gauche */
+                color: #000 !important;
+                background: #fff !important;
             }
             .no-print {
                 display: none !important;
@@ -209,11 +215,11 @@
     <div class="page-block">
         <div class="header text-center">
             <h1 style="font-size: 22px; font-weight: 900; letter-spacing: 1px; margin-bottom: 1mm; display: inline-flex; align-items: center; justify-content: center; width: 100%;">
-                PARAD<svg style="width: 20px; height: 20px; margin: 0 1px; display: inline-block; vertical-align: middle;" fill="none" viewBox="0 0 24 24" stroke="#000" stroke-width="2.5"><rect x="4" y="3" width="16" height="18" rx="2" /><line x1="4" y1="7" x2="20" y2="7" /><circle cx="7" cy="5" r="0.75" fill="#000" /><circle cx="10" cy="5" r="0.75" fill="#000" /><circle cx="13" cy="5" r="0.75" fill="#000" /><circle cx="12" cy="14" r="4" /><circle cx="12" cy="14" r="2.5" stroke-dasharray="3 2" /></svg>U
+                LE PARAD<svg style="width: 20px; height: 20px; margin: 0 1px; display: inline-block; vertical-align: middle;" fill="none" viewBox="0 0 24 24" stroke="#000" stroke-width="2.5"><rect x="4" y="3" width="16" height="18" rx="2" /><line x1="4" y1="7" x2="20" y2="7" /><circle cx="7" cy="5" r="0.75" fill="#000" /><circle cx="10" cy="5" r="0.75" fill="#000" /><circle cx="13" cy="5" r="0.75" fill="#000" /><circle cx="12" cy="14" r="4" /><circle cx="12" cy="14" r="2.5" stroke-dasharray="3 2" /></svg>U
             </h1>
-            <p>Pressing & Nettoyage à Sec Moderne</p>
+            <p>Pressing & Blanchisserie & Nettoyage à Sec</p>
             <p>Tél : 0561 99 88 01</p>
-            <p>Alger, Algérie</p>
+            <p style="font-size: 10px;">Facebook : pressing blanchisserie le paradou</p>
         </div>
 
         @if($order->is_express)
@@ -227,10 +233,6 @@
         <!-- Ticket Meta Info -->
         <div class="info-section">
             <div class="info-row">
-                <span>TICKET N°:</span>
-                <span class="font-bold">#{{ $order->ticket_number }}</span>
-            </div>
-            <div class="info-row">
                 <span>DATE:</span>
                 <span>{{ $order->order_date->format('d/m/Y H:i') }}</span>
             </div>
@@ -241,10 +243,6 @@
             <div class="info-row">
                 <span>CLIENT:</span>
                 <span class="font-bold">{{ $order->client->name }}</span>
-            </div>
-            <div class="info-row">
-                <span>CODE CLIENT:</span>
-                <span class="font-bold">{{ $order->client->code }}</span>
             </div>
             @if($order->client->phone)
                 <div class="info-row">
@@ -260,7 +258,7 @@
         <table class="items-table">
             <thead>
                 <tr>
-                    <th>ARTICLE (Service)</th>
+                    <th>ARTICLE</th>
                     <th class="text-center" style="width: 10mm;">QTÉ</th>
                     <th class="text-right" style="width: 20mm;">TOTAL</th>
                 </tr>
@@ -364,10 +362,6 @@
                     <span class="font-bold">{{ number_format($order->total_weight, 2) }} kg ({{ round($order->total_weight * 1000) }} g)</span>
                 </div>
             @endif
-            <div class="totals-row">
-                <span>Sous-total brut:</span>
-                <span>{{ number_format($totalBrut, 0, '.', '') }} DA</span>
-            </div>
             @if($discountAmount > 0)
                 <div class="totals-row">
                     @if($order->discount_type === 'percent')
@@ -379,7 +373,7 @@
                 </div>
             @endif
             <div class="totals-row">
-                <span>Total Net:</span>
+                <span>Total:</span>
                 <span>{{ number_format($order->total_amount, 0, '.', '') }} DA</span>
             </div>
             <div class="totals-row">
@@ -413,7 +407,7 @@
             <p class="text-center font-bold" style="margin-top: 4mm; font-size: 10px;">Merci pour votre confiance !</p>
             
             <!-- Simulated barcode text -->
-            <div class="barcode-text text-center font-mono">*{{ $order->ticket_number }}*</div>
+            <div class="barcode-text text-center font-mono">{{ $order->ticket_number }}</div>
 
             <!-- Code QR du numéro de commande / ticket -->
             <div class="qrcode-container text-center">

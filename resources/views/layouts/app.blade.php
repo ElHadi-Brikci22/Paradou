@@ -199,7 +199,9 @@
         .theme-light #new-client-modal > div,
         .theme-light #order-modal > div,
         .theme-light #modal-printers-config > div,
-        .theme-light #custom-alert-modal > div {
+        .theme-light #custom-alert-modal > div,
+        .theme-light #checkout-payment-modal > div,
+        .theme-light #ticket-preview-modal > div {
             background-color: #ffffff !important;
             border-color: #cbd5e1 !important;
         }
@@ -207,6 +209,8 @@
         .theme-light #new-client-modal h3,
         .theme-light #order-modal h3,
         .theme-light #modal-printers-config h3,
+        .theme-light #checkout-payment-modal h3,
+        .theme-light #ticket-preview-modal h3,
         .theme-light #custom-alert-title,
         .theme-light #custom-alert-modal span {
             color: #0f172a !important;
@@ -214,8 +218,20 @@
         .theme-light #options-modal .bg-slate-800,
         .theme-light #new-client-modal .bg-slate-800,
         .theme-light #order-modal .bg-slate-800,
+        .theme-light #checkout-payment-modal .bg-slate-800,
+        .theme-light #checkout-payment-modal .bg-slate-800\/90,
+        .theme-light #ticket-preview-modal .bg-slate-800,
+        .theme-light #ticket-preview-modal .bg-slate-800\/90,
         .theme-light #custom-alert-modal .bg-slate-800 {
             background-color: #ffffff !important;
+        }
+        .theme-light .cpay-key {
+            background-color: #f1f5f9 !important;
+            border-color: #cbd5e1 !important;
+            color: #0f172a !important;
+        }
+        .theme-light .cpay-key:hover {
+            background-color: #e2e8f0 !important;
         }
         .theme-light #options-modal .option-badge:not(.bg-indigo-600) {
             background-color: #f1f5f9 !important;
@@ -685,7 +701,7 @@
 
             if (window.posDesktop && typeof window.posDesktop.silentPrint === 'function') {
                 try {
-                    const res = await window.posDesktop.silentPrint(testHtml, targetPrinter, { singlePage: true });
+                    const res = await window.posDesktop.silentPrint(testHtml, targetPrinter);
                     if (res && res.success === false) {
                         showAppAlert(`Échec du test : ${res.error || 'Erreur inconnue'}`, "error", "Erreur d'impression");
                     } else {
@@ -725,7 +741,7 @@
                     if (type === 'tags') {
                         const r = await fetch(`/orders/${orderId}/print-tags`);
                         const html = await r.text();
-                        await window.posDesktop.silentPrint(html, cfg.tagPrinter || '', { singlePage: true });
+                        await window.posDesktop.silentPrint(html, cfg.tagPrinter || '');
                         return;
                     }
 
@@ -742,7 +758,7 @@
                             if (cfg.autoPrintTags !== false) {
                                 fetch(`/orders/${orderId}/print-tags`)
                                     .then(r => r.text())
-                                    .then(html => window.posDesktop.silentPrint(html, cfg.tagPrinter, { singlePage: true }))
+                                    .then(html => window.posDesktop.silentPrint(html, cfg.tagPrinter))
                                     .catch(e => console.error('Erreur print tags:', e));
                             }
                             return;
@@ -753,7 +769,7 @@
                             if (cfg.autoPrintTags !== false) {
                                 const r = await fetch(`/orders/${orderId}/print-tags`);
                                 const html = await r.text();
-                                await window.posDesktop.silentPrint(html, cfg.tagPrinter, { singlePage: true });
+                                await window.posDesktop.silentPrint(html, cfg.tagPrinter);
                             }
                             return;
                         }
@@ -773,7 +789,7 @@
                         if (cfg.autoPrintTags !== false) {
                             const r = await fetch(`/orders/${orderId}/print-tags`);
                             const html = await r.text();
-                            await window.posDesktop.silentPrint(html, cfg.tagPrinter || cfg.receiptPrinter || '', { singlePage: true });
+                            await window.posDesktop.silentPrint(html, cfg.tagPrinter || cfg.receiptPrinter || '');
                         }
                         return;
                     }
@@ -987,6 +1003,104 @@
         window.addEventListener('offline', updateDualModeStatus);
         setInterval(updateDualModeStatus, 4000);
         document.addEventListener('DOMContentLoaded', updateDualModeStatus);
+
+        // -------------------------------------------------------------
+        // TICKET PREVIEW MODAL (RECEIPT & HANGER TAGS)
+        // -------------------------------------------------------------
+        let currentPreviewOrderId = null;
+        let currentPreviewType = 'ticket';
+
+        window.openTicketPreview = function(orderId, ticketNumber = '', defaultType = 'ticket') {
+            if (!orderId) {
+                console.warn('openTicketPreview appelé sans identifiant de commande.');
+                return;
+            }
+            currentPreviewOrderId = orderId;
+            currentPreviewType = defaultType || 'ticket';
+
+            const modal = document.getElementById('ticket-preview-modal');
+            const ticketNoElem = document.getElementById('preview-ticket-number');
+            if (ticketNoElem) {
+                ticketNoElem.textContent = ticketNumber ? `#${ticketNumber}` : `#${orderId}`;
+            }
+
+            if (modal) {
+                modal.classList.remove('hidden');
+                modal.style.setProperty('display', 'flex', 'important');
+            }
+
+            try {
+                switchPreviewTab(defaultType || 'ticket');
+            } catch (err) {
+                console.error('Erreur switchPreviewTab:', err);
+            }
+        };
+
+        window.closeTicketPreview = function() {
+            const modal = document.getElementById('ticket-preview-modal');
+            if (modal) {
+                modal.classList.add('hidden');
+                modal.style.setProperty('display', 'none', 'important');
+            }
+            const iframe = document.getElementById('ticket-preview-iframe');
+            if (iframe) {
+                iframe.src = 'about:blank';
+            }
+        };
+
+        window.switchPreviewTab = function(type) {
+            currentPreviewType = type;
+            const tabTicket = document.getElementById('tab-preview-ticket');
+            const tabTags = document.getElementById('tab-preview-tags');
+            const iframe = document.getElementById('ticket-preview-iframe');
+            const printLabel = document.getElementById('preview-print-btn-label');
+
+            if (type === 'ticket') {
+                if (tabTicket) {
+                    tabTicket.className = 'px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center space-x-1.5 cursor-pointer bg-indigo-600 text-white shadow-sm shadow-indigo-600/30';
+                }
+                if (tabTags) {
+                    tabTags.className = 'px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center space-x-1.5 cursor-pointer bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700';
+                }
+                if (iframe) {
+                    iframe.style.height = '480px';
+                    iframe.src = `/orders/${currentPreviewOrderId}/print-ticket?preview=1`;
+                }
+                if (printLabel) printLabel.textContent = 'Imprimer le Reçu';
+            } else {
+                if (tabTags) {
+                    tabTags.className = 'px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center space-x-1.5 cursor-pointer bg-amber-600 text-white shadow-sm shadow-amber-600/30';
+                }
+                if (tabTicket) {
+                    tabTicket.className = 'px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center space-x-1.5 cursor-pointer bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700';
+                }
+                if (iframe) {
+                    iframe.style.height = '240px';
+                    iframe.src = `/orders/${currentPreviewOrderId}/print-tags?preview=1`;
+                }
+                if (printLabel) printLabel.textContent = 'Imprimer le Cintre';
+            }
+
+            if (iframe) {
+                iframe.onload = () => {
+                    try {
+                        const doc = iframe.contentDocument || iframe.contentWindow.document;
+                        if (doc && doc.body) {
+                            const scrollH = doc.body.scrollHeight;
+                            if (scrollH > 80) {
+                                iframe.style.height = (scrollH + 15) + 'px';
+                            }
+                        }
+                    } catch(e) {}
+                };
+            }
+        };
+
+        window.printFromPreview = function() {
+            if (currentPreviewOrderId) {
+                printOrder(currentPreviewOrderId, currentPreviewType);
+            }
+        };
     </script>
 
     <!-- Modal Configuration Imprimantes Multi-Rôles -->
@@ -1084,6 +1198,71 @@
                 <button type="button" onclick="savePrinterConfig()" class="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-extrabold font-display uppercase tracking-wider rounded-xl shadow-lg shadow-indigo-600/40 active:scale-95 transition-all cursor-pointer">
                     Enregistrer la Configuration
                 </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= TICKET PREVIEW MODAL ================= -->
+    <div id="ticket-preview-modal" class="fixed inset-0 items-center justify-center p-3 sm:p-4" style="display: none; background-color: rgba(2, 6, 23, 0.88); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); z-index: 9999999;" onclick="if(event.target === this) closeTicketPreview()">
+        <div class="bg-slate-900 border border-slate-700/80 rounded-2xl w-full max-w-[480px] max-h-[92vh] flex flex-col shadow-2xl overflow-hidden transform transition-all animate-in fade-in zoom-in-95 duration-200" onclick="event.stopPropagation()">
+            <!-- Modal Header -->
+            <div class="px-5 py-3.5 bg-slate-800/90 border-b border-slate-700/80 flex justify-between items-center shrink-0">
+                <div class="flex items-center space-x-2.5">
+                    <span class="p-1.5 rounded-lg bg-sky-500/10 text-sky-400 border border-sky-500/20">
+                        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                        </svg>
+                    </span>
+                    <div>
+                        <h3 class="text-sm font-extrabold text-white font-display flex items-center space-x-2">
+                            <span>Aperçu Impression</span>
+                            <span id="preview-ticket-number" class="text-sky-400 font-mono text-xs px-2 py-0.5 rounded bg-sky-950/80 border border-sky-500/30">#...</span>
+                        </h3>
+                    </div>
+                </div>
+                <button type="button" onclick="closeTicketPreview()" class="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-700/60 transition-colors cursor-pointer" title="Fermer">
+                    <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Tab Switcher -->
+            <div class="px-5 py-2.5 bg-slate-800/50 border-b border-slate-700/60 flex items-center justify-between shrink-0">
+                <div class="flex space-x-2">
+                    <button type="button" id="tab-preview-ticket" onclick="switchPreviewTab('ticket')" 
+                            class="px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center space-x-1.5 cursor-pointer bg-indigo-600 text-white shadow-sm shadow-indigo-600/30">
+                        <span>🧾 Reçu Client</span>
+                    </button>
+                    <button type="button" id="tab-preview-tags" onclick="switchPreviewTab('tags')" 
+                            class="px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center space-x-1.5 cursor-pointer bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700">
+                        <span>🏷️ Étiquette Cintre (80×50)</span>
+                    </button>
+                </div>
+                <span class="text-[10px] text-slate-400 font-mono hidden sm:inline">Format 80mm</span>
+            </div>
+
+            <!-- Iframe Container with realistic thermal ticket styling -->
+            <div class="p-4 overflow-y-auto flex-1 flex justify-center items-start bg-slate-950/60 min-h-[380px]">
+                <div class="bg-white rounded shadow-2xl overflow-hidden border border-slate-300 transition-all" style="width: 320px;">
+                    <iframe id="ticket-preview-iframe" class="w-full border-0" style="min-height: 460px; height: 480px; display: block;" src="about:blank"></iframe>
+                </div>
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="px-5 py-3 bg-slate-800/90 border-t border-slate-700/80 flex items-center justify-between shrink-0">
+                <button type="button" onclick="closeTicketPreview()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-xs font-bold rounded-xl border border-slate-600 transition-colors cursor-pointer">
+                    Fermer
+                </button>
+                <div class="flex space-x-2">
+                    <button type="button" onclick="printFromPreview()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-extrabold rounded-xl shadow-md shadow-indigo-600/30 active:scale-95 transition-all flex items-center space-x-1.5 cursor-pointer">
+                        <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                        </svg>
+                        <span id="preview-print-btn-label">Imprimer ce ticket</span>
+                    </button>
+                </div>
             </div>
         </div>
     </div>
