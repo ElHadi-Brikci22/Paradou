@@ -428,9 +428,16 @@
                 </div>
                 <div>
                     <label class="block text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1">Caisse Ticket N°</label>
-                    <input type="text" id="ticket-number-input" value="{{ $nextTicketNumber }}"
-                           @if(auth()->user()->role !== 'admin') readonly @endif
-                           class="w-full bg-slate-850 border border-slate-700 rounded-md px-2.5 py-1.5 text-xs text-slate-200 font-mono text-center focus:outline-none focus:border-indigo-500 font-mono @if(auth()->user()->role !== 'admin') opacity-50 cursor-not-allowed @endif">
+                    @if(isset($editingOrder) && $editingOrder)
+                        <input type="text" id="ticket-number-input" value="{{ $editingOrder->ticket_number }}" readonly
+                               class="w-full bg-slate-850 border border-slate-700 rounded-md px-2.5 py-1.5 text-xs text-amber-400 font-mono text-center cursor-not-allowed">
+                    @else
+                        <div class="w-full bg-slate-850/80 border border-slate-700/60 rounded-md px-2 py-1.5 text-center flex items-center justify-center space-x-1.5 select-none" title="Attribué automatiquement par le système lors de la validation">
+                            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                            <span class="text-[11px] font-bold text-slate-300">À la validation</span>
+                        </div>
+                        <input type="hidden" id="ticket-number-input" value="">
+                    @endif
                 </div>
             </div>
             <div>
@@ -2404,9 +2411,9 @@
                     renderCart();
                     clearSelectedClient();
                     
-                    // Refresh next ticket number
-                    const nextNo = String(parseInt(data.ticket_number) + 1).padStart(6, '0');
-                    document.getElementById('ticket-number-input').value = nextNo;
+                    // Reset ticket number input (attributed at validation)
+                    const tInput = document.getElementById('ticket-number-input');
+                    if (tInput) tInput.value = '';
                     document.getElementById('remarks-input').value = '';
                     document.getElementById('paid-amount-input').value = 0;
                     
@@ -2439,8 +2446,8 @@
                     document.getElementById('no-print-toggle').checked = false;
                     renderCart();
                     clearSelectedClient();
-                    const nextNo = String(parseInt(body.ticket_number) + 1).padStart(6, '0');
-                    document.getElementById('ticket-number-input').value = nextNo;
+                    const tInput = document.getElementById('ticket-number-input');
+                    if (tInput) tInput.value = '';
                     document.getElementById('remarks-input').value = '';
                     document.getElementById('paid-amount-input').value = 0;
                     updateCartCalculations();
@@ -2526,13 +2533,20 @@
         cpayCurrentAmount = existingPaid;
 
         // Set labels
-        const ticketNum = document.getElementById('ticket-number-input')?.value || '{{ $nextTicketNumber }}';
         const clientName = selectedClient ? selectedClient.name : 'Client Passage';
         const ticketBadge = document.getElementById('cpay-ticket-badge');
         const clientNameElem = document.getElementById('cpay-client-name');
         const totalNetElem = document.getElementById('cpay-total-net');
         
-        if (ticketBadge) ticketBadge.textContent = `#${ticketNum}`;
+        if (ticketBadge) {
+            if (editingOrder && editingOrder.ticket_number) {
+                ticketBadge.textContent = `#${editingOrder.ticket_number}`;
+                ticketBadge.className = "text-amber-400 font-mono text-[11px] px-1.5 py-0.5 rounded bg-amber-950/80 border border-amber-500/30";
+            } else {
+                ticketBadge.textContent = "N° à la validation";
+                ticketBadge.className = "text-emerald-400 font-mono text-[10px] px-1.5 py-0.5 rounded bg-emerald-950/80 border border-emerald-500/30";
+            }
+        }
         if (clientNameElem) clientNameElem.textContent = clientName;
         if (totalNetElem) totalNetElem.textContent = `${cpayTotalNet} DA`;
 

@@ -233,6 +233,26 @@
         .theme-light .cpay-key:hover {
             background-color: #e2e8f0 !important;
         }
+        #ticket-preview-modal .overflow-y-auto {
+            scrollbar-width: thin;
+            scrollbar-color: #64748b rgba(15, 23, 42, 0.6);
+        }
+        #ticket-preview-modal .overflow-y-auto::-webkit-scrollbar {
+            width: 10px;
+            display: block;
+        }
+        #ticket-preview-modal .overflow-y-auto::-webkit-scrollbar-track {
+            background: rgba(15, 23, 42, 0.7);
+            border-radius: 5px;
+        }
+        #ticket-preview-modal .overflow-y-auto::-webkit-scrollbar-thumb {
+            background: #475569;
+            border-radius: 5px;
+            border: 2px solid rgba(15, 23, 42, 0.7);
+        }
+        #ticket-preview-modal .overflow-y-auto::-webkit-scrollbar-thumb:hover {
+            background: #64748b;
+        }
         .theme-light #options-modal .option-badge:not(.bg-indigo-600) {
             background-color: #f1f5f9 !important;
             color: #334155 !important;
@@ -353,6 +373,9 @@
                             <a href="{{ route('admin.rubrics.index') }}" class="block px-4 py-2 text-xs font-bold text-slate-300 hover:text-white hover:bg-slate-700/50 transition-colors uppercase font-display border-t border-slate-700/30">
                                 Rubriques (Dicos)
                             </a>
+                            <button type="button" onclick="openGlobalBackupModal()" class="w-full text-left block px-4 py-2 text-xs font-bold text-indigo-400 hover:text-white hover:bg-slate-700/50 transition-colors uppercase font-display border-t border-slate-700/30 cursor-pointer">
+                                💾 Sauvegardes Base
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -1046,7 +1069,18 @@
             if (iframe) {
                 iframe.src = 'about:blank';
             }
+            currentPreviewOrderId = null;
         };
+
+        // Close ticket preview modal with Escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' || e.key === 'Esc') {
+                const modal = document.getElementById('ticket-preview-modal');
+                if (modal && modal.style.display !== 'none' && !modal.classList.contains('hidden')) {
+                    closeTicketPreview();
+                }
+            }
+        });
 
         window.switchPreviewTab = function(type) {
             currentPreviewType = type;
@@ -1063,7 +1097,6 @@
                     tabTags.className = 'px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center space-x-1.5 cursor-pointer bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700';
                 }
                 if (iframe) {
-                    iframe.style.height = '480px';
                     iframe.src = `/orders/${currentPreviewOrderId}/print-ticket?preview=1`;
                 }
                 if (printLabel) printLabel.textContent = 'Imprimer le Reçu';
@@ -1075,7 +1108,6 @@
                     tabTicket.className = 'px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center space-x-1.5 cursor-pointer bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700';
                 }
                 if (iframe) {
-                    iframe.style.height = '240px';
                     iframe.src = `/orders/${currentPreviewOrderId}/print-tags?preview=1`;
                 }
                 if (printLabel) printLabel.textContent = 'Imprimer le Cintre';
@@ -1085,11 +1117,13 @@
                 iframe.onload = () => {
                     try {
                         const doc = iframe.contentDocument || iframe.contentWindow.document;
-                        if (doc && doc.body) {
-                            const scrollH = doc.body.scrollHeight;
-                            if (scrollH > 80) {
-                                iframe.style.height = (scrollH + 15) + 'px';
-                            }
+                        if (doc) {
+                            // Forward Escape key pressed inside iframe to close modal
+                            doc.addEventListener('keydown', (e) => {
+                                if (e.key === 'Escape' || e.key === 'Esc') {
+                                    closeTicketPreview();
+                                }
+                            });
                         }
                     } catch(e) {}
                 };
@@ -1203,7 +1237,7 @@
     </div>
 
     <!-- ================= TICKET PREVIEW MODAL ================= -->
-    <div id="ticket-preview-modal" class="fixed inset-0 items-center justify-center p-3 sm:p-4" style="display: none; background-color: rgba(2, 6, 23, 0.88); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); z-index: 9999999;" onclick="if(event.target === this) closeTicketPreview()">
+    <div id="ticket-preview-modal" class="fixed inset-0 items-center justify-center p-3 sm:p-4" style="display: none; background-color: rgba(2, 6, 23, 0.88); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); z-index: 9999999;" onclick="closeTicketPreview()">
         <div class="bg-slate-900 border border-slate-700/80 rounded-2xl w-full max-w-[480px] max-h-[92vh] flex flex-col shadow-2xl overflow-hidden transform transition-all animate-in fade-in zoom-in-95 duration-200" onclick="event.stopPropagation()">
             <!-- Modal Header -->
             <div class="px-5 py-3.5 bg-slate-800/90 border-b border-slate-700/80 flex justify-between items-center shrink-0">
@@ -1221,7 +1255,7 @@
                         </h3>
                     </div>
                 </div>
-                <button type="button" onclick="closeTicketPreview()" class="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-700/60 transition-colors cursor-pointer" title="Fermer">
+                <button type="button" onclick="closeTicketPreview()" class="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-700/60 transition-colors cursor-pointer" title="Fermer (Échap)">
                     <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                     </svg>
@@ -1243,10 +1277,10 @@
                 <span class="text-[10px] text-slate-400 font-mono hidden sm:inline">Format 80mm</span>
             </div>
 
-            <!-- Iframe Container with realistic thermal ticket styling -->
-            <div class="p-4 overflow-y-auto flex-1 flex justify-center items-start bg-slate-950/60 min-h-[380px]">
-                <div class="bg-white rounded shadow-2xl overflow-hidden border border-slate-300 transition-all" style="width: 320px;">
-                    <iframe id="ticket-preview-iframe" class="w-full border-0" style="min-height: 460px; height: 480px; display: block;" src="about:blank"></iframe>
+            <!-- Iframe Container with native dedicated scrollbar -->
+            <div class="p-3 sm:p-4 flex-1 flex justify-center items-center bg-slate-950/70 overflow-hidden">
+                <div class="bg-white rounded-xl shadow-2xl border border-slate-700/80 overflow-hidden flex flex-col" style="width: 360px; max-width: 100%; height: 500px; max-height: calc(85vh - 140px);">
+                    <iframe id="ticket-preview-iframe" class="w-full h-full border-0" style="display: block; width: 100%; height: 100%; background: #ffffff;" src="about:blank"></iframe>
                 </div>
             </div>
 
@@ -1310,6 +1344,11 @@
             </button>
         </div>
     </div>
+
+    <!-- Admin Database Backup Modal -->
+    @if(Auth::check() && Auth::user()->role === 'admin')
+        @include('admin.backups.modal')
+    @endif
 
     @yield('scripts')
 </body>

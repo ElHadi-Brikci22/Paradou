@@ -14,11 +14,17 @@ use App\Http\Controllers\Admin\ClientController;
 use App\Http\Controllers\Admin\CatalogController;
 use App\Http\Controllers\Admin\RubricsController;
 use App\Http\Controllers\Admin\PriceController;
+use App\Http\Controllers\Admin\ExpenseController;
+use App\Http\Controllers\Admin\BackupController;
 
 // Public Auth Routes
 Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
 Route::post('/login', [LoginController::class, 'login']);
 Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
+
+// Public Digital Receipt (Scanned via QR Code on client ticket)
+Route::get('/r/{identifier}', [TicketPrintController::class, 'publicReceipt'])->name('orders.public-receipt');
+Route::get('/r/{identifier}/pdf', [TicketPrintController::class, 'downloadPublicPdf'])->name('orders.public-receipt-pdf');
 
 // Protected Workspace Routes
 Route::middleware('auth')->group(function () {
@@ -36,6 +42,10 @@ Route::middleware('auth')->group(function () {
         Route::delete('/admin/orders/{id}', [OrderController::class, 'destroy'])->name('admin.orders.destroy');
         Route::resource('/admin/users', UserController::class)->names('admin.users')->except(['create', 'show', 'edit']);
         Route::resource('/admin/clients', ClientController::class)->names('admin.clients')->except(['create', 'show', 'edit']);
+        
+        // Expenses (Charges de la journée)
+        Route::post('/admin/expenses', [ExpenseController::class, 'store'])->name('admin.expenses.store');
+        Route::delete('/admin/expenses/{id}', [ExpenseController::class, 'destroy'])->name('admin.expenses.destroy');
         
         // Price Management (wholesale & retail)
         Route::get('/admin/prices', [PriceController::class, 'index'])->name('admin.prices.index');
@@ -69,6 +79,12 @@ Route::middleware('auth')->group(function () {
         // Flat file dictionaries & patterns management
         Route::get('/admin/rubrics', [RubricsController::class, 'index'])->name('admin.rubrics.index');
         Route::post('/admin/rubrics/save', [RubricsController::class, 'saveRubric'])->name('admin.rubrics.save');
+
+        // Database Backups & Settings
+        Route::get('/admin/backups', [BackupController::class, 'index'])->name('admin.backups.index');
+        Route::post('/admin/backups/directory', [BackupController::class, 'updateDirectory'])->name('admin.backups.directory');
+        Route::post('/admin/backups/run', [BackupController::class, 'runBackup'])->name('admin.backups.run');
+        Route::get('/admin/backups/download/{filename}', [BackupController::class, 'download'])->name('admin.backups.download');
     });
 
     Route::prefix('api')->group(function () {

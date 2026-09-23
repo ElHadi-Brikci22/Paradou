@@ -47,16 +47,21 @@ class OrderController extends Controller
 
         try {
             $order = DB::transaction(function () use (&$validated) {
-                // Generate next ticket number if not provided
-                $ticketNumber = $validated['ticket_number'] ?? null;
+                // Generate next ticket number atomically at the moment of confirmation
+                $ticketNumber = !empty($validated['ticket_number']) ? trim($validated['ticket_number']) : null;
                 if (empty($ticketNumber)) {
-                    $lastOrder = Order::orderBy('id', 'desc')->first();
-                    $ticketNumber = $lastOrder ? str_pad(intval($lastOrder->ticket_number) + 1, 6, '0', STR_PAD_LEFT) : '000001';
+                    $lastOrder = Order::lockForUpdate()->orderBy('id', 'desc')->first();
+                    $nextNum = 1;
+                    if ($lastOrder && is_numeric($lastOrder->ticket_number)) {
+                        $nextNum = intval($lastOrder->ticket_number) + 1;
+                    }
+                    $ticketNumber = str_pad($nextNum, 6, '0', STR_PAD_LEFT);
                 }
 
-                // Check if ticket number is unique, otherwise increment it
-                while (Order::where('ticket_number', $ticketNumber)->exists()) {
-                    $ticketNumber = str_pad(intval($ticketNumber) + 1, 6, '0', STR_PAD_LEFT);
+                // Check if ticket number is unique, otherwise increment it with pessimistic lock
+                while (Order::lockForUpdate()->where('ticket_number', $ticketNumber)->exists()) {
+                    $nextNum = is_numeric($ticketNumber) ? (intval($ticketNumber) + 1) : (Order::count() + 1);
+                    $ticketNumber = str_pad($nextNum, 6, '0', STR_PAD_LEFT);
                 }
 
                 $discountType = $validated['discount_type'] ?? 'percent';

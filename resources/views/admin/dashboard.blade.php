@@ -35,48 +35,102 @@
             </p>
         </div>
 
-        <!-- Range & User & Segment Filter Form -->
-        <form method="GET" action="{{ route('admin.dashboard') }}" class="flex flex-col sm:flex-row items-center gap-3">
-            <div class="flex items-center space-x-2">
-                <span class="text-xs text-slate-400 font-medium">Service :</span>
-                <select name="segment" onchange="this.form.submit()" 
-                        class="bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs font-semibold text-slate-200 focus:outline-none focus:border-indigo-500">
-                    <option value="all" {{ $segment === 'all' ? 'selected' : '' }}>Tout le magasin (Global)</option>
-                    <option value="blanchisserie" {{ $segment === 'blanchisserie' ? 'selected' : '' }}>Blanchisserie uniquement</option>
-                    <option value="teinture" {{ $segment === 'teinture' ? 'selected' : '' }}>Teinture uniquement</option>
-                    <option value="others" {{ $segment === 'others' ? 'selected' : '' }}>Autres services</option>
-                </select>
-            </div>
+        <!-- Actions & Filters -->
+        <div class="flex flex-col sm:flex-row items-center gap-3">
+            <!-- Range & User & Segment Filter Form -->
+            <form method="GET" action="{{ route('admin.dashboard') }}" class="flex flex-col sm:flex-row items-center gap-3">
+                <div class="flex items-center space-x-2">
+                    <span class="text-xs text-slate-400 font-medium">Service :</span>
+                    <select name="segment" onchange="this.form.submit()" 
+                            class="bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs font-semibold text-slate-200 focus:outline-none focus:border-indigo-500">
+                        <option value="all" {{ $segment === 'all' ? 'selected' : '' }}>Tout le magasin (Global)</option>
+                        <option value="blanchisserie" {{ $segment === 'blanchisserie' ? 'selected' : '' }}>Blanchisserie uniquement</option>
+                        <option value="teinture" {{ $segment === 'teinture' ? 'selected' : '' }}>Teinture uniquement</option>
+                        <option value="others" {{ $segment === 'others' ? 'selected' : '' }}>Autres services</option>
+                    </select>
+                </div>
 
-            <div class="flex items-center space-x-2">
-                <span class="text-xs text-slate-400 font-medium">Acteur :</span>
-                <select name="user_id" onchange="this.form.submit()" 
-                        class="bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs font-semibold text-slate-200 focus:outline-none focus:border-indigo-500">
-                    <option value="all" {{ $userId === 'all' ? 'selected' : '' }}>Tous les acteurs</option>
-                    @foreach($users as $user)
-                        <option value="{{ $user->id }}" {{ intval($userId) === $user->id ? 'selected' : '' }}>
-                            {{ $user->name }} ({{ $user->role === 'admin' ? 'Admin' : 'Caissier' }})
-                        </option>
-                    @endforeach
-                </select>
-            </div>
+                <div class="flex items-center space-x-2">
+                    <span class="text-xs text-slate-400 font-medium">Acteur :</span>
+                    <select name="user_id" onchange="this.form.submit()" 
+                            class="bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs font-semibold text-slate-200 focus:outline-none focus:border-indigo-500">
+                        <option value="all" {{ $userId === 'all' ? 'selected' : '' }}>Tous les acteurs</option>
+                        @foreach($users as $user)
+                            <option value="{{ $user->id }}" {{ intval($userId) === $user->id ? 'selected' : '' }}>
+                                {{ $user->name }} ({{ $user->role === 'admin' ? 'Admin' : 'Caissier' }})
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
 
-            <div class="flex items-center space-x-2">
-                <span class="text-xs text-slate-400 font-medium">Période :</span>
-                <select name="range" onchange="this.form.submit()" 
-                        class="bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs font-semibold text-slate-200 focus:outline-none focus:border-indigo-500">
-                    <option value="today" {{ $range === 'today' ? 'selected' : '' }}>Aujourd'hui</option>
-                    <option value="week" {{ $range === 'week' ? 'selected' : '' }}>7 derniers jours</option>
-                    <option value="month" {{ $range === 'month' ? 'selected' : '' }}>Ce mois-ci</option>
-                    <option value="year" {{ $range === 'year' ? 'selected' : '' }}>Cette année</option>
-                    <option value="all" {{ $range === 'all' ? 'selected' : '' }}>Toutes les données</option>
-                </select>
-            </div>
-        </form>
+                <div class="flex items-center space-x-2">
+                    <span class="text-xs text-slate-400 font-medium">Période :</span>
+                    <select name="range" onchange="this.form.submit()" 
+                            class="bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs font-semibold text-slate-200 focus:outline-none focus:border-indigo-500">
+                        <option value="today" {{ $range === 'today' ? 'selected' : '' }}>Aujourd'hui</option>
+                        <option value="week" {{ $range === 'week' ? 'selected' : '' }}>7 derniers jours</option>
+                        <option value="month" {{ $range === 'month' ? 'selected' : '' }}>Ce mois-ci</option>
+                        <option value="year" {{ $range === 'year' ? 'selected' : '' }}>Cette année</option>
+                        <option value="all" {{ $range === 'all' ? 'selected' : '' }}>Toutes les données</option>
+                    </select>
+                </div>
+            </form>
+
+            <!-- Quick Add Expense Button -->
+            <button type="button" onclick="openExpenseModal()" 
+                    class="inline-flex items-center space-x-1.5 px-3.5 py-2 rounded-lg bg-gradient-to-r from-rose-600 to-rose-700 hover:from-rose-500 hover:to-rose-600 text-white shadow-lg shadow-rose-950/40 text-xs font-bold transition-all transform active:scale-95 border border-rose-500/30 whitespace-nowrap cursor-pointer">
+                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                </svg>
+                <span>+ Nouvelle Charge</span>
+            </button>
+
+            <!-- Quick Backup Modal Button -->
+            <button type="button" onclick="openGlobalBackupModal()" 
+                    class="inline-flex items-center space-x-1.5 px-3.5 py-2 rounded-lg bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-500 hover:to-indigo-500 text-white shadow-lg shadow-indigo-950/40 text-xs font-bold transition-all transform active:scale-95 border border-indigo-500/30 whitespace-nowrap cursor-pointer">
+                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4" />
+                </svg>
+                <span>💾 Sauvegardes DB</span>
+            </button>
+        </div>
     </div>
 
     <!-- Main Scrollable Dashboard Content -->
     <div class="flex-1 overflow-y-auto p-6 space-y-6">
+        
+        <!-- Flash notifications -->
+        @if(session('success'))
+            <div class="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-semibold flex items-center justify-between">
+                <div class="flex items-center space-x-2">
+                    <svg class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                    </svg>
+                    <span>{{ session('success') }}</span>
+                </div>
+                <button type="button" onclick="this.parentElement.remove()" class="text-emerald-400/60 hover:text-emerald-400">
+                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+        @endif
+
+        @if(session('error'))
+            <div class="p-4 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs font-semibold flex items-center justify-between">
+                <div class="flex items-center space-x-2">
+                    <svg class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span>{{ session('error') }}</span>
+                </div>
+                <button type="button" onclick="this.parentElement.remove()" class="text-rose-400/60 hover:text-rose-400">
+                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+        @endif
         
         <!-- Row 1: KPI Cards Grid -->
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
@@ -110,7 +164,12 @@
 
             <!-- KPI 4: Total Expenses -->
             <div class="kpi-card rounded-2xl p-4 border-l-4 border-l-rose-500">
-                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Total Dépenses</p>
+                <div class="flex items-center justify-between">
+                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Total Dépenses</p>
+                    <button type="button" onclick="openExpenseModal()" class="text-[10px] font-bold text-rose-400 hover:text-rose-300 bg-rose-500/10 hover:bg-rose-500/20 px-2 py-0.5 rounded border border-rose-500/20 transition-colors">
+                        + Saisir
+                    </button>
+                </div>
                 <p class="text-xl font-black font-display text-rose-400 mt-2">
                     @if(is_null($totalExpenses))
                         N/A
@@ -119,7 +178,8 @@
                     @endif
                 </p>
                 <div class="flex items-center justify-between text-[10px] text-slate-500 mt-2">
-                    <span>{{ is_null($totalExpenses) ? 'Charges non réparties' : 'Charges enregistrées' }}</span>
+                    <span>{{ is_null($totalExpenses) ? 'Charges non réparties' : ($expensesCount . ' charge' . ($expensesCount > 1 ? 's' : '')) }}</span>
+                    <a href="#charges-section" class="text-rose-400/80 hover:text-rose-400 underline text-[10px]">Voir détail</a>
                 </div>
             </div>
 
@@ -414,6 +474,118 @@
                     @endif
                 </div>
             </div>
+        <!-- Row: Suivi & Comptabilisation des Charges (Dépenses) -->
+        <div id="charges-section" class="kpi-card rounded-2xl p-5 border-l-4 border-l-rose-500">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5 pb-3 border-b border-slate-700/40">
+                <div class="flex items-center space-x-2.5">
+                    <div class="h-8 w-8 rounded-lg bg-rose-500/10 border border-rose-500/20 text-rose-400 flex items-center justify-center">
+                        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-bold text-slate-100 font-display">Charges & Dépenses de la période</h3>
+                        <p class="text-[11px] text-slate-400">Salaires employés, loyer, factures d'énergie, réparations et sorties de caisse</p>
+                    </div>
+                </div>
+                
+                <div class="flex items-center space-x-3">
+                    <div class="text-right">
+                        <span class="text-[10px] text-slate-400 block">Total charges :</span>
+                        <span class="text-sm font-black text-rose-400 font-mono">{{ number_format($expensesSum, 0, '.', ' ') }} DA</span>
+                    </div>
+                    <button type="button" onclick="openExpenseModal()" 
+                            class="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-rose-600/20 hover:bg-rose-600/30 text-rose-400 hover:text-rose-300 border border-rose-500/30 text-xs font-bold transition-colors">
+                        <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                        </svg>
+                        <span>+ Saisir une charge</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Category summary pills if any -->
+            @if($expensesByCategory->isNotEmpty())
+                <div class="flex flex-wrap gap-2 mb-4">
+                    @foreach($expensesByCategory as $cat)
+                        <div class="inline-flex items-center space-x-1.5 px-2.5 py-1 rounded-lg bg-slate-800/80 border border-slate-700/50 text-xs font-medium text-slate-300">
+                            <span class="w-2 h-2 rounded-full bg-rose-400"></span>
+                            <span>{{ $cat->category }} :</span>
+                            <span class="font-bold text-rose-400 font-mono">{{ number_format($cat->total, 0, '.', ' ') }} DA</span>
+                            <span class="text-[10px] text-slate-500">({{ $cat->count }})</span>
+                        </div>
+                    @endforeach
+                </div>
+            @endif
+
+            @if($periodExpenses->isEmpty())
+                <div class="text-center py-8 text-slate-500 text-xs">
+                    <div class="h-10 w-10 mx-auto mb-2 rounded-full bg-slate-800 flex items-center justify-center text-slate-400">
+                        <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                    </div>
+                    <p class="font-semibold text-slate-400">Aucune charge enregistrée pour cette période.</p>
+                    <p class="text-[11px] text-slate-500 mt-1">Vous pouvez consigner une dépense (ex: salaire d'un employé, loyer, réparation) pour déduire ce montant du bénéfice réel.</p>
+                    <button type="button" onclick="openExpenseModal()" class="mt-3 inline-flex items-center space-x-1 px-3 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold transition-all shadow">
+                        <span>+ Enregistrer la première charge</span>
+                    </button>
+                </div>
+            @else
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse text-xs">
+                        <thead>
+                            <tr class="border-b border-slate-800 text-[10px] font-bold text-slate-500 uppercase tracking-wider bg-slate-800/20">
+                                <th class="py-2.5 px-3">Date</th>
+                                <th class="py-2.5 px-3">Catégorie / Motif</th>
+                                <th class="py-2.5 px-3">Détails & Notes</th>
+                                <th class="py-2.5 px-3">Enregistré par</th>
+                                <th class="py-2.5 px-3 text-right">Montant</th>
+                                <th class="py-2.5 px-3 text-center">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-800/50">
+                            @foreach($periodExpenses as $exp)
+                                <tr class="hover:bg-slate-800/30 transition-colors">
+                                    <td class="py-2.5 px-3 text-slate-300 font-mono text-[11px] whitespace-nowrap">
+                                        {{ $exp->expense_date ? $exp->expense_date->format('d/m/Y') : '-' }}
+                                    </td>
+                                    <td class="py-2.5 px-3">
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold 
+                                            @if(str_contains(strtolower($exp->category), 'salaire')) bg-blue-500/10 text-blue-400 border border-blue-500/30
+                                            @elseif(str_contains(strtolower($exp->category), 'loyer')) bg-purple-500/10 text-purple-400 border border-purple-500/30
+                                            @elseif(str_contains(strtolower($exp->category), 'electr') || str_contains(strtolower($exp->category), 'eau')) bg-amber-500/10 text-amber-400 border border-amber-500/30
+                                            @elseif(str_contains(strtolower($exp->category), 'produit') || str_contains(strtolower($exp->category), 'lessive')) bg-teal-500/10 text-teal-400 border border-teal-500/30
+                                            @else bg-rose-500/10 text-rose-400 border border-rose-500/30 @endif">
+                                            {{ $exp->category }}
+                                        </span>
+                                    </td>
+                                    <td class="py-2.5 px-3 text-slate-300">
+                                        {{ $exp->notes ?: '—' }}
+                                    </td>
+                                    <td class="py-2.5 px-3 text-slate-400">
+                                        {{ $exp->user ? $exp->user->name : 'Système' }}
+                                    </td>
+                                    <td class="py-2.5 px-3 text-right font-black text-rose-400 font-mono text-sm whitespace-nowrap">
+                                        - {{ number_format($exp->amount, 0, '.', ' ') }} DA
+                                    </td>
+                                    <td class="py-2.5 px-3 text-center whitespace-nowrap">
+                                        <form method="POST" action="{{ route('admin.expenses.destroy', $exp->id) }}" onsubmit="return confirm('Confirmez-vous la suppression de cette charge de {{ number_format($exp->amount, 0, '.', ' ') }} DA ?');" class="inline">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="p-1 rounded bg-slate-800 hover:bg-rose-950/40 text-slate-400 hover:text-rose-400 transition-colors" title="Supprimer cette dépense">
+                                                <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                </svg>
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            @endif
         </div>
 
         <!-- Row 6: Analyse des Remises -->
@@ -481,12 +653,168 @@
 
     </div>
 </div>
+
+<!-- Modal Saisie d'une charge -->
+<div id="expenseModal" class="fixed inset-0 z-50 hidden overflow-y-auto bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="relative w-full max-w-md bg-slate-900 border border-slate-700/80 rounded-2xl shadow-2xl overflow-hidden">
+        <!-- Modal Header -->
+        <div class="bg-gradient-to-r from-rose-950/50 via-slate-800/60 to-slate-800/40 p-5 border-b border-slate-700/60 flex items-center justify-between">
+            <div class="flex items-center space-x-2.5">
+                <div class="h-9 w-9 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400 flex items-center justify-center">
+                    <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+                    </svg>
+                </div>
+                <div>
+                    <h3 class="text-base font-bold text-white font-display">Enregistrer une Charge</h3>
+                    <p class="text-[11px] text-slate-400">Sortie de caisse ou dépense de la boutique</p>
+                </div>
+            </div>
+            <button type="button" onclick="closeExpenseModal()" class="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition-colors">
+                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+        </div>
+
+        <!-- Form -->
+        <form method="POST" action="{{ route('admin.expenses.store') }}" class="p-5 space-y-4">
+            @csrf
+
+            <!-- Montant -->
+            <div>
+                <label class="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">
+                    Montant de la charge (DA) <span class="text-rose-400">*</span>
+                </label>
+                <div class="relative">
+                    <input type="number" step="any" min="1" name="amount" id="expense_amount" required placeholder="0" 
+                           class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 text-2xl font-black font-mono text-rose-400 text-center focus:outline-none focus:border-rose-500 focus:ring-2 focus:ring-rose-500/20">
+                    <span class="absolute right-4 top-1/2 -translate-y-1/2 text-sm font-bold text-slate-500 font-mono">DA</span>
+                </div>
+            </div>
+
+            <!-- Catégorie / Motif -->
+            <div>
+                <label class="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">
+                    Motif / Catégorie <span class="text-rose-400">*</span>
+                </label>
+                <select name="category" id="expense_category_select" onchange="toggleCustomCategory(this)" 
+                        class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-slate-200 focus:outline-none focus:border-rose-500">
+                    <option value="Salaire employé">💼 Salaire employé</option>
+                    <option value="Avance sur salaire">💵 Avance sur salaire</option>
+                    <option value="Loyer du local">🏢 Loyer du local</option>
+                    <option value="Électricité, Eau & Gaz">⚡ Facture Sonelgaz / Eau</option>
+                    <option value="Produits & Lessive">🧴 Produits de nettoyage & Lessive</option>
+                    <option value="Maintenance & Réparations">🛠️ Maintenance & Réparation machine</option>
+                    <option value="Fournitures & Emballage">📦 Cintres, Housses, Papier & Bobines</option>
+                    <option value="Carburant & Transport">🚚 Carburant & Transport</option>
+                    <option value="__custom__">📝 Autre motif personnalisé...</option>
+                </select>
+                <input type="text" id="custom_category_input" name="custom_category" placeholder="Précisez le motif..." 
+                       class="hidden mt-2 w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2 text-xs text-slate-200 focus:outline-none focus:border-rose-500">
+            </div>
+
+            <!-- Date & Acteur -->
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="block text-[11px] font-bold text-slate-300 uppercase tracking-wider mb-1">
+                        Date <span class="text-rose-400">*</span>
+                    </label>
+                    <input type="date" name="expense_date" value="{{ date('Y-m-d') }}" required 
+                           class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-200 font-mono focus:outline-none focus:border-rose-500">
+                </div>
+                <div>
+                    <label class="block text-[11px] font-bold text-slate-300 uppercase tracking-wider mb-1">
+                        Enregistré par
+                    </label>
+                    <select name="user_id" 
+                            class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-rose-500">
+                        @foreach($users as $u)
+                            <option value="{{ $u->id }}" {{ Auth::id() === $u->id ? 'selected' : '' }}>
+                                {{ $u->name }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+            </div>
+
+            <!-- Bénéficiaire / Notes -->
+            <div>
+                <label class="block text-[11px] font-bold text-slate-300 uppercase tracking-wider mb-1">
+                    Bénéficiaire / Description (Optionnel)
+                </label>
+                <input type="text" name="notes" placeholder="Ex: Paiement salaire Karim (septembre)" 
+                       class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2 text-xs text-slate-200 focus:outline-none focus:border-rose-500">
+            </div>
+
+            <!-- Actions -->
+            <div class="flex items-center justify-end space-x-3 pt-3 border-t border-slate-800">
+                <button type="button" onclick="closeExpenseModal()" 
+                        class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-white bg-slate-800 hover:bg-slate-700 transition-colors">
+                    Annuler
+                </button>
+                <button type="submit" 
+                        class="px-5 py-2 rounded-xl text-xs font-bold text-white bg-gradient-to-r from-rose-600 to-rose-700 hover:from-rose-500 hover:to-rose-600 shadow-lg shadow-rose-950/40 transition-all transform active:scale-95">
+                    Enregistrer la charge
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
 @endsection
 
 @section('scripts')
 <!-- Load Chart.js locally for offline support -->
 <script src="{{ asset('js/chart.min.js') }}"></script>
 <script>
+    function openExpenseModal() {
+        const modal = document.getElementById('expenseModal');
+        if (modal) {
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                const input = document.getElementById('expense_amount');
+                if (input) input.focus();
+            }, 100);
+        }
+    }
+
+    function closeExpenseModal() {
+        const modal = document.getElementById('expenseModal');
+        if (modal) {
+            modal.classList.add('hidden');
+        }
+    }
+
+    function toggleCustomCategory(select) {
+        const customInput = document.getElementById('custom_category_input');
+        if (customInput) {
+            if (select.value === '__custom__') {
+                customInput.classList.remove('hidden');
+                customInput.focus();
+                customInput.required = true;
+            } else {
+                customInput.classList.add('hidden');
+                customInput.required = false;
+            }
+        }
+    }
+
+    // Close modal on Escape
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            closeExpenseModal();
+        }
+    });
+
+    // Close modal when clicking outside
+    document.addEventListener('DOMContentLoaded', () => {
+        document.getElementById('expenseModal')?.addEventListener('click', (e) => {
+            if (e.target.id === 'expenseModal') {
+                closeExpenseModal();
+            }
+        });
+    });
+
     document.addEventListener("DOMContentLoaded", () => {
         
         // 1. Sales Trend Line Chart

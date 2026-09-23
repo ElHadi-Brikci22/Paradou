@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Order;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class TicketPrintController extends Controller
 {
@@ -16,6 +17,74 @@ class TicketPrintController extends Controller
             ->findOrFail($id);
 
         return view('print.ticket', compact('order'));
+    }
+
+    /**
+     * Display public mobile-friendly digital receipt accessible via QR code scan.
+     */
+    public function publicReceipt($identifier)
+    {
+        $order = Order::with(['client', 'user', 'orderItems.service', 'orderItems.garmentItem'])
+            ->where('ticket_number', $identifier)
+            ->orWhere('uuid', $identifier)
+            ->orWhere('id', $identifier)
+            ->firstOrFail();
+
+        return view('print.public_receipt', compact('order'));
+    }
+
+    /**
+     * Generate and stream/download the PDF receipt for a ticket.
+     */
+    public function downloadPublicPdf($identifier, Request $request)
+    {
+        $order = Order::with(['client', 'user', 'orderItems.service', 'orderItems.garmentItem'])
+            ->where('ticket_number', $identifier)
+            ->orWhere('uuid', $identifier)
+            ->orWhere('id', $identifier)
+            ->firstOrFail();
+
+        $pdf = Pdf::loadView('print.pdf_receipt', compact('order'));
+        $pdf->setPaper([0, 0, 226.77, 650], 'portrait');
+
+        $filename = "recu-paradou-{$order->ticket_number}.pdf";
+
+        if ($request->has('download')) {
+            return $pdf->download($filename);
+        }
+
+        return $pdf->stream($filename);
+    }
+
+    /**
+     * Resolve the public URL for the QR code.
+     * Replaces 'localhost' or '127.0.0.1' with the computer's LAN IP so smartphones on Wi-Fi can open it.
+     */
+    public static function getPublicReceiptUrl(string $ticketNumber, bool $directPdf = true): string
+    {
+        $path = $directPdf ? "/r/{$ticketNumber}/pdf" : "/r/{$ticketNumber}";
+
+        // 1. Check if user configured an explicit public URL in .env
+        $publicAppUrl = env('PUBLIC_APP_URL');
+        if (!empty($publicAppUrl)) {
+            return rtrim($publicAppUrl, '/') . $path;
+        }
+
+        $request = request();
+        $host = $request ? $request->getHost() : 'localhost';
+        $port = $request ? $request->getPort() : 8000;
+        $portSuffix = ($port && !in_array($port, [80, 443])) ? ":{$port}" : '';
+        $scheme = $request ? $request->getScheme() : 'http';
+
+        // 2. If accessing via localhost on PC, substitute with local LAN IP (e.g. 192.168.1.22)
+        if (in_array($host, ['localhost', '127.0.0.1', '::1', ''])) {
+            $localIp = getHostByName(getHostName());
+            if (!empty($localIp) && $localIp !== '127.0.0.1') {
+                return "{$scheme}://{$localIp}{$portSuffix}{$path}";
+            }
+        }
+
+        return url($path);
     }
 
     /**

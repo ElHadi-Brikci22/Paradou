@@ -5,47 +5,216 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Impression Complète #{{ $order->ticket_number }}</title>
     <style>
-        /* CSS reset & thermal paper configurations */
+        /* CSS reset & typography */
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+            font-weight: bold !important;
         }
-        body {
-            width: 100%;
-            max-width: 80mm;
-            margin: 0 !important;
-            margin-left: 0 !important;
-            padding: 3mm 2mm 3mm 0 !important; /* Zero marge a gauche */
-            font-family: 'Courier New', Courier, monospace;
-            font-size: 12px;
-            color: #000;
-            background: #fff;
-            line-height: 1.35;
+
+        /* Screen Preview Styling */
+        @media screen {
+            html {
+                background: #0f172a;
+                overflow-y: scroll !important;
+                scrollbar-width: thin;
+                scrollbar-color: #64748b #0f172a;
+            }
+            body {
+                background: #0f172a;
+                color: #000;
+                min-height: 100vh;
+                height: auto !important;
+                overflow-y: visible !important;
+                margin: 0 !important;
+                padding: 68px 15px 40px 15px !important;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: flex-start;
+                font-family: 'Courier New', Courier, monospace;
+            }
+
+            /* Custom Visible Scrollbar (Chrome, Edge, Safari, Opera) */
+            ::-webkit-scrollbar {
+                width: 14px !important;
+                height: 14px !important;
+                display: block !important;
+            }
+            ::-webkit-scrollbar-track {
+                background: #0f172a !important;
+                border-left: 1px solid rgba(255, 255, 255, 0.12) !important;
+            }
+            ::-webkit-scrollbar-thumb {
+                background: #475569 !important;
+                border-radius: 7px !important;
+                border: 3px solid #0f172a !important;
+            }
+            ::-webkit-scrollbar-thumb:hover {
+                background: #64748b !important;
+            }
+            ::-webkit-scrollbar-thumb:active {
+                background: #94a3b8 !important;
+            }
+
+            @if(request('preview'))
+                .preview-toolbar { display: none !important; }
+                html {
+                    background: #ffffff !important;
+                    overflow-y: scroll !important;
+                    scrollbar-width: thin !important;
+                    scrollbar-color: #94a3b8 #f1f5f9 !important;
+                }
+                body { 
+                    padding: 8px 10px 30px 10px !important; 
+                    background: #ffffff !important; 
+                    min-height: 100% !important;
+                    height: auto !important;
+                    overflow-y: visible !important;
+                    width: 100% !important;
+                    max-width: 100% !important;
+                    display: block !important;
+                }
+                .page-block {
+                    box-shadow: none !important;
+                    padding: 2mm 1mm !important;
+                    width: 100% !important;
+                    max-width: 100% !important;
+                }
+                ::-webkit-scrollbar {
+                    width: 8px !important;
+                    display: block !important;
+                }
+                ::-webkit-scrollbar-track {
+                    background: #f1f5f9 !important;
+                    border: none !important;
+                }
+                ::-webkit-scrollbar-thumb {
+                    background: #94a3b8 !important;
+                    border-radius: 4px !important;
+                    border: none !important;
+                }
+                ::-webkit-scrollbar-thumb:hover {
+                    background: #64748b !important;
+                }
+            @endif
+            .preview-toolbar {
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                height: 52px;
+                background: rgba(15, 23, 42, 0.96);
+                backdrop-filter: blur(12px);
+                -webkit-backdrop-filter: blur(12px);
+                border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                padding: 0 16px;
+                z-index: 99999;
+                font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            }
+            .toolbar-left, .toolbar-right {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
+            .toolbar-title {
+                color: #f8fafc;
+                font-size: 13px;
+                font-weight: 700;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
+            .toolbar-btn {
+                display: inline-flex;
+                align-items: center;
+                gap: 6px;
+                padding: 7px 13px;
+                border-radius: 8px;
+                font-size: 12px;
+                font-weight: 700;
+                cursor: pointer;
+                text-decoration: none;
+                transition: all 0.15s ease;
+                border: none;
+            }
+            .btn-back {
+                background: #334155;
+                color: #f1f5f9;
+            }
+            .btn-back:hover {
+                background: #475569;
+                color: #ffffff;
+            }
+            .btn-pdf {
+                background: #0284c7;
+                color: #ffffff;
+            }
+            .btn-pdf:hover {
+                background: #0369a1;
+            }
+            .btn-print {
+                background: #4f46e5;
+                color: #ffffff;
+                box-shadow: 0 2px 8px rgba(79, 70, 229, 0.35);
+            }
+            .btn-print:hover {
+                background: #4338ca;
+            }
+            .print-wrapper {
+                display: flex;
+                flex-direction: column;
+                gap: 20px;
+                align-items: center;
+                width: 100%;
+            }
+            .page-block {
+                background: #ffffff;
+                width: 78mm;
+                max-width: 100%;
+                padding: 6mm 4.5mm 8mm 4.5mm;
+                border-radius: 8px;
+                box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255, 255, 255, 0.1);
+            }
         }
 
         /* Hide elements on print */
         @media print {
+            .no-print, .preview-toolbar {
+                display: none !important;
+            }
             html, body {
-                width: 100%;
-                max-width: 80mm;
+                width: 100% !important;
+                max-width: 80mm !important;
                 margin: 0 !important;
                 margin-left: 0 !important;
-                padding: 2mm 2mm 2mm 0 !important; /* Zero marge a gauche */
+                padding: 2mm 2mm 2mm 0 !important;
                 color: #000 !important;
                 background: #fff !important;
-            }
-            .no-print {
-                display: none !important;
+                font-family: 'Courier New', Courier, monospace;
             }
             @page {
                 margin: 0;
                 size: 80mm auto;
             }
+            .print-wrapper {
+                width: 100% !important;
+            }
             .page-block {
                 page-break-after: always;
                 border-bottom: 2px dashed #000;
                 padding: 6mm 4mm !important;
+                box-shadow: none !important;
+                border-radius: 0 !important;
+                background: #fff !important;
+                width: 100% !important;
+                max-width: 80mm !important;
             }
             .page-block:last-child {
                 page-break-after: avoid;
@@ -183,33 +352,42 @@
             background: transparent;
         }
 
-        /* Browser Floating button */
-        .print-btn-container {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            z-index: 100;
-        }
-        .print-btn {
-            background: #4f46e5;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 8px;
-            font-weight: bold;
-            font-size: 13px;
-            cursor: pointer;
-            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.2);
-            font-family: sans-serif;
-        }
     </style>
 </head>
 <body>
 
-    <!-- Browser Action Button (Hidden during print) -->
-    <div class="print-btn-container no-print">
-        <button onclick="window.print()" class="print-btn">Imprimer Tout</button>
-    </div>
+    <!-- Top Preview Bar (Screen view only) -->
+    <header class="preview-toolbar no-print">
+        <div class="toolbar-left">
+            <button type="button" onclick="historyBackOrOrders()" class="toolbar-btn btn-back">
+                <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                </svg>
+                <span>Retour</span>
+            </button>
+        </div>
+        <div class="toolbar-title">
+            <span>Aperçu Impression Complète</span>
+            <span style="color: #38bdf8; font-family: monospace;">#{{ $order->ticket_number }}</span>
+            <span style="color: #94a3b8; font-weight: normal; font-size: 11px;">({{ $order->client ? $order->client->name : 'Passage' }})</span>
+        </div>
+        <div class="toolbar-right">
+            <a href="{{ route('orders.public-receipt-pdf', $order->ticket_number) }}?download=1" class="toolbar-btn btn-pdf" target="_blank" title="Télécharger le fichier PDF du reçu">
+                <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                <span>Télécharger PDF</span>
+            </a>
+            <button type="button" onclick="window.print()" class="toolbar-btn btn-print">
+                <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                </svg>
+                <span>Imprimer Tout</span>
+            </button>
+        </div>
+    </header>
+
+    <div class="print-wrapper">
 
     <!-- PART 1: Client Receipt Ticket -->
     <div class="page-block">
@@ -409,9 +587,15 @@
             <!-- Simulated barcode text -->
             <div class="barcode-text text-center font-mono">{{ $order->ticket_number }}</div>
 
-            <!-- Code QR du numéro de commande / ticket -->
+            <!-- Code QR du reçu digital client -->
             <div class="qrcode-container text-center">
-                {!! QrCode::size(110)->margin(1)->generate($order->ticket_number) !!}
+                @php
+                    $receiptUrl = \App\Http\Controllers\TicketPrintController::getPublicReceiptUrl($order->ticket_number, true);
+                @endphp
+                {!! QrCode::size(110)->margin(1)->generate($receiptUrl) !!}
+                <div style="font-size: 8px; font-weight: normal; margin-top: 3px; color: #333; font-family: sans-serif;">
+                    Scannez pour télécharger le reçu PDF
+                </div>
             </div>
         </div>
     </div>
@@ -503,26 +687,46 @@
             </div>
         @endif
     </div>
+    </div> <!-- /print-wrapper -->
 
-    <!-- Auto Print Script -->
+    <!-- Auto Print & Navigation Scripts -->
     <script>
-        const isElectron = navigator.userAgent.toLowerCase().includes('electron') || !!window.posDesktop;
-        if (window.self === window.top && !isElectron) {
-            window.addEventListener('afterprint', () => {
-                setTimeout(() => {
-                    if (window.history.length === 1) {
-                        window.close();
-                    }
-                }, 500);
-            });
-
-            window.addEventListener('DOMContentLoaded', () => {
-                setTimeout(() => {
-                    window.focus();
-                    window.print();
-                }, 500);
-            });
+        function historyBackOrOrders() {
+            if (window.opener) {
+                window.close();
+            } else if (window.history.length > 1) {
+                window.history.back();
+            } else {
+                window.location.href = "{{ route('orders.index') }}";
+            }
         }
+
+        // Close on Escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' || e.key === 'Esc') {
+                historyBackOrOrders();
+            }
+        });
+
+        const isElectron = navigator.userAgent.toLowerCase().includes('electron') || !!window.posDesktop;
+        @if(request('autoprint'))
+            if (window.self === window.top && !isElectron) {
+                window.addEventListener('afterprint', () => {
+                    setTimeout(() => {
+                        if (window.opener && window.history.length === 1) {
+                            window.close();
+                        }
+                    }, 500);
+                });
+
+                window.addEventListener('DOMContentLoaded', () => {
+                    setTimeout(() => {
+                        window.focus();
+                        window.print();
+                    }, 400);
+                });
+            }
+        @endif
     </script>
 </body>
 </html>

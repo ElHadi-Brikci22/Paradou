@@ -304,13 +304,14 @@
                 }, 500);
             });
 
+        @if(request('autoprint'))
             window.addEventListener('DOMContentLoaded', () => {
                 setTimeout(() => {
                     window.focus();
                     window.print();
                 }, 400);
             });
-        }
+        @endif
     </script>
 </body>
 </html>

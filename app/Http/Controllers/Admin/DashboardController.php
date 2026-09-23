@@ -462,6 +462,27 @@ class DashboardController extends Controller
         $globalOutstandingCredit = floatval((clone $globalCreditQuery)->sum('balance_amount'));
         $globalOutstandingTickets = (clone $globalCreditQuery)->count();
 
+        // Expenses for the active period
+        $periodExpensesQuery = Expense::whereBetween('expense_date', [$start, $end]);
+        if ($userId !== 'all') {
+            $periodExpensesQuery->where('user_id', $userId);
+        }
+        $periodExpenses = (clone $periodExpensesQuery)
+            ->with('user')
+            ->orderBy('expense_date', 'desc')
+            ->orderBy('id', 'desc')
+            ->limit(50)
+            ->get();
+
+        $expensesCount = (clone $periodExpensesQuery)->count();
+        $expensesSum = floatval((clone $periodExpensesQuery)->sum('amount'));
+
+        $expensesByCategory = (clone $periodExpensesQuery)
+            ->select('category', DB::raw('SUM(amount) as total'), DB::raw('COUNT(*) as count'))
+            ->groupBy('category')
+            ->orderByDesc('total')
+            ->get();
+
         return view('admin.dashboard', compact(
             'range',
             'userId',
@@ -492,7 +513,11 @@ class DashboardController extends Controller
             'totalCreditPaid',
             'creditOrders',
             'globalOutstandingCredit',
-            'globalOutstandingTickets'
+            'globalOutstandingTickets',
+            'periodExpenses',
+            'expensesCount',
+            'expensesSum',
+            'expensesByCategory'
         ));
     }
 }
